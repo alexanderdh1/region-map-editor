@@ -13,8 +13,6 @@ The system is designed as an interactive desktop application for visualizing and
 
 - support for free-form polygon regions
 
-- hierarchical metadata and progress tracking
-
 The system is designed to be domain-agnostic, meaning it is not tied to a specific data source or application domain.
 
 ## 2. Platform Decision
