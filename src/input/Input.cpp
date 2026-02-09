@@ -23,6 +23,20 @@ bool Input::hasPanDelta() const {
     return panDelta.x != 0.0 || panDelta.y != 0.0;
 }
 
+void Input::onScroll(double yOffset) {
+    zoomDelta += yOffset;
+}
+
+bool Input::hasZoomDelta() const {
+    return zoomDelta != 0.0;
+}
+
+double Input::consumeZoomDelta() {
+    double result = zoomDelta;
+    zoomDelta = 0.0;
+    return result;
+}
+
 Vec2 Input::consumePanDelta() {
     Vec2 result = panDelta;
     panDelta = {0.0, 0.0};

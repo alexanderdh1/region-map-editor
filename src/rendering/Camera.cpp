@@ -12,7 +12,7 @@ Camera::Camera()
 
 void Camera::panBy(const Vec2& delta) {
     position.x += delta.x;
-    position.y += delta.y;
+    position.y -= delta.y;
 }
 
 void Camera::zoomBy(double factor) {
