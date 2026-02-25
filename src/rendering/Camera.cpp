@@ -11,8 +11,8 @@ Camera::Camera()
 }
 
 void Camera::panBy(const Vec2& delta) {
-    position.x += delta.x;
-    position.y -= delta.y;
+    position.x -= delta.x / zoom;
+    position.y += delta.y / zoom;
 }
 
 void Camera::zoomBy(double factor) {
@@ -23,13 +23,13 @@ void Camera::zoomBy(double factor) {
 Vec2 Camera::worldToScreen(const Vec2& worldPos) const {
     return {
         (worldPos.x - position.x) * zoom + viewportSize.x * 0.5,
-        (worldPos.y - position.y) * zoom + viewportSize.y * 0.5
+        viewportSize.y * 0.5 - (worldPos.y - position.y) * zoom
     };
 }
 
 Vec2 Camera::screenToWorld(const Vec2& screenPos) const {
     return {
         (screenPos.x - viewportSize.x * 0.5) / zoom + position.x,
-        (screenPos.y - viewportSize.y * 0.5) / zoom + position.y
+        (viewportSize.y * 0.5 - screenPos.y) / zoom + position.y
     };
 }

@@ -131,12 +131,108 @@ CMakeFiles/main.dir/src/rendering/Camera.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/rendering/Camera.cpp.s"
 	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\alexa\Documents\spatial-map-editor\src\rendering\Camera.cpp -o CMakeFiles\main.dir\src\rendering\Camera.cpp.s
 
+CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.obj: CMakeFiles/main.dir/flags.make
+CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.obj: CMakeFiles/main.dir/includes_CXX.rsp
+CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.obj: C:/Users/alexa/Documents/spatial-map-editor/src/rendering/GridRenderer.cpp
+CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.obj: CMakeFiles/main.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.obj"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.obj -MF CMakeFiles\main.dir\src\rendering\GridRenderer.cpp.obj.d -o CMakeFiles\main.dir\src\rendering\GridRenderer.cpp.obj -c C:\Users\alexa\Documents\spatial-map-editor\src\rendering\GridRenderer.cpp
+
+CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.i"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\alexa\Documents\spatial-map-editor\src\rendering\GridRenderer.cpp > CMakeFiles\main.dir\src\rendering\GridRenderer.cpp.i
+
+CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.s"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\alexa\Documents\spatial-map-editor\src\rendering\GridRenderer.cpp -o CMakeFiles\main.dir\src\rendering\GridRenderer.cpp.s
+
+CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj: CMakeFiles/main.dir/flags.make
+CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj: CMakeFiles/main.dir/includes_CXX.rsp
+CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj: C:/Users/alexa/Documents/spatial-map-editor/src/window/WindowCallbacks.cpp
+CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj: CMakeFiles/main.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj -MF CMakeFiles\main.dir\src\window\WindowCallbacks.cpp.obj.d -o CMakeFiles\main.dir\src\window\WindowCallbacks.cpp.obj -c C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowCallbacks.cpp
+
+CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.i"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowCallbacks.cpp > CMakeFiles\main.dir\src\window\WindowCallbacks.cpp.i
+
+CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.s"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowCallbacks.cpp -o CMakeFiles\main.dir\src\window\WindowCallbacks.cpp.s
+
+CMakeFiles/main.dir/src/window/WindowSetup.cpp.obj: CMakeFiles/main.dir/flags.make
+CMakeFiles/main.dir/src/window/WindowSetup.cpp.obj: CMakeFiles/main.dir/includes_CXX.rsp
+CMakeFiles/main.dir/src/window/WindowSetup.cpp.obj: C:/Users/alexa/Documents/spatial-map-editor/src/window/WindowSetup.cpp
+CMakeFiles/main.dir/src/window/WindowSetup.cpp.obj: CMakeFiles/main.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/main.dir/src/window/WindowSetup.cpp.obj"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/window/WindowSetup.cpp.obj -MF CMakeFiles\main.dir\src\window\WindowSetup.cpp.obj.d -o CMakeFiles\main.dir\src\window\WindowSetup.cpp.obj -c C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowSetup.cpp
+
+CMakeFiles/main.dir/src/window/WindowSetup.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/main.dir/src/window/WindowSetup.cpp.i"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowSetup.cpp > CMakeFiles\main.dir\src\window\WindowSetup.cpp.i
+
+CMakeFiles/main.dir/src/window/WindowSetup.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/window/WindowSetup.cpp.s"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowSetup.cpp -o CMakeFiles\main.dir\src\window\WindowSetup.cpp.s
+
+CMakeFiles/main.dir/src/window/WindowUI.cpp.obj: CMakeFiles/main.dir/flags.make
+CMakeFiles/main.dir/src/window/WindowUI.cpp.obj: CMakeFiles/main.dir/includes_CXX.rsp
+CMakeFiles/main.dir/src/window/WindowUI.cpp.obj: C:/Users/alexa/Documents/spatial-map-editor/src/window/WindowUI.cpp
+CMakeFiles/main.dir/src/window/WindowUI.cpp.obj: CMakeFiles/main.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/main.dir/src/window/WindowUI.cpp.obj"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/window/WindowUI.cpp.obj -MF CMakeFiles\main.dir\src\window\WindowUI.cpp.obj.d -o CMakeFiles\main.dir\src\window\WindowUI.cpp.obj -c C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowUI.cpp
+
+CMakeFiles/main.dir/src/window/WindowUI.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/main.dir/src/window/WindowUI.cpp.i"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowUI.cpp > CMakeFiles\main.dir\src\window\WindowUI.cpp.i
+
+CMakeFiles/main.dir/src/window/WindowUI.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/window/WindowUI.cpp.s"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowUI.cpp -o CMakeFiles\main.dir\src\window\WindowUI.cpp.s
+
+CMakeFiles/main.dir/src/window/WindowFactory.cpp.obj: CMakeFiles/main.dir/flags.make
+CMakeFiles/main.dir/src/window/WindowFactory.cpp.obj: CMakeFiles/main.dir/includes_CXX.rsp
+CMakeFiles/main.dir/src/window/WindowFactory.cpp.obj: C:/Users/alexa/Documents/spatial-map-editor/src/window/WindowFactory.cpp
+CMakeFiles/main.dir/src/window/WindowFactory.cpp.obj: CMakeFiles/main.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/main.dir/src/window/WindowFactory.cpp.obj"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/window/WindowFactory.cpp.obj -MF CMakeFiles\main.dir\src\window\WindowFactory.cpp.obj.d -o CMakeFiles\main.dir\src\window\WindowFactory.cpp.obj -c C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowFactory.cpp
+
+CMakeFiles/main.dir/src/window/WindowFactory.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/main.dir/src/window/WindowFactory.cpp.i"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowFactory.cpp > CMakeFiles\main.dir\src\window\WindowFactory.cpp.i
+
+CMakeFiles/main.dir/src/window/WindowFactory.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/window/WindowFactory.cpp.s"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowFactory.cpp -o CMakeFiles\main.dir\src\window\WindowFactory.cpp.s
+
+CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj: CMakeFiles/main.dir/flags.make
+CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj: CMakeFiles/main.dir/includes_CXX.rsp
+CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj: C:/Users/alexa/Documents/spatial-map-editor/src/rendering/Renderer.cpp
+CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj: CMakeFiles/main.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj -MF CMakeFiles\main.dir\src\rendering\Renderer.cpp.obj.d -o CMakeFiles\main.dir\src\rendering\Renderer.cpp.obj -c C:\Users\alexa\Documents\spatial-map-editor\src\rendering\Renderer.cpp
+
+CMakeFiles/main.dir/src/rendering/Renderer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/main.dir/src/rendering/Renderer.cpp.i"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\alexa\Documents\spatial-map-editor\src\rendering\Renderer.cpp > CMakeFiles\main.dir\src\rendering\Renderer.cpp.i
+
+CMakeFiles/main.dir/src/rendering/Renderer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/rendering/Renderer.cpp.s"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\alexa\Documents\spatial-map-editor\src\rendering\Renderer.cpp -o CMakeFiles\main.dir\src\rendering\Renderer.cpp.s
+
 # Object files for target main
 main_OBJECTS = \
 "CMakeFiles/main.dir/src/main.cpp.obj" \
 "CMakeFiles/main.dir/src/core/Core.cpp.obj" \
 "CMakeFiles/main.dir/src/input/Input.cpp.obj" \
-"CMakeFiles/main.dir/src/rendering/Camera.cpp.obj"
+"CMakeFiles/main.dir/src/rendering/Camera.cpp.obj" \
+"CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.obj" \
+"CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj" \
+"CMakeFiles/main.dir/src/window/WindowSetup.cpp.obj" \
+"CMakeFiles/main.dir/src/window/WindowUI.cpp.obj" \
+"CMakeFiles/main.dir/src/window/WindowFactory.cpp.obj" \
+"CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj"
 
 # External object files for target main
 main_EXTERNAL_OBJECTS =
@@ -145,12 +241,18 @@ main.exe: CMakeFiles/main.dir/src/main.cpp.obj
 main.exe: CMakeFiles/main.dir/src/core/Core.cpp.obj
 main.exe: CMakeFiles/main.dir/src/input/Input.cpp.obj
 main.exe: CMakeFiles/main.dir/src/rendering/Camera.cpp.obj
+main.exe: CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.obj
+main.exe: CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj
+main.exe: CMakeFiles/main.dir/src/window/WindowSetup.cpp.obj
+main.exe: CMakeFiles/main.dir/src/window/WindowUI.cpp.obj
+main.exe: CMakeFiles/main.dir/src/window/WindowFactory.cpp.obj
+main.exe: CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj
 main.exe: CMakeFiles/main.dir/build.make
 main.exe: C:/msys64/mingw64/lib/libglfw3.dll.a
 main.exe: CMakeFiles/main.dir/linkLibs.rsp
 main.exe: CMakeFiles/main.dir/objects1.rsp
 main.exe: CMakeFiles/main.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable main.exe"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking CXX executable main.exe"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\main.dir\link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

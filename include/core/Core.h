@@ -1,19 +1,23 @@
 #pragma once
+
 #include "rendering/Camera.h"
 #include "input/Input.h"
+
+struct GLFWwindow;
 
 class Core {
 public:
     Core();
 
-    void update();
-
     Camera& getCamera();
     const Camera& getCamera() const;
 
-    Input& getInput();
+    Input& getInput();            
+    const Input& getInput() const; 
+
+    void update(GLFWwindow* window); 
 
 private:
     Camera camera;
-    Input input;
+    Input input; 
 };

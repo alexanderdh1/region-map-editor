@@ -12,6 +12,12 @@ add_executable(main
     src/core/Core.cpp
     src/input/Input.cpp
     src/rendering/Camera.cpp
+    src/rendering/GridRenderer.cpp
+    src/window/WindowCallbacks.cpp
+    src/window/WindowSetup.cpp
+    src/window/WindowUI.cpp
+    src/window/WindowFactory.cpp
+    src/rendering/Renderer.cpp
 )
 
 # Include directories

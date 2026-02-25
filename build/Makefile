@@ -224,6 +224,150 @@ src/rendering/Camera.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/Camera.cpp.s
 .PHONY : src/rendering/Camera.cpp.s
 
+src/rendering/GridRenderer.obj: src/rendering/GridRenderer.cpp.obj
+.PHONY : src/rendering/GridRenderer.obj
+
+# target to build an object file
+src/rendering/GridRenderer.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.obj
+.PHONY : src/rendering/GridRenderer.cpp.obj
+
+src/rendering/GridRenderer.i: src/rendering/GridRenderer.cpp.i
+.PHONY : src/rendering/GridRenderer.i
+
+# target to preprocess a source file
+src/rendering/GridRenderer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.i
+.PHONY : src/rendering/GridRenderer.cpp.i
+
+src/rendering/GridRenderer.s: src/rendering/GridRenderer.cpp.s
+.PHONY : src/rendering/GridRenderer.s
+
+# target to generate assembly for a file
+src/rendering/GridRenderer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.s
+.PHONY : src/rendering/GridRenderer.cpp.s
+
+src/rendering/Renderer.obj: src/rendering/Renderer.cpp.obj
+.PHONY : src/rendering/Renderer.obj
+
+# target to build an object file
+src/rendering/Renderer.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj
+.PHONY : src/rendering/Renderer.cpp.obj
+
+src/rendering/Renderer.i: src/rendering/Renderer.cpp.i
+.PHONY : src/rendering/Renderer.i
+
+# target to preprocess a source file
+src/rendering/Renderer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/Renderer.cpp.i
+.PHONY : src/rendering/Renderer.cpp.i
+
+src/rendering/Renderer.s: src/rendering/Renderer.cpp.s
+.PHONY : src/rendering/Renderer.s
+
+# target to generate assembly for a file
+src/rendering/Renderer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/Renderer.cpp.s
+.PHONY : src/rendering/Renderer.cpp.s
+
+src/window/WindowCallbacks.obj: src/window/WindowCallbacks.cpp.obj
+.PHONY : src/window/WindowCallbacks.obj
+
+# target to build an object file
+src/window/WindowCallbacks.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj
+.PHONY : src/window/WindowCallbacks.cpp.obj
+
+src/window/WindowCallbacks.i: src/window/WindowCallbacks.cpp.i
+.PHONY : src/window/WindowCallbacks.i
+
+# target to preprocess a source file
+src/window/WindowCallbacks.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.i
+.PHONY : src/window/WindowCallbacks.cpp.i
+
+src/window/WindowCallbacks.s: src/window/WindowCallbacks.cpp.s
+.PHONY : src/window/WindowCallbacks.s
+
+# target to generate assembly for a file
+src/window/WindowCallbacks.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.s
+.PHONY : src/window/WindowCallbacks.cpp.s
+
+src/window/WindowFactory.obj: src/window/WindowFactory.cpp.obj
+.PHONY : src/window/WindowFactory.obj
+
+# target to build an object file
+src/window/WindowFactory.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/WindowFactory.cpp.obj
+.PHONY : src/window/WindowFactory.cpp.obj
+
+src/window/WindowFactory.i: src/window/WindowFactory.cpp.i
+.PHONY : src/window/WindowFactory.i
+
+# target to preprocess a source file
+src/window/WindowFactory.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/WindowFactory.cpp.i
+.PHONY : src/window/WindowFactory.cpp.i
+
+src/window/WindowFactory.s: src/window/WindowFactory.cpp.s
+.PHONY : src/window/WindowFactory.s
+
+# target to generate assembly for a file
+src/window/WindowFactory.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/WindowFactory.cpp.s
+.PHONY : src/window/WindowFactory.cpp.s
+
+src/window/WindowSetup.obj: src/window/WindowSetup.cpp.obj
+.PHONY : src/window/WindowSetup.obj
+
+# target to build an object file
+src/window/WindowSetup.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/WindowSetup.cpp.obj
+.PHONY : src/window/WindowSetup.cpp.obj
+
+src/window/WindowSetup.i: src/window/WindowSetup.cpp.i
+.PHONY : src/window/WindowSetup.i
+
+# target to preprocess a source file
+src/window/WindowSetup.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/WindowSetup.cpp.i
+.PHONY : src/window/WindowSetup.cpp.i
+
+src/window/WindowSetup.s: src/window/WindowSetup.cpp.s
+.PHONY : src/window/WindowSetup.s
+
+# target to generate assembly for a file
+src/window/WindowSetup.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/WindowSetup.cpp.s
+.PHONY : src/window/WindowSetup.cpp.s
+
+src/window/WindowUI.obj: src/window/WindowUI.cpp.obj
+.PHONY : src/window/WindowUI.obj
+
+# target to build an object file
+src/window/WindowUI.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/WindowUI.cpp.obj
+.PHONY : src/window/WindowUI.cpp.obj
+
+src/window/WindowUI.i: src/window/WindowUI.cpp.i
+.PHONY : src/window/WindowUI.i
+
+# target to preprocess a source file
+src/window/WindowUI.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/WindowUI.cpp.i
+.PHONY : src/window/WindowUI.cpp.i
+
+src/window/WindowUI.s: src/window/WindowUI.cpp.s
+.PHONY : src/window/WindowUI.s
+
+# target to generate assembly for a file
+src/window/WindowUI.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/WindowUI.cpp.s
+.PHONY : src/window/WindowUI.cpp.s
+
 # Help Target
 help:
 	@echo The following are some of the valid targets for this Makefile:
@@ -245,6 +389,24 @@ help:
 	@echo ... src/rendering/Camera.obj
 	@echo ... src/rendering/Camera.i
 	@echo ... src/rendering/Camera.s
+	@echo ... src/rendering/GridRenderer.obj
+	@echo ... src/rendering/GridRenderer.i
+	@echo ... src/rendering/GridRenderer.s
+	@echo ... src/rendering/Renderer.obj
+	@echo ... src/rendering/Renderer.i
+	@echo ... src/rendering/Renderer.s
+	@echo ... src/window/WindowCallbacks.obj
+	@echo ... src/window/WindowCallbacks.i
+	@echo ... src/window/WindowCallbacks.s
+	@echo ... src/window/WindowFactory.obj
+	@echo ... src/window/WindowFactory.i
+	@echo ... src/window/WindowFactory.s
+	@echo ... src/window/WindowSetup.obj
+	@echo ... src/window/WindowSetup.i
+	@echo ... src/window/WindowSetup.s
+	@echo ... src/window/WindowUI.obj
+	@echo ... src/window/WindowUI.i
+	@echo ... src/window/WindowUI.s
 .PHONY : help
 
 
