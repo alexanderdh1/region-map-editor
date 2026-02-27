@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rendering/GridRenderer.h"
+#include "rendering/TileLayer.h"
 
 class Core;
 
@@ -11,6 +12,10 @@ public:
 
     void render(const Core& core);
 
+    TileLayer& getTileLayer();
+
+
 private:
     GridRenderer gridRenderer;
+    TileLayer tileLayer;
 };

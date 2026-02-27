@@ -2,6 +2,7 @@
 
 #include "core/Core.h"
 #include "rendering/Renderer.h"
+#include "rendering/Tile.h"
 #include "window/WindowCallbacks.h"
 #include "window/WindowContext.h"
 #include "window/WindowSetup.h"
@@ -10,21 +11,40 @@
 
 int main()
 {
-    
-    GLFWwindow* window = createWindow(1280, 720, "Spatial Map Editor");
+    GLFWwindow* window =
+        createWindow(1280, 720, "Spatial Map Editor");
 
     if (!window)
         return -1;
 
+    // --- OpenGL state ---
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     Core core;
     Renderer renderer;
 
-    // Bind Core to window callbacks
+    // --- Add test tile ---
+    Tile tile;
+    tile.texture = Texture("assets/test.png");
+
+    tile.position = {
+        -tile.texture.getWidth() / 2.0,
+        -tile.texture.getHeight() / 2.0
+    };
+
+    tile.size = {
+        static_cast<double>(tile.texture.getWidth()),
+        static_cast<double>(tile.texture.getHeight())
+    };
+
+    renderer.getTileLayer().addTile(std::move(tile));
+
+    // --- Window bindings ---
     WindowContext context{ &core };
     setupWindowCallbacks(window, &context);
-
-    // ---- Initial viewport setup ----
-    setupInitialViewport(window,core);
+    setupInitialViewport(window, core);
 
     glClearColor(0.08f, 0.08f, 0.1f, 1.0f);
 
@@ -36,7 +56,6 @@ int main()
     {
         glfwPollEvents();
 
-        // All engine logic (pan + pivot zoom)
         core.update(window);
 
         glClear(GL_COLOR_BUFFER_BIT);

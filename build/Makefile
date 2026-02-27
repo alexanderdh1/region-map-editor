@@ -272,6 +272,54 @@ src/rendering/Renderer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/Renderer.cpp.s
 .PHONY : src/rendering/Renderer.cpp.s
 
+src/rendering/Texture.obj: src/rendering/Texture.cpp.obj
+.PHONY : src/rendering/Texture.obj
+
+# target to build an object file
+src/rendering/Texture.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/Texture.cpp.obj
+.PHONY : src/rendering/Texture.cpp.obj
+
+src/rendering/Texture.i: src/rendering/Texture.cpp.i
+.PHONY : src/rendering/Texture.i
+
+# target to preprocess a source file
+src/rendering/Texture.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/Texture.cpp.i
+.PHONY : src/rendering/Texture.cpp.i
+
+src/rendering/Texture.s: src/rendering/Texture.cpp.s
+.PHONY : src/rendering/Texture.s
+
+# target to generate assembly for a file
+src/rendering/Texture.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/Texture.cpp.s
+.PHONY : src/rendering/Texture.cpp.s
+
+src/rendering/TileLayer.obj: src/rendering/TileLayer.cpp.obj
+.PHONY : src/rendering/TileLayer.obj
+
+# target to build an object file
+src/rendering/TileLayer.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/TileLayer.cpp.obj
+.PHONY : src/rendering/TileLayer.cpp.obj
+
+src/rendering/TileLayer.i: src/rendering/TileLayer.cpp.i
+.PHONY : src/rendering/TileLayer.i
+
+# target to preprocess a source file
+src/rendering/TileLayer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/TileLayer.cpp.i
+.PHONY : src/rendering/TileLayer.cpp.i
+
+src/rendering/TileLayer.s: src/rendering/TileLayer.cpp.s
+.PHONY : src/rendering/TileLayer.s
+
+# target to generate assembly for a file
+src/rendering/TileLayer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/TileLayer.cpp.s
+.PHONY : src/rendering/TileLayer.cpp.s
+
 src/window/WindowCallbacks.obj: src/window/WindowCallbacks.cpp.obj
 .PHONY : src/window/WindowCallbacks.obj
 
@@ -395,6 +443,12 @@ help:
 	@echo ... src/rendering/Renderer.obj
 	@echo ... src/rendering/Renderer.i
 	@echo ... src/rendering/Renderer.s
+	@echo ... src/rendering/Texture.obj
+	@echo ... src/rendering/Texture.i
+	@echo ... src/rendering/Texture.s
+	@echo ... src/rendering/TileLayer.obj
+	@echo ... src/rendering/TileLayer.i
+	@echo ... src/rendering/TileLayer.s
 	@echo ... src/window/WindowCallbacks.obj
 	@echo ... src/window/WindowCallbacks.i
 	@echo ... src/window/WindowCallbacks.s

@@ -14,6 +14,8 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "C:/Users/alexa/Documents/spatial-map-editor/src/rendering/Camera.cpp" "CMakeFiles/main.dir/src/rendering/Camera.cpp.obj" "gcc" "CMakeFiles/main.dir/src/rendering/Camera.cpp.obj.d"
   "C:/Users/alexa/Documents/spatial-map-editor/src/rendering/GridRenderer.cpp" "CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.obj" "gcc" "CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.obj.d"
   "C:/Users/alexa/Documents/spatial-map-editor/src/rendering/Renderer.cpp" "CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj" "gcc" "CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj.d"
+  "C:/Users/alexa/Documents/spatial-map-editor/src/rendering/Texture.cpp" "CMakeFiles/main.dir/src/rendering/Texture.cpp.obj" "gcc" "CMakeFiles/main.dir/src/rendering/Texture.cpp.obj.d"
+  "C:/Users/alexa/Documents/spatial-map-editor/src/rendering/TileLayer.cpp" "CMakeFiles/main.dir/src/rendering/TileLayer.cpp.obj" "gcc" "CMakeFiles/main.dir/src/rendering/TileLayer.cpp.obj.d"
   "C:/Users/alexa/Documents/spatial-map-editor/src/window/WindowCallbacks.cpp" "CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj" "gcc" "CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj.d"
   "C:/Users/alexa/Documents/spatial-map-editor/src/window/WindowFactory.cpp" "CMakeFiles/main.dir/src/window/WindowFactory.cpp.obj" "gcc" "CMakeFiles/main.dir/src/window/WindowFactory.cpp.obj.d"
   "C:/Users/alexa/Documents/spatial-map-editor/src/window/WindowSetup.cpp" "CMakeFiles/main.dir/src/window/WindowSetup.cpp.obj" "gcc" "CMakeFiles/main.dir/src/window/WindowSetup.cpp.obj.d"

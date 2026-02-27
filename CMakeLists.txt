@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+
 # Executable
 add_executable(main
     src/main.cpp
@@ -18,10 +19,15 @@ add_executable(main
     src/window/WindowUI.cpp
     src/window/WindowFactory.cpp
     src/rendering/Renderer.cpp
+    src/rendering/Texture.cpp
+    src/rendering/TileLayer.cpp
 )
 
 # Include directories
-target_include_directories(main PRIVATE include)
+target_include_directories(main PRIVATE 
+include
+external
+)
 
 # GLFW
 find_package(glfw3 CONFIG REQUIRED)
