@@ -128,3 +128,42 @@ void Core::setWorldSize(double width, double height)
     camera.minZoom = std::max(minZoomX, minZoomY);
     
 }
+
+void Core::setWorldBlockBounds(
+    int minBlockX,
+    int minBlockZ,
+    int maxBlockX,
+    int maxBlockZ
+)
+{
+    worldMinBlockX = minBlockX;
+    worldMinBlockZ = minBlockZ;
+    worldMaxBlockX = maxBlockX;
+    worldMaxBlockZ = maxBlockZ;
+}
+
+Vec2 Core::blockToWorld(const BlockCoord& block) const
+{
+    double worldX = block.x - worldMinBlockX;
+
+    // Flip Z
+    double worldZ = worldMaxBlockZ - block.z;
+
+    worldX -= worldWidth  / 2.0;
+    worldZ -= worldHeight / 2.0;
+
+    return { worldX, worldZ };
+}
+
+BlockCoord Core::worldToBlock(const Vec2& worldPos) const
+{
+    double localX = worldPos.x + worldWidth  / 2.0;
+    double localZ = worldPos.y + worldHeight / 2.0;
+
+    int blockX = static_cast<int>(localX) + worldMinBlockX;
+
+    // Flip Z
+    int blockZ = worldMaxBlockZ - static_cast<int>(localZ);
+
+    return { blockX, blockZ };
+}

@@ -1,5 +1,7 @@
 #include "window/WindowCallbacks.h"
 #include "window/WindowContext.h"
+#include "math/BlockCoord.h"
+#include <iostream>
 
 #include <GLFW/glfw3.h>
 #include "math/Vec2.h"
@@ -43,10 +45,29 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
             double x, y;
             glfwGetCursorPos(window, &x, &y);
 
+            // Forward to input system
             context->core->getInput().onMouseButton(
                 action == GLFW_PRESS,
                 Vec2{ x, y }
             );
+
+            // ---- CLICK TO BLOCK DEBUG ----
+            if (action == GLFW_PRESS)
+            {
+                Vec2 screenPos{ x, y };
+
+                Vec2 worldPos =
+                    context->core->getCamera().screenToWorld(screenPos);
+
+                BlockCoord block =
+                    context->core->worldToBlock(worldPos);
+
+                std::cout << "Clicked block: X="
+                          << block.x
+                          << " Z="
+                          << block.z
+                          << "\n";
+            }
         }
     );
 

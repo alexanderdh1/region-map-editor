@@ -25,7 +25,7 @@ int main()
 
     // Load world
     loadSingleImageWorld(
-        "assets/overworld.png",
+        "assets/overworld",
         core,
         renderer
     );
