@@ -2,12 +2,13 @@
 
 #include "core/Core.h"
 #include "rendering/Renderer.h"
-#include "rendering/Tile.h"
 #include "window/WindowCallbacks.h"
 #include "window/WindowContext.h"
 #include "window/WindowSetup.h"
 #include "window/WindowUI.h"
 #include "window/WindowFactory.h"
+#include "window/OpenGLSetup.h"
+#include "data/WorldLoader.h"
 
 int main()
 {
@@ -17,51 +18,26 @@ int main()
     if (!window)
         return -1;
 
-    // --- OpenGL state ---
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    setupOpenGLState();
 
     Core core;
     Renderer renderer;
 
-    // --- Add test tile ---
-    // --- Load single Minecraft world image ---
-    Texture sharedTexture("assets/overworld.png");
-
-    core.setWorldSize(
-    sharedTexture.getWidth(),
-    sharedTexture.getHeight()
+    // Load world
+    loadSingleImageWorld(
+        "assets/overworld.png",
+        core,
+        renderer
     );
-    
-    // --- Create single tile covering entire image ---
-    Tile tile;
 
-    tile.texture = &sharedTexture;
-
-    tile.position = {
-        -sharedTexture.getWidth() / 2.0,
-        -sharedTexture.getHeight() / 2.0
-    };
-
-    tile.size = {
-        static_cast<double>(sharedTexture.getWidth()),
-        static_cast<double>(sharedTexture.getHeight())
-    };
-
-renderer.getTileLayer().addTile(std::move(tile));
-
-    // --- Window bindings ---
+    // Window bindings
     WindowContext context{ &core };
     setupWindowCallbacks(window, &context);
     setupInitialViewport(window, core);
 
     glClearColor(0.08f, 0.08f, 0.1f, 1.0f);
 
-    // =========================
-    // ======= MAIN LOOP ======
-    // =========================
-
+    // -------- Main Loop --------
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();

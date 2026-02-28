@@ -21,6 +21,8 @@ add_executable(main
     src/rendering/Renderer.cpp
     src/rendering/Texture.cpp
     src/rendering/TileLayer.cpp
+    src/data/WorldLoader.cpp
+    src/window/OpenGLSetup.cpp
 )
 
 # Include directories

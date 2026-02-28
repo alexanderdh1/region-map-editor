@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/main.dir/src/core/Core.cpp.obj"
   "CMakeFiles/main.dir/src/core/Core.cpp.obj.d"
+  "CMakeFiles/main.dir/src/data/WorldLoader.cpp.obj"
+  "CMakeFiles/main.dir/src/data/WorldLoader.cpp.obj.d"
   "CMakeFiles/main.dir/src/input/Input.cpp.obj"
   "CMakeFiles/main.dir/src/input/Input.cpp.obj.d"
   "CMakeFiles/main.dir/src/main.cpp.obj"
@@ -15,6 +17,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/main.dir/src/rendering/Texture.cpp.obj.d"
   "CMakeFiles/main.dir/src/rendering/TileLayer.cpp.obj"
   "CMakeFiles/main.dir/src/rendering/TileLayer.cpp.obj.d"
+  "CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.obj"
+  "CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.obj.d"
   "CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj"
   "CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj.d"
   "CMakeFiles/main.dir/src/window/WindowFactory.cpp.obj"

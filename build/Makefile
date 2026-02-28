@@ -152,6 +152,30 @@ src/core/Core.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/core/Core.cpp.s
 .PHONY : src/core/Core.cpp.s
 
+src/data/WorldLoader.obj: src/data/WorldLoader.cpp.obj
+.PHONY : src/data/WorldLoader.obj
+
+# target to build an object file
+src/data/WorldLoader.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/data/WorldLoader.cpp.obj
+.PHONY : src/data/WorldLoader.cpp.obj
+
+src/data/WorldLoader.i: src/data/WorldLoader.cpp.i
+.PHONY : src/data/WorldLoader.i
+
+# target to preprocess a source file
+src/data/WorldLoader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/data/WorldLoader.cpp.i
+.PHONY : src/data/WorldLoader.cpp.i
+
+src/data/WorldLoader.s: src/data/WorldLoader.cpp.s
+.PHONY : src/data/WorldLoader.s
+
+# target to generate assembly for a file
+src/data/WorldLoader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/data/WorldLoader.cpp.s
+.PHONY : src/data/WorldLoader.cpp.s
+
 src/input/Input.obj: src/input/Input.cpp.obj
 .PHONY : src/input/Input.obj
 
@@ -320,6 +344,30 @@ src/rendering/TileLayer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/TileLayer.cpp.s
 .PHONY : src/rendering/TileLayer.cpp.s
 
+src/window/OpenGLSetup.obj: src/window/OpenGLSetup.cpp.obj
+.PHONY : src/window/OpenGLSetup.obj
+
+# target to build an object file
+src/window/OpenGLSetup.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.obj
+.PHONY : src/window/OpenGLSetup.cpp.obj
+
+src/window/OpenGLSetup.i: src/window/OpenGLSetup.cpp.i
+.PHONY : src/window/OpenGLSetup.i
+
+# target to preprocess a source file
+src/window/OpenGLSetup.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.i
+.PHONY : src/window/OpenGLSetup.cpp.i
+
+src/window/OpenGLSetup.s: src/window/OpenGLSetup.cpp.s
+.PHONY : src/window/OpenGLSetup.s
+
+# target to generate assembly for a file
+src/window/OpenGLSetup.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.s
+.PHONY : src/window/OpenGLSetup.cpp.s
+
 src/window/WindowCallbacks.obj: src/window/WindowCallbacks.cpp.obj
 .PHONY : src/window/WindowCallbacks.obj
 
@@ -428,6 +476,9 @@ help:
 	@echo ... src/core/Core.obj
 	@echo ... src/core/Core.i
 	@echo ... src/core/Core.s
+	@echo ... src/data/WorldLoader.obj
+	@echo ... src/data/WorldLoader.i
+	@echo ... src/data/WorldLoader.s
 	@echo ... src/input/Input.obj
 	@echo ... src/input/Input.i
 	@echo ... src/input/Input.s
@@ -449,6 +500,9 @@ help:
 	@echo ... src/rendering/TileLayer.obj
 	@echo ... src/rendering/TileLayer.i
 	@echo ... src/rendering/TileLayer.s
+	@echo ... src/window/OpenGLSetup.obj
+	@echo ... src/window/OpenGLSetup.i
+	@echo ... src/window/OpenGLSetup.s
 	@echo ... src/window/WindowCallbacks.obj
 	@echo ... src/window/WindowCallbacks.i
 	@echo ... src/window/WindowCallbacks.s
