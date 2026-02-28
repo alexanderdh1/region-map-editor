@@ -18,4 +18,5 @@ public:
 private:
     GridRenderer gridRenderer;
     TileLayer tileLayer;
+    bool showGrid = false;
 };

@@ -11,14 +11,73 @@ CMakeFiles/main.dir/src/core/Core.cpp.obj: C:/Users/alexa/Documents/spatial-map-
   C:/msys64/mingw64/include/_mingw.h \
   C:/msys64/mingw64/include/_mingw_mac.h \
   C:/msys64/mingw64/include/_mingw_secapi.h \
+  C:/msys64/mingw64/include/c++/15.2.0/algorithm \
+  C:/msys64/mingw64/include/c++/15.2.0/bit \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/algorithmfwd.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/concept_check.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/cpp_type_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/exception.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/exception_defines.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/functexcept.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/invoke.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/iterator_concepts.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/max_size_type.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/move.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/predefined_ops.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/ptr_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_algo.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_algobase.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_base.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_cmp.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_util.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/std_abs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_algo.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_algobase.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_construct.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_heap.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator_base_funcs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator_base_types.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_pair.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_tempbuf.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/uniform_int_dist.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/utility.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/version.h \
+  C:/msys64/mingw64/include/c++/15.2.0/compare \
+  C:/msys64/mingw64/include/c++/15.2.0/concepts \
+  C:/msys64/mingw64/include/c++/15.2.0/cstdlib \
+  C:/msys64/mingw64/include/c++/15.2.0/debug/assertions.h \
+  C:/msys64/mingw64/include/c++/15.2.0/debug/debug.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ext/numeric_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ext/type_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/initializer_list \
+  C:/msys64/mingw64/include/c++/15.2.0/new \
+  C:/msys64/mingw64/include/c++/15.2.0/numbers \
+  C:/msys64/mingw64/include/c++/15.2.0/pstl/execution_defs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_algorithm_defs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/pstl/pstl_config.h \
+  C:/msys64/mingw64/include/c++/15.2.0/stdlib.h \
+  C:/msys64/mingw64/include/c++/15.2.0/type_traits \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/cpu_defines.h \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/os_defines.h \
   C:/msys64/mingw64/include/corecrt.h \
+  C:/msys64/mingw64/include/corecrt_wstdlib.h \
   C:/msys64/mingw64/include/crtdefs.h \
+  C:/msys64/mingw64/include/errno.h \
+  C:/msys64/mingw64/include/limits.h \
+  C:/msys64/mingw64/include/malloc.h \
   C:/msys64/mingw64/include/sdks/_mingw_ddk.h \
+  C:/msys64/mingw64/include/sec_api/stdlib_s.h \
   C:/msys64/mingw64/include/stddef.h \
   C:/msys64/mingw64/include/stdint.h \
+  C:/msys64/mingw64/include/stdlib.h \
   C:/msys64/mingw64/include/vadefs.h \
+  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/limits.h \
+  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/mm_malloc.h \
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stddef.h \
-  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h
+  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h \
+  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/syslimits.h
 
 CMakeFiles/main.dir/src/input/Input.cpp.obj: C:/Users/alexa/Documents/spatial-map-editor/src/input/Input.cpp \
   C:/Users/alexa/Documents/spatial-map-editor/include/input/Input.h \
@@ -1273,113 +1332,69 @@ C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_init_exception.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/basic_ios.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/streambuf.tcc:
+C:/msys64/mingw64/include/sec_api/wconio_s.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_algorithm_defs.h:
+C:/msys64/mingw64/include/sec_api/stdio_s.h:
+
+C:/msys64/mingw64/include/locale.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/quoted_string.h:
+
+C:/msys64/mingw64/include/pthread_time.h:
+
+C:/msys64/mingw64/include/corecrt_wctype.h:
+
+C:/msys64/mingw64/include/corecrt_stdio_config.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++allocator.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/tuple:
+
+C:/msys64/mingw64/include/c++/15.2.0/string:
+
+C:/Users/alexa/Documents/spatial-map-editor/src/rendering/Camera.cpp:
+
+C:/msys64/mingw64/include/c++/15.2.0/iosfwd:
+
+C:/msys64/mingw64/include/_mingw_stdarg.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/type_traits:
+
+C:/msys64/mingw64/include/c++/15.2.0/stdlib.h:
+
+C:/Users/alexa/Documents/spatial-map-editor/src/rendering/TileLayer.cpp:
+
+C:/Users/alexa/Documents/spatial-map-editor/include/rendering/GridRenderer.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/vector:
+
+C:/msys64/mingw64/include/c++/15.2.0/pstl/pstl_config.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/ext/type_traits.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/exception.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/debug/debug.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/compare:
+
+C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/system_error:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/refwrap.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/uniform_int_dist.h:
 
 C:/msys64/mingw64/include/string.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/pstl/execution_defs.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/uniform_int_dist.h:
+C:/msys64/mingw64/include/c++/15.2.0/bits/vector.tcc:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/range_access.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/stl_tempbuf.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/stl_algo.h:
-
-C:/msys64/mingw64/include/pthread.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_algo.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/algorithmfwd.h:
-
-C:/msys64/mingw64/include/sec_api/sys/timeb_s.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/syslimits.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr-default.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/mm_malloc.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/algorithm:
-
-C:/msys64/mingw64/include/stdio.h:
-
-C:/msys64/mingw64/include/sec_api/wconio_s.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/predefined_ops.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/char_traits.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/postypes.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/basic_string.h:
-
-C:/msys64/mingw64/include/_mingw_off_t.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/ostream_insert.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/max_size_type.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/stl_uninitialized.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/istream:
-
-C:/msys64/mingw64/include/c++/15.2.0/debug/assertions.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/hash_bytes.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/ostream:
-
-C:/msys64/mingw64/include/_mingw.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/cpp_type_traits.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/stl_algobase.h:
-
-C:/Users/alexa/Documents/spatial-map-editor/external/stb_image.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/istream.tcc:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/utility.h:
-
-C:/msys64/mingw64/include/errno.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/stdexcept:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/basic_ios.tcc:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_util.h:
-
-C:/msys64/mingw64/include/wctype.h:
-
-C:/msys64/mingw64/include/wchar.h:
-
-C:/msys64/mingw64/include/swprintf.inl:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/new_allocator.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/charconv.h:
-
-C:/msys64/mingw64/include/corecrt.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bit:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/move.h:
-
-C:/msys64/mingw64/include/vadefs.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/tuple:
-
-C:/msys64/mingw64/include/crtdefs.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/iterator_concepts.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_forced.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/sstream:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/basic_string.tcc:
 
 C:/msys64/mingw64/include/_mingw_secapi.h:
 
@@ -1393,49 +1408,43 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/mmintrin.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/clocale:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/exception.h:
+C:/msys64/mingw64/include/c++/15.2.0/bits/stl_pair.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/ext/type_traits.h:
+C:/Users/alexa/Documents/spatial-map-editor/src/rendering/GridRenderer.cpp:
 
-C:/Users/alexa/Documents/spatial-map-editor/src/main.cpp:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/allocator.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/cwctype:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/locale_facets.tcc:
-
-C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowUI.h:
-
-C:/msys64/mingw64/include/GLFW/glfw3.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/functional_hash.h:
-
-C:/Users/alexa/Documents/spatial-map-editor/src/rendering/TileLayer.cpp:
-
-C:/Users/alexa/Documents/spatial-map-editor/include/rendering/GridRenderer.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/stdlib.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/concept_check.h:
-
-C:/Users/alexa/Documents/spatial-map-editor/src/input/Input.cpp:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/xmmintrin.h:
-
-C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Camera.h:
-
-C:/Users/alexa/Documents/spatial-map-editor/src/rendering/Camera.cpp:
-
-C:/msys64/mingw64/include/c++/15.2.0/iosfwd:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h:
+C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator_base_types.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator_base_funcs.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/tr1/beta_function.tcc:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h:
 
-C:/msys64/mingw64/include/sdks/_mingw_ddk.h:
+C:/msys64/mingw64/include/c++/15.2.0/bits/streambuf.tcc:
+
+C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_algorithm_defs.h:
+
+C:/msys64/mingw64/include/GLFW/glfw3.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/stl_construct.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/stl_algo.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/sstream:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/basic_string.tcc:
+
+C:/msys64/mingw64/include/c++/15.2.0/ostream:
+
+C:/msys64/mingw64/include/_mingw.h:
+
+C:/msys64/mingw64/include/corecrt_wconio.h:
+
+C:/msys64/mingw64/include/stdlib.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/exception_defines.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/locale_classes.h:
+
+C:/Users/alexa/Documents/spatial-map-editor/include/math/Vec2.h:
 
 C:/Users/alexa/Documents/spatial-map-editor/include/input/Input.h:
 
@@ -1445,49 +1454,15 @@ C:/msys64/mingw64/include/c++/15.2.0/ext/atomicity.h:
 
 C:/Users/alexa/Documents/spatial-map-editor/include/rendering/TileLayer.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/locale_classes.h:
+C:/msys64/mingw64/include/stdio.h:
 
-C:/Users/alexa/Documents/spatial-map-editor/include/math/Vec2.h:
+C:/msys64/mingw64/include/c++/15.2.0/algorithm:
 
-C:/Users/alexa/Documents/spatial-map-editor/src/rendering/Renderer.cpp:
+C:/msys64/mingw64/include/corecrt.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_algobase.h:
+C:/msys64/mingw64/include/c++/15.2.0/bits/charconv.h:
 
-C:/msys64/mingw64/include/sec_api/wchar_s.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/exception:
-
-C:/msys64/mingw64/include/_mingw_stat64.h:
-
-C:/msys64/mingw64/include/GL/gl.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/debug/debug.h:
-
-C:/Users/alexa/Documents/spatial-map-editor/src/core/Core.cpp:
-
-C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Tile.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/functexcept.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/requires_hosted.h:
-
-C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Renderer.h:
-
-C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Texture.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/locale_facets.h:
-
-C:/msys64/mingw64/include/_timeval.h:
-
-C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowSetup.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stddef.h:
-
-C:/Users/alexa/Documents/spatial-map-editor/src/rendering/Texture.cpp:
-
-C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowCallbacks.h:
-
-C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowContext.h:
+C:/msys64/mingw64/include/c++/15.2.0/bits/algorithmfwd.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/ptr_traits.h:
 
@@ -1497,9 +1472,81 @@ C:/msys64/mingw64/include/c++/15.2.0/string_view:
 
 C:/msys64/mingw64/include/c++/15.2.0/cstdio:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator.h:
+C:/msys64/mingw64/include/c++/15.2.0/bits/move.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/xmmintrin.h:
+
+C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Camera.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/istream:
+
+C:/msys64/mingw64/include/c++/15.2.0/debug/assertions.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/max_size_type.h:
+
+C:/Users/alexa/Documents/spatial-map-editor/src/rendering/Renderer.cpp:
+
+C:/msys64/mingw64/include/sec_api/wchar_s.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_algobase.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr-default.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/mm_malloc.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/stl_uninitialized.h:
+
+C:/msys64/mingw64/include/sec_api/sys/timeb_s.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/syslimits.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/cpp_type_traits.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/stl_algobase.h:
+
+C:/Users/alexa/Documents/spatial-map-editor/external/stb_image.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/istream.tcc:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/utility.h:
+
+C:/msys64/mingw64/include/errno.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/new:
+
+C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/cpu_defines.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/cwctype:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/locale_facets.tcc:
+
+C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowUI.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bit:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/predefined_ops.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/char_traits.h:
+
+C:/msys64/mingw64/include/pthread.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_algo.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/cstdlib:
+
+C:/msys64/mingw64/include/c++/15.2.0/initializer_list:
+
+C:/msys64/mingw64/include/c++/15.2.0/concepts:
+
+C:/msys64/mingw64/include/c++/15.2.0/numbers:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/stl_heap.h:
+
+C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Texture.h:
 
 C:/Users/alexa/Documents/spatial-map-editor/include/core/Core.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_base.h:
 
@@ -1511,29 +1558,121 @@ C:/msys64/mingw64/include/c++/15.2.0/cwchar:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_cmp.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/system_error:
+C:/msys64/mingw64/include/c++/15.2.0/stdexcept:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/refwrap.h:
+C:/msys64/mingw64/include/c++/15.2.0/bits/basic_ios.tcc:
 
-C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h:
+C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_util.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/backward/binders.h:
+C:/msys64/mingw64/include/c++/15.2.0/exception:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/std_abs.h:
+C:/msys64/mingw64/include/GL/gl.h:
 
-C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowFactory.h:
+C:/msys64/mingw64/include/_mingw_stat64.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/ext/numeric_traits.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/os_defines.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/version.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/localefwd.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/memory_resource.h:
+
+C:/msys64/mingw64/include/sec_api/stdlib_s.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/iterator_concepts.h:
+
+C:/msys64/mingw64/include/crtdefs.h:
+
+C:/msys64/mingw64/include/wctype.h:
+
+C:/msys64/mingw64/include/wchar.h:
+
+C:/msys64/mingw64/include/swprintf.inl:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/new_allocator.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/tr1/bessel_function.tcc:
+
+C:/msys64/mingw64/include/malloc.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/tr1/beta_function.tcc:
+
+C:/msys64/mingw64/include/sdks/_mingw_ddk.h:
+
+C:/msys64/mingw64/include/vadefs.h:
+
+C:/msys64/mingw64/include/limits.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/limits.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stddef.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/concept_check.h:
+
+C:/Users/alexa/Documents/spatial-map-editor/src/input/Input.cpp:
+
+C:/Users/alexa/Documents/spatial-map-editor/src/main.cpp:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/allocator.h:
+
+C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Renderer.h:
+
+C:/Users/alexa/Documents/spatial-map-editor/src/core/Core.cpp:
+
+C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Tile.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/functexcept.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/requires_hosted.h:
+
+C:/Users/alexa/Documents/spatial-map-editor/src/rendering/Texture.cpp:
+
+C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowCallbacks.h:
+
+C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowContext.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/stl_bvector.h:
 
-C:/Users/alexa/Documents/spatial-map-editor/src/rendering/GridRenderer.cpp:
+C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowFactory.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator_base_types.h:
+C:/msys64/mingw64/include/c++/15.2.0/bits/locale_facets.h:
 
-C:/msys64/mingw64/include/sec_api/stdio_s.h:
+C:/msys64/mingw64/include/_timeval.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/stl_construct.h:
+C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowSetup.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/stl_pair.h:
+C:/msys64/mingw64/include/_mingw_off_t.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/basic_string.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/postypes.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/std_abs.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/backward/binders.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_forced.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/functional_hash.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/hash_bytes.h:
+
+C:/msys64/mingw64/include/corecrt_wstdlib.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/memoryfwd.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/atomic_word.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++locale.h:
+
+C:/msys64/mingw64/include/stdint.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/cctype:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/ostream_insert.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/stl_vector.h:
 
@@ -1551,27 +1690,9 @@ C:/msys64/mingw64/include/c++/15.2.0/bits/uses_allocator.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/uses_allocator_args.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/range_access.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/vector.tcc:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/memory_resource.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/localefwd.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/version.h:
-
 C:/msys64/mingw64/include/c++/15.2.0/iostream:
 
 C:/msys64/mingw64/include/c++/15.2.0/cerrno:
-
-C:/msys64/mingw64/include/c++/15.2.0/compare:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/stl_heap.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/numbers:
-
-C:/msys64/mingw64/include/c++/15.2.0/concepts:
 
 C:/msys64/mingw64/include/c++/15.2.0/cstddef:
 
@@ -1580,65 +1701,3 @@ C:/msys64/mingw64/include/_mingw_mac.h:
 C:/msys64/mingw64/include/c++/15.2.0/ext/string_conversions.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/ext/alloc_traits.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/os_defines.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/ext/numeric_traits.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/cstdlib:
-
-C:/msys64/mingw64/include/c++/15.2.0/initializer_list:
-
-C:/msys64/mingw64/include/c++/15.2.0/string:
-
-C:/msys64/mingw64/include/_mingw_stdarg.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/type_traits:
-
-C:/msys64/mingw64/include/c++/15.2.0/pstl/pstl_config.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/vector:
-
-C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++allocator.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/atomic_word.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/cctype:
-
-C:/msys64/mingw64/include/stdint.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++locale.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/new:
-
-C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/cpu_defines.h:
-
-C:/msys64/mingw64/include/stdlib.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/exception_defines.h:
-
-C:/msys64/mingw64/include/corecrt_wconio.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/quoted_string.h:
-
-C:/msys64/mingw64/include/pthread_time.h:
-
-C:/msys64/mingw64/include/corecrt_stdio_config.h:
-
-C:/msys64/mingw64/include/corecrt_wctype.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/memoryfwd.h:
-
-C:/msys64/mingw64/include/corecrt_wstdlib.h:
-
-C:/msys64/mingw64/include/sec_api/stdlib_s.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/limits.h:
-
-C:/msys64/mingw64/include/limits.h:
-
-C:/msys64/mingw64/include/locale.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/tr1/bessel_function.tcc:
-
-C:/msys64/mingw64/include/malloc.h:

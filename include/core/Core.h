@@ -17,7 +17,12 @@ public:
 
     void update(GLFWwindow* window); 
 
+    void setWorldSize(double width, double height);
+
 private:
     Camera camera;
     Input input; 
+
+    double worldWidth = 0.0;
+    double worldHeight = 0.0;
 };

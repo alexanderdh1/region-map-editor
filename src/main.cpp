@@ -26,20 +26,30 @@ int main()
     Renderer renderer;
 
     // --- Add test tile ---
+    // --- Load single Minecraft world image ---
+    Texture sharedTexture("assets/overworld.png");
+
+    core.setWorldSize(
+    sharedTexture.getWidth(),
+    sharedTexture.getHeight()
+    );
+    
+    // --- Create single tile covering entire image ---
     Tile tile;
-    tile.texture = Texture("assets/test.png");
+
+    tile.texture = &sharedTexture;
 
     tile.position = {
-        -tile.texture.getWidth() / 2.0,
-        -tile.texture.getHeight() / 2.0
+        -sharedTexture.getWidth() / 2.0,
+        -sharedTexture.getHeight() / 2.0
     };
 
     tile.size = {
-        static_cast<double>(tile.texture.getWidth()),
-        static_cast<double>(tile.texture.getHeight())
+        static_cast<double>(sharedTexture.getWidth()),
+        static_cast<double>(sharedTexture.getHeight())
     };
 
-    renderer.getTileLayer().addTile(std::move(tile));
+renderer.getTileLayer().addTile(std::move(tile));
 
     // --- Window bindings ---
     WindowContext context{ &core };
