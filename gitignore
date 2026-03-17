@@ -1,0 +1,29 @@
+# Build output
+build/
+out/
+*.exe
+*.obj
+*.ilk
+*.pdb
+*.exp
+*.lib
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Assets (likely large files — track separately or via Git LFS)
+assets/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln.docinfo
+
+# OS
+.DS_Store
+Thumbs.db

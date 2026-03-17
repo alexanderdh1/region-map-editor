@@ -20,9 +20,8 @@ void Core::update(GLFWwindow* window)
         camera.panBy(delta);
     }
 
-    // ZOOM
+    // ZOOM — zoom toward mouse cursor position
     if (input.hasZoomDelta()) {
-
         double zoomSteps = input.consumeZoomDelta();
         const double zoomFactor = 1.1;
 
@@ -30,7 +29,7 @@ void Core::update(GLFWwindow* window)
 
         if (zoomSteps > 0)
             camera.zoomBy(zoomFactor);
-        else if (zoomSteps < 0)
+        else
             camera.zoomBy(1.0 / zoomFactor);
 
         Vec2 worldAfter = camera.screenToWorld(mouseScreen);
@@ -38,65 +37,9 @@ void Core::update(GLFWwindow* window)
         camera.position.x += (worldBefore.x - worldAfter.x);
         camera.position.y += (worldBefore.y - worldAfter.y);
     }
-    // ---- Dynamic minimum zoom ----
-    double minZoomX = camera.viewportSize.x / worldWidth;
-    double minZoomY = camera.viewportSize.y / worldHeight;
 
-    // Choose the stricter one
-    double dynamicMinZoom = std::max(minZoomX, minZoomY);
-
-    // Enforce zoom clamp
-    if (camera.zoom < dynamicMinZoom)
-    {
-        camera.zoom = dynamicMinZoom;
-    }
-    // ---- Hard clamp camera ----
-
-    // World bounds (single image case)
-    double halfW = worldWidth / 2.0;
-    double halfH = worldHeight / 2.0;
-
-    double worldMinX = -halfW;
-    double worldMaxX =  halfW;
-    double worldMinY = -halfH;
-    double worldMaxY =  halfH;
-
-    // Visible area
-    double visibleHalfW = camera.viewportSize.x / (2.0 * camera.zoom);
-    double visibleHalfH = camera.viewportSize.y / (2.0 * camera.zoom);
-
-    // X axis
-    double minCamX = worldMinX + visibleHalfW;
-    double maxCamX = worldMaxX - visibleHalfW;
-
-    // If zoomed out more than world size → center
-    if (visibleHalfW >= halfW)
-    {
-        camera.position.x = 0.0;
-    }
-    else
-    {
-        if (camera.position.x < minCamX)
-            camera.position.x = minCamX;
-        if (camera.position.x > maxCamX)
-            camera.position.x = maxCamX;
-    }
-
-    // Y axis
-    double minCamY = worldMinY + visibleHalfH;
-    double maxCamY = worldMaxY - visibleHalfH;
-
-    if (visibleHalfH >= halfH)
-    {
-        camera.position.y = 0.0;
-    }
-    else
-    {
-        if (camera.position.y < minCamY)
-            camera.position.y = minCamY;
-        if (camera.position.y > maxCamY)
-            camera.position.y = maxCamY;
-    }
+    // Enforce zoom limits and keep camera within world bounds
+    camera.clampToBounds(worldWidth, worldHeight);
 }
 
 Camera& Core::getCamera() {

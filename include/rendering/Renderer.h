@@ -14,6 +14,8 @@ public:
 
     TileLayer& getTileLayer();
 
+    void toggleGrid() { showGrid = !showGrid; }
+    bool isGridVisible() const { return showGrid; }
 
 private:
     GridRenderer gridRenderer;

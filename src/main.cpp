@@ -10,6 +10,9 @@
 #include "window/OpenGLSetup.h"
 #include "data/WorldLoader.h"
 
+#include <iostream>
+#include <stdexcept>
+
 int main()
 {
     GLFWwindow* window =
@@ -23,12 +26,20 @@ int main()
     Core core;
     Renderer renderer;
 
-    // Load world
-    loadSingleImageWorld(
-        "assets/overworld",
-        core,
-        renderer
-    );
+    try
+    {
+        loadSingleImageWorld(
+            "assets/overworld",
+            core,
+            renderer
+        );
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "[Error] Failed to load world: " << e.what() << "\n";
+        destroyWindow(window);
+        return -1;
+    }
 
     // Window bindings
     WindowContext context{ &core };

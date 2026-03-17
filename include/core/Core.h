@@ -13,18 +13,18 @@ public:
     Camera& getCamera();
     const Camera& getCamera() const;
 
-    Input& getInput();            
-    const Input& getInput() const; 
+    Input& getInput();
+    const Input& getInput() const;
 
-    void update(GLFWwindow* window); 
+    void update(GLFWwindow* window);
 
     void setWorldSize(double width, double height);
-    
+
     void setWorldBlockBounds(
-    int minBlockX,
-    int minBlockZ,
-    int maxBlockX,
-    int maxBlockZ
+        int minBlockX,
+        int minBlockZ,
+        int maxBlockX,
+        int maxBlockZ
     );
 
     Vec2 blockToWorld(const BlockCoord& block) const;
@@ -33,9 +33,9 @@ public:
 
 private:
     Camera camera;
-    Input input; 
+    Input input;
 
-    double worldWidth = 0.0;
+    double worldWidth  = 0.0;
     double worldHeight = 0.0;
 
     int worldMinBlockX = 0;
