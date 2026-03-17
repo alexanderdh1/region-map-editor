@@ -1,10 +1,19 @@
 #include "window/WindowCallbacks.h"
 #include "window/WindowContext.h"
-#include "math/BlockCoord.h"
-#include <iostream>
-
+#include "data/RegionStatus.h"
 #include <GLFW/glfw3.h>
 #include "math/Vec2.h"
+
+// Preset colours cycled with [C]
+static const float colourPresets[][4] = {
+    { 0.40f, 0.60f, 1.00f, 0.35f }, // blue   (default)
+    { 0.30f, 0.85f, 0.45f, 0.35f }, // green
+    { 0.95f, 0.35f, 0.35f, 0.35f }, // red
+    { 0.95f, 0.75f, 0.20f, 0.35f }, // yellow
+    { 0.75f, 0.35f, 0.95f, 0.35f }, // purple
+    { 0.95f, 0.55f, 0.20f, 0.35f }, // orange
+};
+static const int numColours = 6;
 
 void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
 {
@@ -34,7 +43,7 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
     // Mouse button
     glfwSetMouseButtonCallback(
         window,
-        [](GLFWwindow* window, int button, int action, int /*mods*/)
+        [](GLFWwindow* window, int button, int action, int mods)
         {
             auto* context =
                 static_cast<WindowContext*>(glfwGetWindowUserPointer(window));
@@ -45,29 +54,13 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
             double x, y;
             glfwGetCursorPos(window, &x, &y);
 
-            // Forward to input system
+            bool shiftHeld = (mods & GLFW_MOD_SHIFT) != 0;
+
             context->core->getInput().onMouseButton(
                 action == GLFW_PRESS,
-                Vec2{ x, y }
+                Vec2{ x, y },
+                shiftHeld
             );
-
-            // ---- CLICK TO BLOCK DEBUG ----
-            if (action == GLFW_PRESS)
-            {
-                Vec2 screenPos{ x, y };
-
-                Vec2 worldPos =
-                    context->core->getCamera().screenToWorld(screenPos);
-
-                BlockCoord block =
-                    context->core->worldToBlock(worldPos);
-
-                std::cout << "Clicked block: X="
-                          << block.x
-                          << " Z="
-                          << block.z
-                          << "\n";
-            }
         }
     );
 
@@ -92,6 +85,70 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
                 static_cast<WindowContext*>(glfwGetWindowUserPointer(window));
 
             context->core->getInput().onScroll(yOffset);
+        }
+    );
+
+    // Keyboard
+    glfwSetKeyCallback(
+        window,
+        [](GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/)
+        {
+            if (action != GLFW_PRESS) return;
+
+            auto* context =
+                static_cast<WindowContext*>(glfwGetWindowUserPointer(window));
+
+            auto& selection = context->core->getSelection();
+            Region* r = selection.selectedRegion;
+
+            if (!r) return;
+
+            switch (key)
+            {
+                // Status
+                case GLFW_KEY_1:
+                    r->status = RegionStatus::None; break;
+                case GLFW_KEY_2:
+                    r->status = RegionStatus::InProgress; break;
+                case GLFW_KEY_3:
+                    r->status = RegionStatus::Done; break;
+
+                // Cycle colour
+                case GLFW_KEY_C:
+                {
+                    // Find nearest preset and advance to next
+                    int next = 0;
+                    for (int i = 0; i < numColours; i++)
+                    {
+                        if (colourPresets[i][0] == r->colorR &&
+                            colourPresets[i][1] == r->colorG)
+                        {
+                            next = (i + 1) % numColours;
+                            break;
+                        }
+                    }
+                    r->colorR = colourPresets[next][0];
+                    r->colorG = colourPresets[next][1];
+                    r->colorB = colourPresets[next][2];
+                    r->colorA = colourPresets[next][3];
+                    break;
+                }
+
+                // Delete
+                case GLFW_KEY_DELETE:
+                {
+                    RegionId id = r->id;
+                    selection.clear();
+                    context->core->getRegionTree().removeRegion(id);
+                    break;
+                }
+
+                // Close popup
+                case GLFW_KEY_ESCAPE:
+                    selection.clear(); break;
+
+                default: break;
+            }
         }
     );
 }

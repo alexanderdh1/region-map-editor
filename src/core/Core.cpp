@@ -1,8 +1,10 @@
 #include "core/Core.h"
 #include "input/Input.h"
 #include "math/Vec2.h"
+#include "data/Region.h"
 #include <GLFW/glfw3.h>
 #include <algorithm>
+#include <memory>
 
 Core::Core() = default;
 
@@ -40,6 +42,52 @@ void Core::update(GLFWwindow* window)
 
     // Enforce zoom limits and keep camera within world bounds
     camera.clampToBounds(worldWidth, worldHeight);
+
+    // RECT DRAWING — finalise a rectangle when the user releases
+    if (input.hasCompletedRect())
+    {
+        Vec2 screenA = input.getDrawStart();
+        Vec2 screenB = input.getDrawCurrent();
+
+        Vec2 worldA = camera.screenToWorld(screenA);
+        Vec2 worldB = camera.screenToWorld(screenB);
+
+        // Normalise so min < max regardless of drag direction
+        RegionGeometry geom;
+        geom.type    = GeometryType::Rectangle;
+        geom.rectMin = { std::min(worldA.x, worldB.x),
+                         std::min(worldA.y, worldB.y) };
+        geom.rectMax = { std::max(worldA.x, worldB.x),
+                         std::max(worldA.y, worldB.y) };
+
+        // Ignore tiny accidental clicks
+        if (geom.isValid())
+        {
+            auto region      = std::make_unique<Region>();
+            region->id       = regionTree.nextId();
+            region->geometry = geom;
+            regionTree.addRegion(std::move(region));
+        }
+
+        input.consumeCompletedRect();
+    }
+
+    // CLICK — hit-test regions, select or deselect
+    if (input.hasClick())
+    {
+        Vec2 screenPos = input.consumeClick();
+        Vec2 worldPos  = camera.screenToWorld(screenPos);
+
+        // Find topmost region under cursor (last match = drawn on top)
+        Region* hit = nullptr;
+        regionTree.forEach([&](Region& r)
+        {
+            if (r.geometry.contains(worldPos))
+                hit = &r;
+        });
+
+        selection.select(hit); // nullptr = deselect
+    }
 }
 
 Camera& Core::getCamera() {

@@ -1,29 +1,12 @@
-CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj: \
- C:\Users\alexa\Documents\spatial-map-editor\src\window\WindowCallbacks.cpp \
- C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowCallbacks.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowContext.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/core/Core.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Camera.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/math/Vec2.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/input/Input.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/math/BlockCoord.h \
- C:/msys64/mingw64/include/c++/15.2.0/cstdint \
+CMakeFiles/main.dir/src/data/RegionTree.cpp.obj: \
+ C:\Users\alexa\Documents\spatial-map-editor\src\data\RegionTree.cpp \
+ C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionTree.h \
+ C:/msys64/mingw64/include/c++/15.2.0/vector \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/requires_hosted.h \
  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h \
  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/os_defines.h \
  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/cpu_defines.h \
  C:/msys64/mingw64/include/c++/15.2.0/pstl/pstl_config.h \
- C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h \
- C:/msys64/mingw64/include/stdint.h C:/msys64/mingw64/include/crtdefs.h \
- C:/msys64/mingw64/include/corecrt.h C:/msys64/mingw64/include/_mingw.h \
- C:/msys64/mingw64/include/_mingw_mac.h \
- C:/msys64/mingw64/include/_mingw_secapi.h \
- C:/msys64/mingw64/include/vadefs.h \
- C:/msys64/mingw64/include/sdks/_mingw_ddk.h \
- C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stddef.h \
- C:/msys64/mingw64/include/stddef.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionTree.h \
- C:/msys64/mingw64/include/c++/15.2.0/vector \
- C:/msys64/mingw64/include/c++/15.2.0/bits/requires_hosted.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_algobase.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/functexcept.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/exception_defines.h \
@@ -74,6 +57,13 @@ CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/bits/vector.tcc \
  C:/msys64/mingw64/include/c++/15.2.0/bits/memory_resource.h \
  C:/msys64/mingw64/include/c++/15.2.0/cstddef \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stddef.h \
+ C:/msys64/mingw64/include/stddef.h C:/msys64/mingw64/include/crtdefs.h \
+ C:/msys64/mingw64/include/corecrt.h C:/msys64/mingw64/include/_mingw.h \
+ C:/msys64/mingw64/include/_mingw_mac.h \
+ C:/msys64/mingw64/include/_mingw_secapi.h \
+ C:/msys64/mingw64/include/vadefs.h \
+ C:/msys64/mingw64/include/sdks/_mingw_ddk.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/uses_allocator.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/uses_allocator_args.h \
  C:/msys64/mingw64/include/c++/15.2.0/tuple \
@@ -175,6 +165,9 @@ CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_base.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_lockfree_defines.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_wait.h \
+ C:/msys64/mingw64/include/c++/15.2.0/cstdint \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h \
+ C:/msys64/mingw64/include/stdint.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/std_mutex.h \
  C:/msys64/mingw64/include/c++/15.2.0/backward/auto_ptr.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_uninitialized.h \
@@ -193,7 +186,6 @@ CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/array \
  C:/Users/alexa/Documents/spatial-map-editor/include/data/Region.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionGeometry.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/math/Vec2.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionStatus.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/data/Marker.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/core/SelectionState.h \
- C:/msys64/mingw64/include/GLFW/glfw3.h C:/msys64/mingw64/include/GL/gl.h
+ C:/Users/alexa/Documents/spatial-map-editor/include/data/Marker.h

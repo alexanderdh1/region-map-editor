@@ -10,7 +10,7 @@ Pan and zoom smoothly across large map images with pixel-accurate block coordina
 
 - **Pan & zoom** — click-drag to pan, scroll to zoom toward cursor
 - **World bounds clamping** — camera stays within the map at all zoom levels
-- **Block coordinate mapping** — converts screen positions to world block coordinates (designed for Minecraft-style grids)
+- **Block coordinate mapping** — converts screen positions to world block coordinates
 - **Tile-based rendering** — frustum-culled tile layer for efficient rendering
 - **Modular architecture** — clean separation between core, input, rendering, and data
 

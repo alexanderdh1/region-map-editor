@@ -1,6 +1,8 @@
 #pragma once
 
 #include "rendering/GridRenderer.h"
+#include "rendering/RegionRenderer.h"
+#include "rendering/PopupRenderer.h"
 #include "rendering/TileLayer.h"
 
 class Core;
@@ -18,7 +20,9 @@ public:
     bool isGridVisible() const { return showGrid; }
 
 private:
-    GridRenderer gridRenderer;
-    TileLayer tileLayer;
-    bool showGrid = false;
+    GridRenderer   gridRenderer;
+    RegionRenderer regionRenderer;
+    PopupRenderer  popupRenderer;
+    TileLayer      tileLayer;
+    bool           showGrid = false;
 };

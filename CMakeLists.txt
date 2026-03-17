@@ -14,6 +14,8 @@ add_executable(main
     src/input/Input.cpp
     src/rendering/Camera.cpp
     src/rendering/GridRenderer.cpp
+    src/rendering/RegionRenderer.cpp
+    src/rendering/PopupRenderer.cpp
     src/window/WindowCallbacks.cpp
     src/window/WindowSetup.cpp
     src/window/WindowUI.cpp
@@ -22,6 +24,7 @@ add_executable(main
     src/rendering/Texture.cpp
     src/rendering/TileLayer.cpp
     src/data/WorldLoader.cpp
+    src/data/RegionTree.cpp
     src/window/OpenGLSetup.cpp
 )
 

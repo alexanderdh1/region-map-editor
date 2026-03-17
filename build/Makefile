@@ -152,6 +152,30 @@ src/core/Core.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/core/Core.cpp.s
 .PHONY : src/core/Core.cpp.s
 
+src/data/RegionTree.obj: src/data/RegionTree.cpp.obj
+.PHONY : src/data/RegionTree.obj
+
+# target to build an object file
+src/data/RegionTree.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/data/RegionTree.cpp.obj
+.PHONY : src/data/RegionTree.cpp.obj
+
+src/data/RegionTree.i: src/data/RegionTree.cpp.i
+.PHONY : src/data/RegionTree.i
+
+# target to preprocess a source file
+src/data/RegionTree.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/data/RegionTree.cpp.i
+.PHONY : src/data/RegionTree.cpp.i
+
+src/data/RegionTree.s: src/data/RegionTree.cpp.s
+.PHONY : src/data/RegionTree.s
+
+# target to generate assembly for a file
+src/data/RegionTree.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/data/RegionTree.cpp.s
+.PHONY : src/data/RegionTree.cpp.s
+
 src/data/WorldLoader.obj: src/data/WorldLoader.cpp.obj
 .PHONY : src/data/WorldLoader.obj
 
@@ -271,6 +295,54 @@ src/rendering/GridRenderer.s: src/rendering/GridRenderer.cpp.s
 src/rendering/GridRenderer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.s
 .PHONY : src/rendering/GridRenderer.cpp.s
+
+src/rendering/PopupRenderer.obj: src/rendering/PopupRenderer.cpp.obj
+.PHONY : src/rendering/PopupRenderer.obj
+
+# target to build an object file
+src/rendering/PopupRenderer.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/PopupRenderer.cpp.obj
+.PHONY : src/rendering/PopupRenderer.cpp.obj
+
+src/rendering/PopupRenderer.i: src/rendering/PopupRenderer.cpp.i
+.PHONY : src/rendering/PopupRenderer.i
+
+# target to preprocess a source file
+src/rendering/PopupRenderer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/PopupRenderer.cpp.i
+.PHONY : src/rendering/PopupRenderer.cpp.i
+
+src/rendering/PopupRenderer.s: src/rendering/PopupRenderer.cpp.s
+.PHONY : src/rendering/PopupRenderer.s
+
+# target to generate assembly for a file
+src/rendering/PopupRenderer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/PopupRenderer.cpp.s
+.PHONY : src/rendering/PopupRenderer.cpp.s
+
+src/rendering/RegionRenderer.obj: src/rendering/RegionRenderer.cpp.obj
+.PHONY : src/rendering/RegionRenderer.obj
+
+# target to build an object file
+src/rendering/RegionRenderer.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/RegionRenderer.cpp.obj
+.PHONY : src/rendering/RegionRenderer.cpp.obj
+
+src/rendering/RegionRenderer.i: src/rendering/RegionRenderer.cpp.i
+.PHONY : src/rendering/RegionRenderer.i
+
+# target to preprocess a source file
+src/rendering/RegionRenderer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/RegionRenderer.cpp.i
+.PHONY : src/rendering/RegionRenderer.cpp.i
+
+src/rendering/RegionRenderer.s: src/rendering/RegionRenderer.cpp.s
+.PHONY : src/rendering/RegionRenderer.s
+
+# target to generate assembly for a file
+src/rendering/RegionRenderer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/RegionRenderer.cpp.s
+.PHONY : src/rendering/RegionRenderer.cpp.s
 
 src/rendering/Renderer.obj: src/rendering/Renderer.cpp.obj
 .PHONY : src/rendering/Renderer.obj
@@ -476,6 +548,9 @@ help:
 	@echo ... src/core/Core.obj
 	@echo ... src/core/Core.i
 	@echo ... src/core/Core.s
+	@echo ... src/data/RegionTree.obj
+	@echo ... src/data/RegionTree.i
+	@echo ... src/data/RegionTree.s
 	@echo ... src/data/WorldLoader.obj
 	@echo ... src/data/WorldLoader.i
 	@echo ... src/data/WorldLoader.s
@@ -491,6 +566,12 @@ help:
 	@echo ... src/rendering/GridRenderer.obj
 	@echo ... src/rendering/GridRenderer.i
 	@echo ... src/rendering/GridRenderer.s
+	@echo ... src/rendering/PopupRenderer.obj
+	@echo ... src/rendering/PopupRenderer.i
+	@echo ... src/rendering/PopupRenderer.s
+	@echo ... src/rendering/RegionRenderer.obj
+	@echo ... src/rendering/RegionRenderer.i
+	@echo ... src/rendering/RegionRenderer.s
 	@echo ... src/rendering/Renderer.obj
 	@echo ... src/rendering/Renderer.i
 	@echo ... src/rendering/Renderer.s
