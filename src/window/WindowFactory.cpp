@@ -10,6 +10,9 @@ GLFWwindow* createWindow(int width, int height, const char* title)
         return nullptr;
     }
 
+    // Request 8-bit stencil buffer for polygon fill rendering
+    glfwWindowHint(GLFW_STENCIL_BITS, 8);
+
     GLFWwindow* window = glfwCreateWindow(
         width,
         height,

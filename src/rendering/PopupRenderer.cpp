@@ -1,4 +1,5 @@
 #include "rendering/PopupRenderer.h"
+#include "rendering/Camera.h"
 #include "data/RegionStatus.h"
 
 #include <GLFW/glfw3.h>
@@ -147,6 +148,18 @@ static void drawString(double x, double y, const std::string& text,
 
 // ---- PopupRenderer ----
 
+// Character width at given scale: font is 5px wide + 1px gap = 6px per char
+static int maxChars(double panelWidth, double padding, float scale)
+{
+    return static_cast<int>((panelWidth - padding * 2) / (6.0 * scale));
+}
+
+static std::string trunc(const std::string& s, int max)
+{
+    if (static_cast<int>(s.size()) <= max) return s;
+    return s.substr(0, max - 3) + "...";
+}
+
 void PopupRenderer::render(
     const SelectionState& selection,
     const Camera& camera) const
@@ -156,52 +169,54 @@ void PopupRenderer::render(
 
     const Region& region = *selection.selectedRegion;
 
-    const double panelX = 20.0;
-    const double panelY = 20.0;
-    const double panelW = 290.0;
-    const double panelH = 210.0;
+    const double PX = 20.0;   // panel x
+    const double PY = 20.0;   // panel y — top-left, does NOT overlap tool indicator
+    const double PW = 270.0;
+    const double PH = region.geometry.isSelfIntersecting() ? 230.0 : 210.0;
+    const double PAD = 12.0;
+    const float  S  = 1.5f;   // default text scale
+    const int    MC = maxChars(PW, PAD, S);
 
-    // Dark background
-    drawPanel(panelX, panelY, panelW, panelH, 0.1f, 0.1f, 0.12f, 0.92f);
+    // Background
+    drawPanel(PX, PY, PW, PH, 0.1f, 0.1f, 0.12f, 0.92f);
 
     // Coloured header bar
-    drawPanel(panelX, panelY, panelW, 6.0,
+    drawPanel(PX, PY, PW, 6.0,
               region.colorR, region.colorG, region.colorB, 1.0f);
 
-    // Region name
-    drawString(panelX + 12, panelY + 16,
-               region.name, 1.0f, 1.0f, 1.0f, 1.8f);
+    // Name (slightly larger, max ~22 chars at scale 1.8)
+    drawString(PX + PAD, PY + 15,
+               trunc(region.name, maxChars(PW, PAD, 1.8f)),
+               1.f, 1.f, 1.f, 1.8f);
 
     // Status
-    drawString(panelX + 12, panelY + 46,
-               "Status: " + regionStatusToString(region.status),
-               0.8f, 0.8f, 0.8f);
+    drawString(PX + PAD, PY + 44,
+               trunc("Status: " + regionStatusToString(region.status), MC),
+               0.8f, 0.8f, 0.8f, S);
 
     // Note
     std::string note = region.note.empty() ? "(no note)" : region.note;
-    if (note.size() > 30) note = note.substr(0, 30) + "...";
-    drawString(panelX + 12, panelY + 68,
-               "Note: " + note, 0.7f, 0.7f, 0.7f);
+    drawString(PX + PAD, PY + 64,
+               trunc("Note: " + note, MC),
+               0.7f, 0.7f, 0.7f, S);
 
     // Colour label + swatch
-    drawString(panelX + 12, panelY + 96, "Colour:", 0.7f, 0.7f, 0.7f);
-    drawPanel(panelX + 82, panelY + 90, 28.0, 14.0,
+    drawString(PX + PAD, PY + 88, "Colour:", 0.7f, 0.7f, 0.7f, S);
+    drawPanel(PX + PAD + 54, PY + 83, 24.0, 13.0,
               region.colorR, region.colorG, region.colorB, 1.0f);
 
     // Separator
-    drawPanel(panelX + 8, panelY + 118, panelW - 16, 1.0,
-              0.3f, 0.3f, 0.35f, 1.0f);
+    drawPanel(PX + 8, PY + 109, PW - 16, 1.0, 0.3f, 0.3f, 0.35f, 1.0f);
 
-    // Controls
-    drawString(panelX + 12, panelY + 130,
-               "[1] None  [2] In Progress  [3] Done",
-               0.5f, 0.5f, 0.6f);
-    drawString(panelX + 12, panelY + 150,
-               "[C] Cycle colour  [Esc] Close",
-               0.5f, 0.5f, 0.6f);
-    drawString(panelX + 12, panelY + 170,
-               "[Del] Delete region",
-               0.5f, 0.5f, 0.6f);
+    drawString(PX + PAD, PY + 120,
+               trunc("[1] None [2] In Progress [3] Done", MC),
+               0.5f, 0.5f, 0.6f, S);
+    drawString(PX + PAD, PY + 143,
+               trunc("[C] Cycle colour  [Esc] Close", MC),
+               0.5f, 0.5f, 0.6f, S);
+    drawString(PX + PAD, PY + 166,
+               trunc("[Del] Delete region", MC),
+               0.5f, 0.5f, 0.6f, S);
 }
 
 void PopupRenderer::drawPanel(
@@ -227,4 +242,47 @@ void PopupRenderer::drawText(
     float r, float g, float b) const
 {
     drawString(x, y, text, r, g, b);
+}
+
+void PopupRenderer::renderToolIndicator(const Input& input, const Camera& camera) const
+{
+    bool isRect = input.getDrawTool() == DrawTool::Rectangle;
+    bool isPoly = input.getDrawTool() == DrawTool::Polygon;
+
+    // Fixed width panel, positioned bottom-left
+    // y=20 from bottom — but since our coordinate system has y=0 at top,
+    // we hardcode a low value. For now use a fixed y that doesn't overlap popup.
+    // Tool indicator sits at bottom: we use a large fixed y (near 720 - 50 = 670).
+    // The camera viewport gives us the real height.
+    const double W  = 200.0;
+    const double H  = 32.0;
+    const double X  = 20.0;
+    const double Y  = camera.viewportSize.y - H - 20.0;
+
+    // Background
+    drawPanel(X, Y, W, H, 0.1f, 0.1f, 0.12f, 0.88f);
+
+    // Active tool accent line at top of indicator
+    float ar = isRect ? 0.4f : 0.3f;
+    float ag = isRect ? 0.6f : 0.85f;
+    float ab = isRect ? 1.0f : 0.45f;
+    drawPanel(X, Y, W, 3.0, ar, ag, ab, 1.0f);
+
+    // Rect icon + label
+    float rr = isRect ? 0.4f : 0.25f;
+    float rg = isRect ? 0.6f : 0.25f;
+    float rb = isRect ? 1.0f : 0.25f;
+    float ra = isRect ? 0.95f : 0.4f;
+    drawPanel(X + 8, Y + 8, 16.0, 16.0, rr, rg, rb, ra);
+    drawString(X + 28, Y + 11, "[R] Rect",
+               isRect ? 1.f : 0.45f, isRect ? 1.f : 0.45f, isRect ? 1.f : 0.45f);
+
+    // Poly icon + label
+    float pr = isPoly ? 0.3f  : 0.25f;
+    float pg = isPoly ? 0.85f : 0.25f;
+    float pb = isPoly ? 0.45f : 0.25f;
+    float pa = isPoly ? 0.95f : 0.4f;
+    drawPanel(X + 108, Y + 8, 16.0, 16.0, pr, pg, pb, pa);
+    drawString(X + 128, Y + 11, "[P] Poly",
+               isPoly ? 1.f : 0.45f, isPoly ? 1.f : 0.45f, isPoly ? 1.f : 0.45f);
 }

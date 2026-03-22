@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <memory>
+#include <cmath>
 
 Core::Core() = default;
 
@@ -43,16 +44,19 @@ void Core::update(GLFWwindow* window)
     // Enforce zoom limits and keep camera within world bounds
     camera.clampToBounds(worldWidth, worldHeight);
 
-    // RECT DRAWING — finalise a rectangle when the user releases
+    // RECT — capture world-space start the moment drawing begins
+    if (input.isRectJustStarted())
+    {
+        input.setDrawStartWorld(camera.screenToWorld(input.getDrawStart()));
+        input.consumeRectJustStarted();
+    }
+
+    // RECT — finalise when user releases
     if (input.hasCompletedRect())
     {
-        Vec2 screenA = input.getDrawStart();
-        Vec2 screenB = input.getDrawCurrent();
+        Vec2 worldA = input.getDrawStartWorld();
+        Vec2 worldB = camera.screenToWorld(input.getDrawCurrent());
 
-        Vec2 worldA = camera.screenToWorld(screenA);
-        Vec2 worldB = camera.screenToWorld(screenB);
-
-        // Normalise so min < max regardless of drag direction
         RegionGeometry geom;
         geom.type    = GeometryType::Rectangle;
         geom.rectMin = { std::min(worldA.x, worldB.x),
@@ -60,7 +64,6 @@ void Core::update(GLFWwindow* window)
         geom.rectMax = { std::max(worldA.x, worldB.x),
                          std::max(worldA.y, worldB.y) };
 
-        // Ignore tiny accidental clicks
         if (geom.isValid())
         {
             auto region      = std::make_unique<Region>();
@@ -70,6 +73,53 @@ void Core::update(GLFWwindow* window)
         }
 
         input.consumeCompletedRect();
+    }
+
+    // POLYGON — add world-space point, or close if near first point
+    if (input.hasPendingPolyPoint())
+    {
+        Vec2 screenPt = input.consumePendingPolyPoint();
+        Vec2 worldPt  = camera.screenToWorld(screenPt);
+
+        const std::vector<Vec2>& existing = input.getPolygonWorldPoints();
+        bool closedByFirstPoint = false;
+
+        // Close polygon if clicking near the first point (within ~12 screen px)
+        if (existing.size() >= 3)
+        {
+            Vec2 firstScreen = camera.worldToScreen(existing[0]);
+            double dist = std::hypot(
+                screenPt.x - firstScreen.x,
+                screenPt.y - firstScreen.y
+            );
+
+            if (dist <= 12.0)
+            {
+                input.closePolygon();
+                closedByFirstPoint = true;
+            }
+        }
+
+        if (!closedByFirstPoint)
+            input.addPolygonWorldPoint(worldPt);
+    }
+
+    // POLYGON DRAWING — finalise when double-click or first-point click detected
+    if (input.hasCompletedPolygon())
+    {
+        std::vector<Vec2> worldPoints = input.consumeCompletedPolygon();
+
+        RegionGeometry geom;
+        geom.type   = GeometryType::Polygon;
+        geom.points = worldPoints; // keep user's click order — ear clipping handles rendering
+
+        if (geom.isValid())
+        {
+            auto region      = std::make_unique<Region>();
+            region->id       = regionTree.nextId();
+            region->geometry = geom;
+            regionTree.addRegion(std::move(region));
+        }
     }
 
     // CLICK — hit-test regions, select or deselect

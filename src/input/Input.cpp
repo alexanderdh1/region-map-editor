@@ -1,26 +1,70 @@
 #include "input/Input.h"
 #include <cmath>
+#include <GLFW/glfw3.h>
+
+static constexpr double DOUBLE_CLICK_SECONDS = 0.35;
+static constexpr double DOUBLE_CLICK_RADIUS  = 10.0;
 
 void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
 {
     if (pressed)
     {
-        mode = shiftHeld ? InputMode::DrawRect : InputMode::Navigate;
+        // ---- POLYGON MODE ----
+        if (shiftHeld && activeTool == DrawTool::Polygon)
+        {
+            mode = InputMode::DrawPolygon;
 
-        if (mode == InputMode::DrawRect)
-        {
-            drawing       = true;
-            rectCompleted = false;
-            drawStart     = mousePos;
-            drawCurrent   = mousePos;
+            double now = glfwGetTime();
+            double dist = std::hypot(
+                mousePos.x - lastClickPos.x,
+                mousePos.y - lastClickPos.y
+            );
+
+            bool isDoubleClick =
+                (now - lastClickTime < DOUBLE_CLICK_SECONDS) &&
+                (dist < DOUBLE_CLICK_RADIUS);
+
+            if (isDoubleClick && polyDrawing && polyWorldPoints.size() >= 3)
+            {
+                // The first click of the double-click already added a point
+                // via pendingPolyPoint — Core has not yet consumed it, so
+                // we just mark complete. Core will skip the pending point.
+                completedPoly  = polyWorldPoints;
+                polyWorldPoints.clear();
+                pendingPolyPoint = false;
+                polyDrawing    = false;
+                polyCompleted  = true;
+            }
+            else
+            {
+                polyDrawing      = true;
+                pendingPolyPoint = true;
+                pendingPolyPos   = mousePos;
+            }
+
+            lastClickTime = now;
+            lastClickPos  = mousePos;
+            return;
         }
-        else
+
+        // ---- RECT MODE ----
+        if (shiftHeld && activeTool == DrawTool::Rectangle)
         {
-            dragging     = true;
-            didDrag      = false;
-            lastMousePos = mousePos;
-            clickPos     = mousePos;
+            mode             = InputMode::DrawRect;
+            drawing          = true;
+            rectCompleted    = false;
+            rectJustStarted  = true;
+            drawStart        = mousePos;
+            drawCurrent      = mousePos;
+            return;
         }
+
+        // ---- NAVIGATE ----
+        mode         = InputMode::Navigate;
+        dragging     = true;
+        didDrag      = false;
+        lastMousePos = mousePos;
+        clickPos     = mousePos;
     }
     else // released
     {
@@ -28,44 +72,43 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
         {
             drawing       = false;
             rectCompleted = true;
-        }
-        else
-        {
-            // Only register a click if the mouse didn't move significantly
-            if (!didDrag)
-            {
-                clickPending = true;
-            }
-            dragging = false;
-            didDrag  = false;
+            mode          = InputMode::Navigate;
+            return;
         }
 
-        mode = InputMode::Navigate;
+        if (mode == InputMode::DrawPolygon)
+            return; // polygon points are placed on press, not release
+
+        // Navigate release — register click if no drag occurred
+        if (!didDrag)
+            clickPending = true;
+
+        dragging = false;
+        didDrag  = false;
+        mode     = InputMode::Navigate;
     }
 }
 
 void Input::onMouseMove(const Vec2& mousePos)
 {
-    if (drawing)
-    {
-        drawCurrent = mousePos;
+    // Update cursor for both rect and polygon preview
+    drawCurrent = mousePos;
+
+    if (mode == InputMode::DrawPolygon || mode == InputMode::DrawRect)
         return;
-    }
 
     if (!dragging) return;
 
-    Vec2 delta{
+    Vec2 delta {
         mousePos.x - lastMousePos.x,
         mousePos.y - lastMousePos.y
     };
 
-    // Consider it a drag if moved more than 4 pixels
     if (std::abs(delta.x) > 4.0 || std::abs(delta.y) > 4.0)
         didDrag = true;
 
-    panDelta.x += delta.x;
-    panDelta.y += delta.y;
-
+    panDelta.x  += delta.x;
+    panDelta.y  += delta.y;
     lastMousePos = mousePos;
 }
 
@@ -88,10 +131,7 @@ Vec2 Input::consumePanDelta()
     return result;
 }
 
-bool Input::hasZoomDelta() const
-{
-    return zoomDelta != 0.0;
-}
+bool Input::hasZoomDelta() const { return zoomDelta != 0.0; }
 
 double Input::consumeZoomDelta()
 {
@@ -100,32 +140,56 @@ double Input::consumeZoomDelta()
     return result;
 }
 
-// --- Drawing ---
+// --- Rectangle ---
 
-bool Input::isDrawingRect() const
-{
-    return drawing;
-}
+bool Input::isDrawingRect() const { return drawing; }
 
-bool Input::hasCompletedRect() const
-{
-    return rectCompleted;
-}
+bool Input::hasCompletedRect() const { return rectCompleted; }
 
-void Input::consumeCompletedRect()
+void Input::consumeCompletedRect() { rectCompleted = false; }
+
+void Input::cancelRect()
 {
+    drawing       = false;
     rectCompleted = false;
+    mode          = InputMode::Navigate;
+}
+
+// --- Polygon ---
+
+bool Input::hasCompletedPolygon() const { return polyCompleted; }
+
+std::vector<Vec2> Input::consumeCompletedPolygon()
+{
+    polyCompleted = false;
+    return std::move(completedPoly);
+}
+
+void Input::cancelPolygon()
+{
+    polyDrawing      = false;
+    pendingPolyPoint = false;
+    polyWorldPoints.clear();
+    mode = InputMode::Navigate;
+}
+
+void Input::closePolygon()
+{
+    completedPoly  = polyWorldPoints;
+    polyWorldPoints.clear();
+    pendingPolyPoint = false;
+    polyDrawing    = false;
+    polyCompleted  = true;
+    mode           = InputMode::Navigate;
 }
 
 // --- Click ---
 
-bool Input::hasClick() const
-{
-    return clickPending;
-}
+bool Input::hasClick() const { return clickPending; }
 
 Vec2 Input::consumeClick()
 {
     clickPending = false;
     return clickPos;
 }
+

@@ -98,14 +98,40 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
             auto* context =
                 static_cast<WindowContext*>(glfwGetWindowUserPointer(window));
 
+            auto& input     = context->core->getInput();
             auto& selection = context->core->getSelection();
-            Region* r = selection.selectedRegion;
+            Region* r       = selection.selectedRegion;
 
+            // --- Tool switching (always available) ---
+            if (key == GLFW_KEY_R)
+            {
+                input.setDrawTool(DrawTool::Rectangle);
+                input.cancelPolygon();
+                return;
+            }
+            if (key == GLFW_KEY_P)
+            {
+                input.setDrawTool(DrawTool::Polygon);
+                return;
+            }
+
+            // --- Escape: cancel drawing or close popup ---
+            if (key == GLFW_KEY_ESCAPE)
+            {
+                if (input.isDrawingPolygon())
+                    input.cancelPolygon();
+                else if (input.isDrawingRect())
+                    input.cancelRect();
+                else
+                    selection.clear();
+                return;
+            }
+
+            // --- Region editing (only when popup is open) ---
             if (!r) return;
 
             switch (key)
             {
-                // Status
                 case GLFW_KEY_1:
                     r->status = RegionStatus::None; break;
                 case GLFW_KEY_2:
@@ -113,10 +139,8 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
                 case GLFW_KEY_3:
                     r->status = RegionStatus::Done; break;
 
-                // Cycle colour
                 case GLFW_KEY_C:
                 {
-                    // Find nearest preset and advance to next
                     int next = 0;
                     for (int i = 0; i < numColours; i++)
                     {
@@ -134,7 +158,6 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
                     break;
                 }
 
-                // Delete
                 case GLFW_KEY_DELETE:
                 {
                     RegionId id = r->id;
@@ -142,10 +165,6 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
                     context->core->getRegionTree().removeRegion(id);
                     break;
                 }
-
-                // Close popup
-                case GLFW_KEY_ESCAPE:
-                    selection.clear(); break;
 
                 default: break;
             }

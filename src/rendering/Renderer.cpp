@@ -11,13 +11,16 @@ void Renderer::render(const Core& core)
     // 2. Regions (on top of map)
     regionRenderer.render(core.getRegionTree(), camera);
 
-    // 3. Live rectangle preview while drawing
+    // 3. Live preview while drawing
     regionRenderer.renderPreview(core.getInput(), camera);
 
-    // 4. Selection popup (on top of everything)
+    // 4. Selection popup
     popupRenderer.render(core.getSelection(), camera);
 
-    // 5. Debug grid (optional)
+    // 5. Tool indicator (bottom-left, uses viewport height)
+    popupRenderer.renderToolIndicator(core.getInput(), camera);
+
+    // 6. Debug grid (optional)
     if (showGrid)
         gridRenderer.render(camera);
 }

@@ -7,19 +7,24 @@
 class RegionRenderer
 {
 public:
-    // Draw all regions in the tree
     void render(const RegionTree& tree, const Camera& camera) const;
-
-    // Draw the live rectangle preview while the user is dragging
     void renderPreview(const Input& input, const Camera& camera) const;
 
 private:
     void renderRegion(const Region& region, const Camera& camera) const;
+    void renderRectPreview(const Input& input, const Camera& camera) const;
+    void renderPolygonPreview(const Input& input, const Camera& camera) const;
 
-    // Draw a filled + outlined quad from four screen-space corners
-    void drawQuad(
+    void drawFilledPolygon(
         const Camera& camera,
         const std::vector<Vec2>& worldPoints,
         float r, float g, float b, float a
+    ) const;
+
+    void drawOutline(
+        const Camera& camera,
+        const std::vector<Vec2>& worldPoints,
+        float r, float g, float b, float a,
+        bool closed = true
     ) const;
 };
