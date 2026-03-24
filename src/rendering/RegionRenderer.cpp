@@ -29,12 +29,27 @@ void RegionRenderer::renderRegion(const Region& region, const Camera& camera) co
 
     std::vector<Vec2> pts = region.geometry.getPoints();
 
-    drawFilledPolygon(camera, pts,
-        region.colorR, region.colorG, region.colorB, region.colorA);
+    // Sub-regions get slightly reduced fill opacity so parent shows through
+    float depth = 0.0f;
+    const Region* p = region.parent;
+    while (p) { depth += 1.0f; p = p->parent; }
 
+    float fillAlpha    = region.colorA * (1.0f - depth * 0.08f);
+    float outlineWidth = 1.5f + depth * 1.0f; // thicker outline per level
+
+    drawFilledPolygon(camera, pts,
+        region.colorR, region.colorG, region.colorB,
+        std::max(0.1f, fillAlpha));
+
+    glLineWidth(outlineWidth);
     drawOutline(camera, pts,
         region.colorR, region.colorG, region.colorB,
         std::min(1.0f, region.colorA + 0.4f));
+    glLineWidth(1.0f);
+
+    // Render children recursively
+    for (const auto& child : region.children)
+        renderRegion(*child, camera);
 }
 
 void RegionRenderer::renderRectPreview(

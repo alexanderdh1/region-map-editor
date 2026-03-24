@@ -44,11 +44,43 @@ void Core::update(GLFWwindow* window)
     // Enforce zoom limits and keep camera within world bounds
     camera.clampToBounds(worldWidth, worldHeight);
 
+    // Helper to add region — respects pending parent
+    auto addRegion = [&](std::unique_ptr<Region> region)
+    {
+        if (hasPendingParent)
+        {
+            regionTree.addChildRegion(pendingParentId, std::move(region));
+            hasPendingParent = false;
+        }
+        else
+        {
+            regionTree.addRegion(std::move(region));
+        }
+    };
+
+    // Helper: check if a world point is inside the pending parent region
+    auto isInsideParent = [&](const Vec2& worldPt) -> bool
+    {
+        if (!hasPendingParent) return true; // no restriction
+        Region* parent = regionTree.findById(pendingParentId);
+        if (!parent) return true;
+        return parent->geometry.contains(worldPt);
+    };
+
     // RECT — capture world-space start the moment drawing begins
     if (input.isRectJustStarted())
     {
-        input.setDrawStartWorld(camera.screenToWorld(input.getDrawStart()));
-        input.consumeRectJustStarted();
+        Vec2 worldStart = camera.screenToWorld(input.getDrawStart());
+        // Cancel immediately if start point is outside parent
+        if (!isInsideParent(worldStart))
+        {
+            input.cancelRect();
+        }
+        else
+        {
+            input.setDrawStartWorld(worldStart);
+            input.consumeRectJustStarted();
+        }
     }
 
     // RECT — finalise when user releases
@@ -56,6 +88,26 @@ void Core::update(GLFWwindow* window)
     {
         Vec2 worldA = input.getDrawStartWorld();
         Vec2 worldB = camera.screenToWorld(input.getDrawCurrent());
+
+        // Clamp worldB to parent bounds if needed
+        if (hasPendingParent)
+        {
+            Region* parent = regionTree.findById(pendingParentId);
+            if (parent)
+            {
+                const auto& pts = parent->geometry.getPoints();
+                // Simple AABB clamp using parent bounding box
+                double minX = pts[0].x, maxX = pts[0].x;
+                double minY = pts[0].y, maxY = pts[0].y;
+                for (const auto& p : pts)
+                {
+                    minX = std::min(minX, p.x); maxX = std::max(maxX, p.x);
+                    minY = std::min(minY, p.y); maxY = std::max(maxY, p.y);
+                }
+                worldB.x = std::clamp(worldB.x, minX, maxX);
+                worldB.y = std::clamp(worldB.y, minY, maxY);
+            }
+        }
 
         RegionGeometry geom;
         geom.type    = GeometryType::Rectangle;
@@ -69,39 +121,45 @@ void Core::update(GLFWwindow* window)
             auto region      = std::make_unique<Region>();
             region->id       = regionTree.nextId();
             region->geometry = geom;
-            regionTree.addRegion(std::move(region));
+            addRegion(std::move(region));
         }
 
         input.consumeCompletedRect();
     }
 
-    // POLYGON — add world-space point, or close if near first point
+    // POLYGON — add world-space point only if inside parent
     if (input.hasPendingPolyPoint())
     {
         Vec2 screenPt = input.consumePendingPolyPoint();
         Vec2 worldPt  = camera.screenToWorld(screenPt);
 
-        const std::vector<Vec2>& existing = input.getPolygonWorldPoints();
-        bool closedByFirstPoint = false;
-
-        // Close polygon if clicking near the first point (within ~12 screen px)
-        if (existing.size() >= 3)
+        // Reject point if outside parent
+        if (!isInsideParent(worldPt))
         {
-            Vec2 firstScreen = camera.worldToScreen(existing[0]);
-            double dist = std::hypot(
-                screenPt.x - firstScreen.x,
-                screenPt.y - firstScreen.y
-            );
-
-            if (dist <= 12.0)
-            {
-                input.closePolygon();
-                closedByFirstPoint = true;
-            }
+            // discard — do not add
         }
+        else
+        {
+            const std::vector<Vec2>& existing = input.getPolygonWorldPoints();
+            bool closedByFirstPoint = false;
 
-        if (!closedByFirstPoint)
-            input.addPolygonWorldPoint(worldPt);
+            if (existing.size() >= 3)
+            {
+                Vec2 firstScreen = camera.worldToScreen(existing[0]);
+                double dist = std::hypot(
+                    screenPt.x - firstScreen.x,
+                    screenPt.y - firstScreen.y
+                );
+                if (dist <= 12.0)
+                {
+                    input.closePolygon();
+                    closedByFirstPoint = true;
+                }
+            }
+
+            if (!closedByFirstPoint)
+                input.addPolygonWorldPoint(worldPt);
+        }
     }
 
     // POLYGON DRAWING — finalise when double-click or first-point click detected
@@ -111,14 +169,14 @@ void Core::update(GLFWwindow* window)
 
         RegionGeometry geom;
         geom.type   = GeometryType::Polygon;
-        geom.points = worldPoints; // keep user's click order — ear clipping handles rendering
+        geom.points = worldPoints;
 
         if (geom.isValid())
         {
             auto region      = std::make_unique<Region>();
             region->id       = regionTree.nextId();
             region->geometry = geom;
-            regionTree.addRegion(std::move(region));
+            addRegion(std::move(region));
         }
     }
 
@@ -128,7 +186,7 @@ void Core::update(GLFWwindow* window)
         Vec2 screenPos = input.consumeClick();
         Vec2 worldPos  = camera.screenToWorld(screenPos);
 
-        // Find topmost region under cursor (last match = drawn on top)
+        // Find topmost region under cursor
         Region* hit = nullptr;
         regionTree.forEach([&](Region& r)
         {
@@ -136,7 +194,42 @@ void Core::update(GLFWwindow* window)
                 hit = &r;
         });
 
-        selection.select(hit); // nullptr = deselect
+        if (hit)
+        {
+            // Build the ancestor chain for viewStack so [B] always works
+            selection.viewStack.clear();
+            Region* ancestor = hit->parent;
+            while (ancestor)
+            {
+                selection.viewStack.insert(selection.viewStack.begin(), ancestor);
+                ancestor = ancestor->parent;
+            }
+            selection.selectedRegion = hit;
+            selection.popupOpen      = true;
+        }
+        else
+        {
+            selection.clear();
+        }
+    }
+
+    // RIGHT-CLICK — hit-test for context menu (handled by UILayer)
+    // We just store the hit region in selection as contextRegion
+    if (input.hasRightClick())
+    {
+        Vec2 screenPos = input.consumeRightClick();
+        Vec2 worldPos  = camera.screenToWorld(screenPos);
+
+        Region* hit = nullptr;
+        regionTree.forEach([&](Region& r)
+        {
+            if (r.geometry.contains(worldPos))
+                hit = &r;
+        });
+
+        selection.contextRegion     = hit;
+        selection.contextMenuOpen   = (hit != nullptr);
+        selection.contextMenuScreen = screenPos;
     }
 }
 

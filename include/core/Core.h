@@ -38,11 +38,20 @@ public:
     SelectionState& getSelection()             { return selection; }
     const SelectionState& getSelection() const { return selection; }
 
+    // Sub-region: set a pending parent before drawing begins.
+    // The next completed region will be added as a child of this parent.
+    void setPendingParent(RegionId id) { pendingParentId = id; hasPendingParent = true; }
+    void clearPendingParent()          { hasPendingParent = false; }
+    bool isPendingParentSet() const    { return hasPendingParent; }
+
 private:
     Camera         camera;
     Input          input;
     RegionTree     regionTree;
     SelectionState selection;
+
+    bool     hasPendingParent = false;
+    RegionId pendingParentId  = 0;
 
     double worldWidth  = 0.0;
     double worldHeight = 0.0;

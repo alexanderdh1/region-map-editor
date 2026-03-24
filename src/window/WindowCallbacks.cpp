@@ -23,18 +23,49 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
         }
     );
 
-    // Mouse button — forward to Input only
+    // Mouse button — UI gets first chance, then forward to Input
     glfwSetMouseButtonCallback(
         window,
         [](GLFWwindow* window, int button, int action, int mods)
         {
-            if (button != GLFW_MOUSE_BUTTON_LEFT) return;
-
             auto* ctx = static_cast<WindowContext*>(glfwGetWindowUserPointer(window));
             double x, y;
             glfwGetCursorPos(window, &x, &y);
-            bool shiftHeld = (mods & GLFW_MOD_SHIFT) != 0;
-            ctx->core->getInput().onMouseButton(action == GLFW_PRESS, Vec2{x, y}, shiftHeld);
+
+            if (button == GLFW_MOUSE_BUTTON_LEFT)
+            {
+                bool shiftHeld = (mods & GLFW_MOD_SHIFT) != 0;
+
+                // Track whether UI consumed the press so we can block the release too
+                static bool uiConsumedPress = false;
+
+                if (action == GLFW_PRESS)
+                {
+                    if (!shiftHeld)
+                    {
+                        uiConsumedPress = ctx->uiLayer->onMouseClick(Vec2{x, y}, *ctx->core);
+                        if (uiConsumedPress) return;
+                    }
+                    else
+                    {
+                        uiConsumedPress = false;
+                    }
+                }
+                else if (action == GLFW_RELEASE)
+                {
+                    if (uiConsumedPress)
+                    {
+                        uiConsumedPress = false;
+                        return; // block release so Input never sees it
+                    }
+                }
+
+                ctx->core->getInput().onMouseButton(action == GLFW_PRESS, Vec2{x, y}, shiftHeld);
+            }
+            else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+            {
+                ctx->core->getInput().onMouseButtonRight(true, Vec2{x, y});
+            }
         }
     );
 

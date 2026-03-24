@@ -18,6 +18,7 @@ enum class DrawTool
 class Input {
 public:
     void onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld);
+    void onMouseButtonRight(bool pressed, const Vec2& mousePos);
     void onMouseMove(const Vec2& mousePos);
     void onScroll(double yOffset);
 
@@ -72,9 +73,13 @@ public:
     void cancelPolygon();
     void closePolygon(); // finalise with current world points (no new point added)
 
-    // --- Click ---
+    // Click (left, no shift, no drag)
     bool hasClick() const;
     Vec2 consumeClick();
+
+    // Right-click
+    bool hasRightClick() const  { return rightClickPending; }
+    Vec2 consumeRightClick()    { rightClickPending = false; return rightClickPos; }
 
 private:
     DrawTool  activeTool = DrawTool::Rectangle;
@@ -108,6 +113,10 @@ private:
     Vec2   lastClickPos  { 0.0, 0.0 };
 
     // Click
-    bool clickPending = false;
-    Vec2 clickPos     { 0.0, 0.0 };
+    bool clickPending      = false;
+    Vec2 clickPos          { 0.0, 0.0 };
+
+    // Right-click
+    bool rightClickPending = false;
+    Vec2 rightClickPos     { 0.0, 0.0 };
 };

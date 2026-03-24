@@ -5,25 +5,32 @@
 // Design contract:
 //   - UILayer reads state from Core (selection, input mode, region data)
 //   - UILayer may WRITE back to Core (change region name, status, colour, delete)
-//   - UILayer never touches Camera world-space coordinates directly —
-//     that belongs to rendering/ and Core
+//   - UILayer never touches Camera world-space coordinates directly
 //   - When ImGui is introduced, only UILayer and its sub-panels need to change.
-//     The rest of the codebase (rendering, core, data, input) stays untouched.
 
+#include <vector>
 #include "core/Core.h"
+#include "math/Vec2.h"
 
 class UILayer
 {
 public:
-    // Call once per frame after map rendering.
-    // Handles both drawing UI and processing UI keyboard input.
     void render(Core& core);
-
-    // Call from WindowCallbacks when a key is pressed.
-    // Returns true if the UI consumed the event (so Core should not also handle it).
     bool onKeyPress(int glfwKey, Core& core);
+
+    // Call from WindowCallbacks on left mouse press.
+    // Returns true if UI consumed the click (map should not process it).
+    bool onMouseClick(const Vec2& screenPos, Core& core);
 
 private:
     void renderPopup(Core& core);
+    void renderContextMenu(Core& core);
     void renderToolIndicator(const Core& core);
+
+    // Click zones registered during renderPopup for sub-region navigation
+    struct ClickZone {
+        double x, y, w, h;
+        int childIndex; // index into selectedRegion->children
+    };
+    std::vector<ClickZone> subRegionZones_;
 };

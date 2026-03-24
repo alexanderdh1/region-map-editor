@@ -193,3 +193,12 @@ Vec2 Input::consumeClick()
     return clickPos;
 }
 
+void Input::onMouseButtonRight(bool pressed, const Vec2& mousePos)
+{
+    if (pressed)
+    {
+        rightClickPending = true;
+        rightClickPos     = mousePos;
+    }
+}
+

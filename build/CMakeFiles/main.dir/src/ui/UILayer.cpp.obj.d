@@ -1,10 +1,6 @@
 CMakeFiles/main.dir/src/ui/UILayer.cpp.obj: \
  C:\Users\alexa\Documents\spatial-map-editor\src\ui\UILayer.cpp \
  C:/Users/alexa/Documents/spatial-map-editor/include/ui/UILayer.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/core/Core.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Camera.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/math/Vec2.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/input/Input.h \
  C:/msys64/mingw64/include/c++/15.2.0/vector \
  C:/msys64/mingw64/include/c++/15.2.0/bits/requires_hosted.h \
  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h \
@@ -72,6 +68,10 @@ CMakeFiles/main.dir/src/ui/UILayer.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/bits/uses_allocator_args.h \
  C:/msys64/mingw64/include/c++/15.2.0/tuple \
  C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_util.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/core/Core.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Camera.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/math/Vec2.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/input/Input.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/math/BlockCoord.h \
  C:/msys64/mingw64/include/c++/15.2.0/cstdint \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h \

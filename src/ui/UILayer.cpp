@@ -194,8 +194,62 @@ static constexpr int NUM_COLOURS = 6;
 
 void UILayer::render(Core& core)
 {
+    subRegionZones_.clear();
     renderToolIndicator(core);
+    renderContextMenu(core);
     renderPopup(core);
+}
+
+bool UILayer::onMouseClick(const Vec2& screenPos, Core& core)
+{
+    SelectionState& selection = core.getSelection();
+
+    // Close context menu on any click outside it
+    if (selection.contextMenuOpen)
+    {
+        Vec2 cm = selection.contextMenuScreen;
+        bool insideMenu =
+            screenPos.x >= cm.x && screenPos.x <= cm.x + 190.0 &&
+            screenPos.y >= cm.y && screenPos.y <= cm.y + 28.0;
+
+        if (!insideMenu)
+        {
+            selection.closeContextMenu();
+            return false;
+        }
+    }
+
+    // Check all registered click zones (sub-region rows + context menu actions)
+    for (const auto& zone : subRegionZones_)
+    {
+        if (screenPos.x >= zone.x && screenPos.x <= zone.x + zone.w &&
+            screenPos.y >= zone.y && screenPos.y <= zone.y + zone.h)
+        {
+            if (zone.childIndex == -1)
+            {
+                // "Add sub-region" action from context menu
+                if (selection.contextRegion)
+                {
+                    core.setPendingParent(selection.contextRegion->id);
+                    selection.closeContextMenu();
+                    selection.clear();
+                }
+                return true;
+            }
+            else
+            {
+                // Navigate into sub-region
+                if (selection.selectedRegion &&
+                    zone.childIndex < static_cast<int>(selection.selectedRegion->children.size()))
+                {
+                    selection.pushView(selection.selectedRegion->children[zone.childIndex].get());
+                }
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 bool UILayer::onKeyPress(int key, Core& core)
@@ -217,56 +271,88 @@ bool UILayer::onKeyPress(int key, Core& core)
         return true;
     }
 
-    // --- Cancel drawing or close popup ---
+    // --- Cancel drawing, close context menu, or navigate back ---
     if (key == GLFW_KEY_ESCAPE)
     {
         if (input.isDrawingPolygon())
             input.cancelPolygon();
         else if (input.isDrawingRect())
             input.cancelRect();
+        else if (selection.contextMenuOpen)
+            selection.closeContextMenu();
         else
             selection.clear();
+        return true;
+    }
+
+    // --- Back navigation in sub-region popup ---
+    if (key == GLFW_KEY_B && selection.canGoBack())
+    {
+        selection.popView();
+        return true;
+    }
+
+    // --- Context menu: close on any key ---
+    if (selection.contextMenuOpen)
+    {
+        selection.closeContextMenu();
         return true;
     }
 
     // --- Region editing (only when a region is selected) ---
     if (!r) return false;
 
-    switch (key)
+    // Number keys: navigate into sub-region if children exist, else set status
+    int numChildren = static_cast<int>(r->children.size());
+    if (numChildren > 0)
     {
-        case GLFW_KEY_1: r->status = RegionStatus::None;       return true;
-        case GLFW_KEY_2: r->status = RegionStatus::InProgress; return true;
-        case GLFW_KEY_3: r->status = RegionStatus::Done;       return true;
-
-        case GLFW_KEY_C:
-        {
-            int next = 0;
-            for (int i = 0; i < NUM_COLOURS; i++)
-            {
-                if (colourPresets[i][0] == r->colorR &&
-                    colourPresets[i][1] == r->colorG)
-                {
-                    next = (i + 1) % NUM_COLOURS;
-                    break;
-                }
-            }
-            r->colorR = colourPresets[next][0];
-            r->colorG = colourPresets[next][1];
-            r->colorB = colourPresets[next][2];
-            r->colorA = colourPresets[next][3];
-            return true;
-        }
-
-        case GLFW_KEY_DELETE:
-        {
-            RegionId id = r->id;
-            selection.clear();
-            core.getRegionTree().removeRegion(id);
-            return true;
-        }
-
-        default: return false;
+        if (key == GLFW_KEY_1 && numChildren >= 1)
+        { selection.pushView(r->children[0].get()); return true; }
+        if (key == GLFW_KEY_2 && numChildren >= 2)
+        { selection.pushView(r->children[1].get()); return true; }
+        if (key == GLFW_KEY_3 && numChildren >= 3)
+        { selection.pushView(r->children[2].get()); return true; }
+        if (key == GLFW_KEY_4 && numChildren >= 4)
+        { selection.pushView(r->children[3].get()); return true; }
     }
+    else
+    {
+        // No children — number keys set status
+        if (key == GLFW_KEY_1) { r->status = RegionStatus::None;       return true; }
+        if (key == GLFW_KEY_2) { r->status = RegionStatus::InProgress; return true; }
+        if (key == GLFW_KEY_3) { r->status = RegionStatus::Done;       return true; }
+    }
+
+    // Colour cycle
+    if (key == GLFW_KEY_C)
+    {
+        int next = 0;
+        for (int i = 0; i < NUM_COLOURS; i++)
+        {
+            if (colourPresets[i][0] == r->colorR &&
+                colourPresets[i][1] == r->colorG)
+            {
+                next = (i + 1) % NUM_COLOURS;
+                break;
+            }
+        }
+        r->colorR = colourPresets[next][0];
+        r->colorG = colourPresets[next][1];
+        r->colorB = colourPresets[next][2];
+        r->colorA = colourPresets[next][3];
+        return true;
+    }
+
+    // Delete
+    if (key == GLFW_KEY_DELETE)
+    {
+        RegionId id = r->id;
+        selection.clear();
+        core.getRegionTree().removeRegion(id);
+        return true;
+    }
+
+    return false;
 }
 
 // ============================================================
@@ -275,7 +361,7 @@ bool UILayer::onKeyPress(int key, Core& core)
 
 void UILayer::renderPopup(Core& core)
 {
-    const SelectionState& selection = core.getSelection();
+    SelectionState& selection = core.getSelection();
     if (!selection.popupOpen || !selection.selectedRegion) return;
 
     const Region& region = *selection.selectedRegion;
@@ -283,43 +369,129 @@ void UILayer::renderPopup(Core& core)
     const double PX  = 20.0;
     const double PY  = 20.0;
     const double PW  = 270.0;
-    const double PH  = 210.0;
     const double PAD = 12.0;
     const float  S   = 1.5f;
     const int    MC  = uiMaxChars(PW, PAD, S);
+
+    // Calculate dynamic panel height based on number of sub-regions
+    int numChildren = static_cast<int>(region.children.size());
+    double PH = 210.0 + (numChildren > 0 ? 20.0 + numChildren * 22.0 : 0.0);
+    if (selection.canGoBack()) PH += 22.0;
 
     uiDrawPanel(PX, PY, PW, PH, 0.1f, 0.1f, 0.12f, 0.92f);
     uiDrawPanel(PX, PY, PW, 6.0,
                 region.colorR, region.colorG, region.colorB, 1.0f);
 
-    uiDrawString(PX + PAD, PY + 15,
+    double cursor = PY + 15.0;
+
+    // Back button if navigated into sub-region
+    if (selection.canGoBack())
+    {
+        uiDrawPanel(PX + PAD, cursor, PW - PAD * 2, 14.0,
+                    0.2f, 0.2f, 0.25f, 0.9f);
+        uiDrawString(PX + PAD + 4, cursor + 3,
+                     uiTrunc("[B] Back to " + selection.viewStack.back()->name, MC),
+                     0.6f, 0.8f, 1.0f, S);
+        cursor += 22.0;
+    }
+
+    // Region name
+    uiDrawString(PX + PAD, cursor,
                  uiTrunc(region.name, uiMaxChars(PW, PAD, 1.8f)),
                  1.f, 1.f, 1.f, 1.8f);
+    cursor += 29.0;
 
-    uiDrawString(PX + PAD, PY + 44,
+    uiDrawString(PX + PAD, cursor,
                  uiTrunc("Status: " + regionStatusToString(region.status), MC),
                  0.8f, 0.8f, 0.8f, S);
+    cursor += 20.0;
 
     std::string note = region.note.empty() ? "(no note)" : region.note;
-    uiDrawString(PX + PAD, PY + 64,
+    uiDrawString(PX + PAD, cursor,
                  uiTrunc("Note: " + note, MC),
                  0.7f, 0.7f, 0.7f, S);
+    cursor += 24.0;
 
-    uiDrawString(PX + PAD, PY + 88, "Colour:", 0.7f, 0.7f, 0.7f, S);
-    uiDrawPanel(PX + PAD + 54, PY + 83, 24.0, 13.0,
+    uiDrawString(PX + PAD, cursor, "Colour:", 0.7f, 0.7f, 0.7f, S);
+    uiDrawPanel(PX + PAD + 54, cursor - 5, 24.0, 13.0,
                 region.colorR, region.colorG, region.colorB, 1.0f);
+    cursor += 21.0;
 
-    uiDrawPanel(PX + 8, PY + 109, PW - 16, 1.0, 0.3f, 0.3f, 0.35f, 1.0f);
+    // Sub-regions list — clickable rows
+    if (numChildren > 0)
+    {
+        uiDrawPanel(PX + 8, cursor, PW - 16, 1.0, 0.3f, 0.3f, 0.35f, 1.0f);
+        cursor += 8.0;
+        uiDrawString(PX + PAD, cursor, "Sub-regions:", 0.6f, 0.6f, 0.7f, S);
+        cursor += 18.0;
 
-    uiDrawString(PX + PAD, PY + 120,
-                 uiTrunc("[1] None [2] In Progress [3] Done", MC),
+        for (int i = 0; i < numChildren; i++)
+        {
+            const Region* child = region.children[i].get();
+            double rowH = 18.0;
+
+            // Highlight row background
+            uiDrawPanel(PX + PAD, cursor, PW - PAD * 2, rowH,
+                        child->colorR, child->colorG, child->colorB, 0.25f);
+
+            uiDrawString(PX + PAD + 4, cursor + 4,
+                         uiTrunc(child->name, MC - 2),
+                         0.9f, 0.9f, 0.9f, S);
+
+            // Register click zone for this row
+            subRegionZones_.push_back({ PX + PAD, cursor, PW - PAD * 2, rowH, i });
+
+            cursor += rowH + 4.0;
+        }
+    }
+
+    // Separator + controls
+    uiDrawPanel(PX + 8, cursor, PW - 16, 1.0, 0.3f, 0.3f, 0.35f, 1.0f);
+    cursor += 11.0;
+
+    uiDrawString(PX + PAD, cursor,
+                 uiTrunc("[C] Colour  [B] Back  [Esc] Close", MC),
                  0.5f, 0.5f, 0.6f, S);
-    uiDrawString(PX + PAD, PY + 143,
-                 uiTrunc("[C] Cycle colour  [Esc] Close", MC),
+    cursor += 23.0;
+    uiDrawString(PX + PAD, cursor,
+                 uiTrunc("[Del] Delete  Right-click: sub-region", MC),
                  0.5f, 0.5f, 0.6f, S);
-    uiDrawString(PX + PAD, PY + 166,
-                 uiTrunc("[Del] Delete region", MC),
-                 0.5f, 0.5f, 0.6f, S);
+
+    // Handle number keys for sub-region navigation (override status keys when children exist)
+    // This is handled in onKeyPress via the numChildren check
+}
+
+// ============================================================
+// Private — context menu (right-click)
+// ============================================================
+
+void UILayer::renderContextMenu(Core& core)
+{
+    SelectionState& selection = core.getSelection();
+    if (!selection.contextMenuOpen || !selection.contextRegion) return;
+
+    const double X   = selection.contextMenuScreen.x;
+    const double Y   = selection.contextMenuScreen.y;
+    const double W   = 190.0;
+    const double PAD = 10.0;
+    const float  S   = 1.5f;
+
+    // One row per action
+    const double rowH = 24.0;
+    const double H    = rowH + 4.0;
+
+    uiDrawPanel(X, Y, W, H, 0.12f, 0.12f, 0.15f, 0.95f);
+    uiDrawPanel(X, Y, W, 2.0,
+                selection.contextRegion->colorR,
+                selection.contextRegion->colorG,
+                selection.contextRegion->colorB, 1.0f);
+
+    // "Add sub-region" row
+    uiDrawPanel(X + 2, Y + 3, W - 4, rowH - 2, 0.18f, 0.18f, 0.22f, 0.0f);
+    uiDrawString(X + PAD, Y + 9, "Add sub-region", 0.9f, 0.9f, 0.9f, S);
+
+    // Register as click zone (childIndex -1 = "add sub-region" action)
+    subRegionZones_.push_back({ X, Y + 3, W, rowH, -1 });
 }
 
 // ============================================================
