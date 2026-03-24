@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "C:/Users/alexa/Documents/spatial-map-editor/src/core/Core.cpp" "CMakeFiles/main.dir/src/core/Core.cpp.obj" "gcc" "CMakeFiles/main.dir/src/core/Core.cpp.obj.d"
+  "C:/Users/alexa/Documents/spatial-map-editor/src/data/RegionSerializer.cpp" "CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj" "gcc" "CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj.d"
   "C:/Users/alexa/Documents/spatial-map-editor/src/data/RegionTree.cpp" "CMakeFiles/main.dir/src/data/RegionTree.cpp.obj" "gcc" "CMakeFiles/main.dir/src/data/RegionTree.cpp.obj.d"
   "C:/Users/alexa/Documents/spatial-map-editor/src/data/WorldLoader.cpp" "CMakeFiles/main.dir/src/data/WorldLoader.cpp.obj" "gcc" "CMakeFiles/main.dir/src/data/WorldLoader.cpp.obj.d"
   "C:/Users/alexa/Documents/spatial-map-editor/src/input/Input.cpp" "CMakeFiles/main.dir/src/input/Input.cpp.obj" "gcc" "CMakeFiles/main.dir/src/input/Input.cpp.obj.d"

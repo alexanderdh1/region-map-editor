@@ -1,6 +1,7 @@
 #include "ui/UILayer.h"
 
 #include "data/RegionStatus.h"
+#include "data/RegionSerializer.h"
 #include "input/Input.h"
 #include "rendering/Camera.h"
 
@@ -258,7 +259,12 @@ bool UILayer::onKeyPress(int key, Core& core)
     auto& selection = core.getSelection();
     Region* r       = selection.selectedRegion;
 
-    // --- Tool switching ---
+    // --- Save ---
+    if (key == GLFW_KEY_S)
+    {
+        RegionSerializer::save(core.getRegionTree(), "regions.json");
+        return true;
+    }
     if (key == GLFW_KEY_R)
     {
         input.setDrawTool(DrawTool::Rectangle);
@@ -531,4 +537,8 @@ void UILayer::renderToolIndicator(const Core& core)
     uiDrawPanel(X + 108, Y + 8, 16.0, 16.0, pr, pg, pb, isPoly ? 0.95f : 0.4f);
     uiDrawString(X + 128, Y + 11, "[P] Poly",
                  isPoly ? 1.f : 0.45f, isPoly ? 1.f : 0.45f, isPoly ? 1.f : 0.45f);
+
+    // Save hint
+    uiDrawString(X + 1, Y + H + 4, "[S] Save",
+                 0.4f, 0.4f, 0.45f, 1.3f);
 }

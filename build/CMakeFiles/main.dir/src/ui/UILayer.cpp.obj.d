@@ -195,6 +195,7 @@ CMakeFiles/main.dir/src/ui/UILayer.cpp.obj: \
  C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionStatus.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/data/Marker.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/core/SelectionState.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionSerializer.h \
  C:/msys64/mingw64/include/GLFW/glfw3.h C:/msys64/mingw64/include/GL/gl.h \
  C:/msys64/mingw64/include/c++/15.2.0/cmath \
  C:/msys64/mingw64/include/math.h \

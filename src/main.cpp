@@ -10,9 +10,11 @@
 #include "window/WindowFactory.h"
 #include "window/OpenGLSetup.h"
 #include "data/WorldLoader.h"
+#include "data/RegionSerializer.h"
 
 #include <iostream>
 #include <stdexcept>
+#include <filesystem>
 
 int main()
 {
@@ -42,6 +44,10 @@ int main()
         destroyWindow(window);
         return -1;
     }
+
+    // Auto-load regions if save file exists
+    if (std::filesystem::exists("regions.json"))
+        RegionSerializer::load(core.getRegionTree(), "regions.json");
 
     WindowContext context{ &core, &uiLayer };
     setupWindowCallbacks(window, &context);

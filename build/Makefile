@@ -152,6 +152,30 @@ src/core/Core.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/core/Core.cpp.s
 .PHONY : src/core/Core.cpp.s
 
+src/data/RegionSerializer.obj: src/data/RegionSerializer.cpp.obj
+.PHONY : src/data/RegionSerializer.obj
+
+# target to build an object file
+src/data/RegionSerializer.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj
+.PHONY : src/data/RegionSerializer.cpp.obj
+
+src/data/RegionSerializer.i: src/data/RegionSerializer.cpp.i
+.PHONY : src/data/RegionSerializer.i
+
+# target to preprocess a source file
+src/data/RegionSerializer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/data/RegionSerializer.cpp.i
+.PHONY : src/data/RegionSerializer.cpp.i
+
+src/data/RegionSerializer.s: src/data/RegionSerializer.cpp.s
+.PHONY : src/data/RegionSerializer.s
+
+# target to generate assembly for a file
+src/data/RegionSerializer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/data/RegionSerializer.cpp.s
+.PHONY : src/data/RegionSerializer.cpp.s
+
 src/data/RegionTree.obj: src/data/RegionTree.cpp.obj
 .PHONY : src/data/RegionTree.obj
 
@@ -548,6 +572,9 @@ help:
 	@echo ... src/core/Core.obj
 	@echo ... src/core/Core.i
 	@echo ... src/core/Core.s
+	@echo ... src/data/RegionSerializer.obj
+	@echo ... src/data/RegionSerializer.i
+	@echo ... src/data/RegionSerializer.s
 	@echo ... src/data/RegionTree.obj
 	@echo ... src/data/RegionTree.i
 	@echo ... src/data/RegionTree.s

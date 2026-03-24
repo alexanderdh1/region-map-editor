@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/main.dir/src/core/Core.cpp.obj"
   "CMakeFiles/main.dir/src/core/Core.cpp.obj.d"
+  "CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj"
+  "CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj.d"
   "CMakeFiles/main.dir/src/data/RegionTree.cpp.obj"
   "CMakeFiles/main.dir/src/data/RegionTree.cpp.obj.d"
   "CMakeFiles/main.dir/src/data/WorldLoader.cpp.obj"

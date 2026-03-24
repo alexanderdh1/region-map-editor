@@ -34,6 +34,13 @@ public:
     // Generate a unique id for a new region
     RegionId nextId();
 
+    // Ensure the next generated ID will be above the given value.
+    // Used when loading regions to avoid ID collisions.
+    void ensureNextIdAbove(RegionId id)
+    {
+        if (nextId_ <= id) nextId_ = id + 1;
+    }
+
 private:
     std::vector<std::unique_ptr<Region>> roots_;
     RegionId nextId_ = 1;

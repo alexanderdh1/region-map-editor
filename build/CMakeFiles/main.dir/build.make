@@ -296,11 +296,26 @@ CMakeFiles/main.dir/src/data/RegionTree.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/data/RegionTree.cpp.s"
 	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\alexa\Documents\spatial-map-editor\src\data\RegionTree.cpp -o CMakeFiles\main.dir\src\data\RegionTree.cpp.s
 
+CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj: CMakeFiles/main.dir/flags.make
+CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj: CMakeFiles/main.dir/includes_CXX.rsp
+CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj: C:/Users/alexa/Documents/spatial-map-editor/src/data/RegionSerializer.cpp
+CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj: CMakeFiles/main.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj -MF CMakeFiles\main.dir\src\data\RegionSerializer.cpp.obj.d -o CMakeFiles\main.dir\src\data\RegionSerializer.cpp.obj -c C:\Users\alexa\Documents\spatial-map-editor\src\data\RegionSerializer.cpp
+
+CMakeFiles/main.dir/src/data/RegionSerializer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/main.dir/src/data/RegionSerializer.cpp.i"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\alexa\Documents\spatial-map-editor\src\data\RegionSerializer.cpp > CMakeFiles\main.dir\src\data\RegionSerializer.cpp.i
+
+CMakeFiles/main.dir/src/data/RegionSerializer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/data/RegionSerializer.cpp.s"
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\alexa\Documents\spatial-map-editor\src\data\RegionSerializer.cpp -o CMakeFiles\main.dir\src\data\RegionSerializer.cpp.s
+
 CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.obj: CMakeFiles/main.dir/flags.make
 CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.obj: CMakeFiles/main.dir/includes_CXX.rsp
 CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.obj: C:/Users/alexa/Documents/spatial-map-editor/src/window/OpenGLSetup.cpp
 CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.obj: CMakeFiles/main.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.obj"
 	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.obj -MF CMakeFiles\main.dir\src\window\OpenGLSetup.cpp.obj.d -o CMakeFiles\main.dir\src\window\OpenGLSetup.cpp.obj -c C:\Users\alexa\Documents\spatial-map-editor\src\window\OpenGLSetup.cpp
 
 CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.i: cmake_force
@@ -315,7 +330,7 @@ CMakeFiles/main.dir/src/ui/UILayer.cpp.obj: CMakeFiles/main.dir/flags.make
 CMakeFiles/main.dir/src/ui/UILayer.cpp.obj: CMakeFiles/main.dir/includes_CXX.rsp
 CMakeFiles/main.dir/src/ui/UILayer.cpp.obj: C:/Users/alexa/Documents/spatial-map-editor/src/ui/UILayer.cpp
 CMakeFiles/main.dir/src/ui/UILayer.cpp.obj: CMakeFiles/main.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/main.dir/src/ui/UILayer.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/main.dir/src/ui/UILayer.cpp.obj"
 	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/ui/UILayer.cpp.obj -MF CMakeFiles\main.dir\src\ui\UILayer.cpp.obj.d -o CMakeFiles\main.dir\src\ui\UILayer.cpp.obj -c C:\Users\alexa\Documents\spatial-map-editor\src\ui\UILayer.cpp
 
 CMakeFiles/main.dir/src/ui/UILayer.cpp.i: cmake_force
@@ -343,6 +358,7 @@ main_OBJECTS = \
 "CMakeFiles/main.dir/src/rendering/TileLayer.cpp.obj" \
 "CMakeFiles/main.dir/src/data/WorldLoader.cpp.obj" \
 "CMakeFiles/main.dir/src/data/RegionTree.cpp.obj" \
+"CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj" \
 "CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.obj" \
 "CMakeFiles/main.dir/src/ui/UILayer.cpp.obj"
 
@@ -364,6 +380,7 @@ main.exe: CMakeFiles/main.dir/src/rendering/Texture.cpp.obj
 main.exe: CMakeFiles/main.dir/src/rendering/TileLayer.cpp.obj
 main.exe: CMakeFiles/main.dir/src/data/WorldLoader.cpp.obj
 main.exe: CMakeFiles/main.dir/src/data/RegionTree.cpp.obj
+main.exe: CMakeFiles/main.dir/src/data/RegionSerializer.cpp.obj
 main.exe: CMakeFiles/main.dir/src/window/OpenGLSetup.cpp.obj
 main.exe: CMakeFiles/main.dir/src/ui/UILayer.cpp.obj
 main.exe: CMakeFiles/main.dir/build.make
@@ -371,7 +388,7 @@ main.exe: C:/msys64/mingw64/lib/libglfw3.dll.a
 main.exe: CMakeFiles/main.dir/linkLibs.rsp
 main.exe: CMakeFiles/main.dir/objects1.rsp
 main.exe: CMakeFiles/main.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Linking CXX executable main.exe"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\Users\alexa\Documents\spatial-map-editor\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Linking CXX executable main.exe"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\main.dir\link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

@@ -24,6 +24,7 @@ add_executable(main
     src/rendering/TileLayer.cpp
     src/data/WorldLoader.cpp
     src/data/RegionTree.cpp
+    src/data/RegionSerializer.cpp
     src/window/OpenGLSetup.cpp
     src/ui/UILayer.cpp
 )
@@ -36,4 +37,4 @@ external
 
 # GLFW
 find_package(glfw3 CONFIG REQUIRED)
-target_link_libraries(main PRIVATE glfw opengl32)
+target_link_libraries(main PRIVATE glfw opengl32 stdc++fs)

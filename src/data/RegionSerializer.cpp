@@ -1,0 +1,177 @@
+#include "data/RegionSerializer.h"
+
+#include "data/Region.h"
+#include "data/RegionGeometry.h"
+#include "data/RegionStatus.h"
+
+#include <fstream>
+#include <iostream>
+
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
+
+// ============================================================
+// Serialization helpers
+// ============================================================
+
+static json serializeVec2(const Vec2& v)
+{
+    return { v.x, v.y };
+}
+
+static Vec2 deserializeVec2(const json& j)
+{
+    return { j[0].get<double>(), j[1].get<double>() };
+}
+
+static json serializeGeometry(const RegionGeometry& g)
+{
+    json j;
+    j["type"] = (g.type == GeometryType::Rectangle) ? "Rectangle" : "Polygon";
+
+    if (g.type == GeometryType::Rectangle)
+    {
+        j["rectMin"] = serializeVec2(g.rectMin);
+        j["rectMax"] = serializeVec2(g.rectMax);
+    }
+    else
+    {
+        json pts = json::array();
+        for (const Vec2& p : g.points)
+            pts.push_back(serializeVec2(p));
+        j["points"] = pts;
+    }
+    return j;
+}
+
+static RegionGeometry deserializeGeometry(const json& j)
+{
+    RegionGeometry g;
+    std::string type = j.at("type").get<std::string>();
+
+    if (type == "Rectangle")
+    {
+        g.type    = GeometryType::Rectangle;
+        g.rectMin = deserializeVec2(j.at("rectMin"));
+        g.rectMax = deserializeVec2(j.at("rectMax"));
+    }
+    else
+    {
+        g.type = GeometryType::Polygon;
+        for (const auto& p : j.at("points"))
+            g.points.push_back(deserializeVec2(p));
+    }
+    return g;
+}
+
+static json serializeRegion(const Region& r)
+{
+    json j;
+    j["id"]     = r.id;
+    j["name"]   = r.name;
+    j["note"]   = r.note;
+    j["status"] = regionStatusToString(r.status);
+    j["color"]  = { r.colorR, r.colorG, r.colorB, r.colorA };
+    j["geometry"] = serializeGeometry(r.geometry);
+
+    // Children (recursive)
+    json children = json::array();
+    for (const auto& child : r.children)
+        children.push_back(serializeRegion(*child));
+    j["children"] = children;
+
+    return j;
+}
+
+static std::unique_ptr<Region> deserializeRegion(const json& j, RegionTree& tree)
+{
+    auto r      = std::make_unique<Region>();
+    r->id       = j.at("id").get<RegionId>();
+    r->name     = j.at("name").get<std::string>();
+    r->note     = j.at("note").get<std::string>();
+    r->status   = regionStatusFromString(j.at("status").get<std::string>());
+
+    const auto& c = j.at("color");
+    r->colorR = c[0].get<float>();
+    r->colorG = c[1].get<float>();
+    r->colorB = c[2].get<float>();
+    r->colorA = c[3].get<float>();
+
+    r->geometry = deserializeGeometry(j.at("geometry"));
+
+    // Ensure the tree's ID counter stays above any loaded ID
+    tree.ensureNextIdAbove(r->id);
+
+    // Children (recursive)
+    for (const auto& childJson : j.at("children"))
+    {
+        auto child = deserializeRegion(childJson, tree);
+        r->addChild(std::move(child));
+    }
+
+    return r;
+}
+
+// ============================================================
+// Public API
+// ============================================================
+
+bool RegionSerializer::save(const RegionTree& tree, const std::string& path)
+{
+    json root;
+    root["version"] = 1;
+
+    json regions = json::array();
+    for (const auto& r : tree.roots())
+        regions.push_back(serializeRegion(*r));
+
+    root["regions"] = regions;
+
+    std::ofstream file(path);
+    if (!file)
+    {
+        std::cerr << "[RegionSerializer] Could not open file for writing: " << path << "\n";
+        return false;
+    }
+
+    file << root.dump(2); // pretty-print with 2-space indent
+    std::cout << "[RegionSerializer] Saved " << regions.size() << " region(s) to " << path << "\n";
+    return true;
+}
+
+bool RegionSerializer::load(RegionTree& tree, const std::string& path)
+{
+    std::ifstream file(path);
+    if (!file)
+    {
+        std::cerr << "[RegionSerializer] Could not open file for reading: " << path << "\n";
+        return false;
+    }
+
+    json root;
+    try
+    {
+        file >> root;
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "[RegionSerializer] JSON parse error: " << e.what() << "\n";
+        return false;
+    }
+
+    // Clear existing regions
+    while (!tree.roots().empty())
+        tree.removeRegion(tree.roots().front()->id);
+
+    int count = 0;
+    for (const auto& regionJson : root.at("regions"))
+    {
+        auto region = deserializeRegion(regionJson, tree);
+        tree.addRegion(std::move(region));
+        count++;
+    }
+
+    std::cout << "[RegionSerializer] Loaded " << count << " region(s) from " << path << "\n";
+    return true;
+}
