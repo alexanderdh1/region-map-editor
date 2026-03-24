@@ -8,19 +8,13 @@ void Renderer::render(const Core& core)
     // 1. Map tiles (background)
     tileLayer.render(camera);
 
-    // 2. Regions (on top of map)
+    // 2. Regions (on top of map, world-space aligned)
     regionRenderer.render(core.getRegionTree(), camera);
 
-    // 3. Live preview while drawing
+    // 3. Live drawing preview (world-space aligned)
     regionRenderer.renderPreview(core.getInput(), camera);
 
-    // 4. Selection popup
-    popupRenderer.render(core.getSelection(), camera);
-
-    // 5. Tool indicator (bottom-left, uses viewport height)
-    popupRenderer.renderToolIndicator(core.getInput(), camera);
-
-    // 6. Debug grid (optional)
+    // 4. Debug grid (optional)
     if (showGrid)
         gridRenderer.render(camera);
 }

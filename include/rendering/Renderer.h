@@ -2,7 +2,6 @@
 
 #include "rendering/GridRenderer.h"
 #include "rendering/RegionRenderer.h"
-#include "rendering/PopupRenderer.h"
 #include "rendering/TileLayer.h"
 
 class Core;
@@ -22,7 +21,6 @@ public:
 private:
     GridRenderer   gridRenderer;
     RegionRenderer regionRenderer;
-    PopupRenderer  popupRenderer;
     TileLayer      tileLayer;
     bool           showGrid = false;
 };

@@ -1,11 +1,10 @@
-CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj: \
- C:\Users\alexa\Documents\spatial-map-editor\src\rendering\Renderer.cpp \
- C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Renderer.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/rendering/GridRenderer.h \
+CMakeFiles/main.dir/src/ui/UILayer.cpp.obj: \
+ C:\Users\alexa\Documents\spatial-map-editor\src\ui\UILayer.cpp \
+ C:/Users/alexa/Documents/spatial-map-editor/include/ui/UILayer.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/core/Core.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Camera.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/math/Vec2.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/rendering/RegionRenderer.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionTree.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/input/Input.h \
  C:/msys64/mingw64/include/c++/15.2.0/vector \
  C:/msys64/mingw64/include/c++/15.2.0/bits/requires_hosted.h \
  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h \
@@ -73,6 +72,11 @@ CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/bits/uses_allocator_args.h \
  C:/msys64/mingw64/include/c++/15.2.0/tuple \
  C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_util.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/math/BlockCoord.h \
+ C:/msys64/mingw64/include/c++/15.2.0/cstdint \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h \
+ C:/msys64/mingw64/include/stdint.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionTree.h \
  C:/msys64/mingw64/include/c++/15.2.0/memory \
  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_tempbuf.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_raw_storage_iter.h \
@@ -170,9 +174,6 @@ CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_base.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_lockfree_defines.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_wait.h \
- C:/msys64/mingw64/include/c++/15.2.0/cstdint \
- C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h \
- C:/msys64/mingw64/include/stdint.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/std_mutex.h \
  C:/msys64/mingw64/include/c++/15.2.0/backward/auto_ptr.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_uninitialized.h \
@@ -193,10 +194,21 @@ CMakeFiles/main.dir/src/rendering/Renderer.cpp.obj: \
  C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionGeometry.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionStatus.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/data/Marker.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/input/Input.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/rendering/TileLayer.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Tile.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Texture.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/core/Core.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/math/BlockCoord.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/core/SelectionState.h
+ C:/Users/alexa/Documents/spatial-map-editor/include/core/SelectionState.h \
+ C:/msys64/mingw64/include/GLFW/glfw3.h C:/msys64/mingw64/include/GL/gl.h \
+ C:/msys64/mingw64/include/c++/15.2.0/cmath \
+ C:/msys64/mingw64/include/math.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/specfun.h \
+ C:/msys64/mingw64/include/c++/15.2.0/limits \
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/gamma.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/special_function_util.h \
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/bessel_function.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/beta_function.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/ell_integral.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/exp_integral.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/hypergeometric.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/legendre_function.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/modified_bessel_func.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/poly_hermite.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/poly_laguerre.tcc \
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/riemann_zeta.tcc

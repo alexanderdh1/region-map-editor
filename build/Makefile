@@ -296,30 +296,6 @@ src/rendering/GridRenderer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/GridRenderer.cpp.s
 .PHONY : src/rendering/GridRenderer.cpp.s
 
-src/rendering/PopupRenderer.obj: src/rendering/PopupRenderer.cpp.obj
-.PHONY : src/rendering/PopupRenderer.obj
-
-# target to build an object file
-src/rendering/PopupRenderer.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/PopupRenderer.cpp.obj
-.PHONY : src/rendering/PopupRenderer.cpp.obj
-
-src/rendering/PopupRenderer.i: src/rendering/PopupRenderer.cpp.i
-.PHONY : src/rendering/PopupRenderer.i
-
-# target to preprocess a source file
-src/rendering/PopupRenderer.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/PopupRenderer.cpp.i
-.PHONY : src/rendering/PopupRenderer.cpp.i
-
-src/rendering/PopupRenderer.s: src/rendering/PopupRenderer.cpp.s
-.PHONY : src/rendering/PopupRenderer.s
-
-# target to generate assembly for a file
-src/rendering/PopupRenderer.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/PopupRenderer.cpp.s
-.PHONY : src/rendering/PopupRenderer.cpp.s
-
 src/rendering/RegionRenderer.obj: src/rendering/RegionRenderer.cpp.obj
 .PHONY : src/rendering/RegionRenderer.obj
 
@@ -415,6 +391,30 @@ src/rendering/TileLayer.s: src/rendering/TileLayer.cpp.s
 src/rendering/TileLayer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/rendering/TileLayer.cpp.s
 .PHONY : src/rendering/TileLayer.cpp.s
+
+src/ui/UILayer.obj: src/ui/UILayer.cpp.obj
+.PHONY : src/ui/UILayer.obj
+
+# target to build an object file
+src/ui/UILayer.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/ui/UILayer.cpp.obj
+.PHONY : src/ui/UILayer.cpp.obj
+
+src/ui/UILayer.i: src/ui/UILayer.cpp.i
+.PHONY : src/ui/UILayer.i
+
+# target to preprocess a source file
+src/ui/UILayer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/ui/UILayer.cpp.i
+.PHONY : src/ui/UILayer.cpp.i
+
+src/ui/UILayer.s: src/ui/UILayer.cpp.s
+.PHONY : src/ui/UILayer.s
+
+# target to generate assembly for a file
+src/ui/UILayer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\main.dir\build.make CMakeFiles/main.dir/src/ui/UILayer.cpp.s
+.PHONY : src/ui/UILayer.cpp.s
 
 src/window/OpenGLSetup.obj: src/window/OpenGLSetup.cpp.obj
 .PHONY : src/window/OpenGLSetup.obj
@@ -566,9 +566,6 @@ help:
 	@echo ... src/rendering/GridRenderer.obj
 	@echo ... src/rendering/GridRenderer.i
 	@echo ... src/rendering/GridRenderer.s
-	@echo ... src/rendering/PopupRenderer.obj
-	@echo ... src/rendering/PopupRenderer.i
-	@echo ... src/rendering/PopupRenderer.s
 	@echo ... src/rendering/RegionRenderer.obj
 	@echo ... src/rendering/RegionRenderer.i
 	@echo ... src/rendering/RegionRenderer.s
@@ -581,6 +578,9 @@ help:
 	@echo ... src/rendering/TileLayer.obj
 	@echo ... src/rendering/TileLayer.i
 	@echo ... src/rendering/TileLayer.s
+	@echo ... src/ui/UILayer.obj
+	@echo ... src/ui/UILayer.i
+	@echo ... src/ui/UILayer.s
 	@echo ... src/window/OpenGLSetup.obj
 	@echo ... src/window/OpenGLSetup.i
 	@echo ... src/window/OpenGLSetup.s

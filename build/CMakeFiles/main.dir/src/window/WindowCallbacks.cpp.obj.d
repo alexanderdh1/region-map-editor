@@ -196,4 +196,5 @@ CMakeFiles/main.dir/src/window/WindowCallbacks.cpp.obj: \
  C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionStatus.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/data/Marker.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/core/SelectionState.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/ui/UILayer.h \
  C:/msys64/mingw64/include/GLFW/glfw3.h C:/msys64/mingw64/include/GL/gl.h

@@ -199,11 +199,10 @@ CMakeFiles/main.dir/src/data/WorldLoader.cpp.obj: \
  C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionStatus.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/data/Marker.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/input/Input.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/rendering/PopupRenderer.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/core/SelectionState.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/rendering/TileLayer.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/core/Core.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/math/BlockCoord.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/core/SelectionState.h \
  C:/msys64/mingw64/include/c++/15.2.0/fstream \
  C:/msys64/mingw64/include/c++/15.2.0/istream \
  C:/msys64/mingw64/include/c++/15.2.0/ostream \

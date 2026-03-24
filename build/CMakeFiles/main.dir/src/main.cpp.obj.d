@@ -198,10 +198,10 @@ CMakeFiles/main.dir/src/main.cpp.obj: \
  C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Renderer.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/rendering/GridRenderer.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/rendering/RegionRenderer.h \
- C:/Users/alexa/Documents/spatial-map-editor/include/rendering/PopupRenderer.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/rendering/TileLayer.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Tile.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/rendering/Texture.h \
+ C:/Users/alexa/Documents/spatial-map-editor/include/ui/UILayer.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowCallbacks.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowContext.h \
  C:/Users/alexa/Documents/spatial-map-editor/include/window/WindowSetup.h \

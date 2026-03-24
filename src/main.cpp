@@ -2,6 +2,7 @@
 
 #include "core/Core.h"
 #include "rendering/Renderer.h"
+#include "ui/UILayer.h"
 #include "window/WindowCallbacks.h"
 #include "window/WindowContext.h"
 #include "window/WindowSetup.h"
@@ -23,8 +24,9 @@ int main()
 
     setupOpenGLState();
 
-    Core core;
+    Core     core;
     Renderer renderer;
+    UILayer  uiLayer;
 
     try
     {
@@ -41,8 +43,7 @@ int main()
         return -1;
     }
 
-    // Window bindings
-    WindowContext context{ &core };
+    WindowContext context{ &core, &uiLayer };
     setupWindowCallbacks(window, &context);
     setupInitialViewport(window, core);
 
@@ -57,7 +58,11 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+        // 1. Map + regions (world-space)
         renderer.render(core);
+
+        // 2. UI overlay (screen-space)
+        uiLayer.render(core);
 
         glfwSwapBuffers(window);
 
