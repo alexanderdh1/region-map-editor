@@ -27,3 +27,7 @@ assets/
 # OS
 .DS_Store
 Thumbs.db
+
+# Project specific
+regions.json
+*.json.bak
