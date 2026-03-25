@@ -1,3 +1,0 @@
-C:/Users/alexa/Documents/spatial-map-editor/build/CMakeFiles/main.dir
-C:/Users/alexa/Documents/spatial-map-editor/build/CMakeFiles/edit_cache.dir
-C:/Users/alexa/Documents/spatial-map-editor/build/CMakeFiles/rebuild_cache.dir
