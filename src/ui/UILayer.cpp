@@ -196,9 +196,65 @@ static constexpr int NUM_COLOURS = 6;
 void UILayer::render(Core& core)
 {
     subRegionZones_.clear();
+    cursorBlink_ += 0.016; // ~60fps accumulator for cursor blink
     renderToolIndicator(core);
     renderContextMenu(core);
     renderPopup(core);
+}
+
+void UILayer::onCharInput(unsigned int codepoint, Core& core)
+{
+    if (activeField_ == Field::None) return;
+    if (codepoint > 126) return; // only ASCII printable
+
+    char c = static_cast<char>(codepoint);
+    editBuffer_.insert(editBuffer_.begin() + cursorPos_, c);
+    cursorPos_++;
+}
+
+bool UILayer::renderTextField(
+    double x, double y, double w, double h,
+    const std::string& value,
+    bool active,
+    const std::string& placeholder)
+{
+    // Background
+    float bg = active ? 0.22f : 0.15f;
+    uiDrawPanel(x, y, w, h, bg, bg, bg + 0.03f, 1.0f);
+
+    // Border
+    float br = active ? 0.4f : 0.25f;
+    float bg2 = active ? 0.6f : 0.3f;
+    float bb = active ? 1.0f : 0.35f;
+    // Top
+    uiDrawPanel(x, y, w, 1.0, br, bg2, bb, 1.0f);
+    // Bottom
+    uiDrawPanel(x, y + h - 1, w, 1.0, br, bg2, bb, 1.0f);
+    // Left
+    uiDrawPanel(x, y, 1.0, h, br, bg2, bb, 1.0f);
+    // Right
+    uiDrawPanel(x + w - 1, y, 1.0, h, br, bg2, bb, 1.0f);
+
+    const float S    = 1.5f;
+    const double PAD = 5.0;
+
+    if (value.empty() && !active)
+    {
+        uiDrawString(x + PAD, y + 4, placeholder, 0.4f, 0.4f, 0.45f, S);
+    }
+    else
+    {
+        uiDrawString(x + PAD, y + 4, value, 0.95f, 0.95f, 0.95f, S);
+    }
+
+    // Blinking cursor
+    if (active && static_cast<int>(cursorBlink_ * 2) % 2 == 0)
+    {
+        double cursorX = x + PAD + cursorPos_ * 6.0 * S;
+        uiDrawPanel(cursorX, y + 3, 1.5, h - 6, 1.0f, 1.0f, 1.0f, 0.9f);
+    }
+
+    return false; // click detection done via ClickZone
 }
 
 bool UILayer::onMouseClick(const Vec2& screenPos, Core& core)
@@ -237,6 +293,39 @@ bool UILayer::onMouseClick(const Vec2& screenPos, Core& core)
                 }
                 return true;
             }
+            else if (zone.childIndex == -2)
+            {
+                // Name field clicked
+                if (selection.selectedRegion)
+                {
+                    // Commit any active note first
+                    if (activeField_ == Field::Note && selection.selectedRegion)
+                        selection.selectedRegion->note = editBuffer_;
+
+                    activeField_ = Field::Name;
+                    editBuffer_  = selection.selectedRegion->name;
+                    cursorPos_   = static_cast<int>(editBuffer_.size());
+                    cursorBlink_ = 0.0;
+                }
+                return true;
+            }
+            else if (zone.childIndex == -3)
+            {
+                // Note field clicked
+                if (selection.selectedRegion)
+                {
+                    // Commit any active name first
+                    if (activeField_ == Field::Name && selection.selectedRegion)
+                        selection.selectedRegion->name = editBuffer_.empty()
+                            ? "Unnamed Region" : editBuffer_;
+
+                    activeField_ = Field::Note;
+                    editBuffer_  = selection.selectedRegion->note;
+                    cursorPos_   = static_cast<int>(editBuffer_.size());
+                    cursorBlink_ = 0.0;
+                }
+                return true;
+            }
             else
             {
                 // Navigate into sub-region
@@ -250,14 +339,88 @@ bool UILayer::onMouseClick(const Vec2& screenPos, Core& core)
         }
     }
 
+    // Click landed outside all zones — deactivate text field if active
+    if (activeField_ != Field::None)
+    {
+        Region* r = core.getSelection().selectedRegion;
+        if (r)
+        {
+            if (activeField_ == Field::Name)
+                r->name = editBuffer_.empty() ? "Unnamed Region" : editBuffer_;
+            else if (activeField_ == Field::Note)
+                r->note = editBuffer_;
+        }
+        activeField_ = Field::None;
+    }
+
     return false;
 }
-
 bool UILayer::onKeyPress(int key, Core& core)
 {
     auto& input     = core.getInput();
     auto& selection = core.getSelection();
     Region* r       = selection.selectedRegion;
+
+    // ---- Text field active — capture all input ----
+    if (activeField_ != Field::None)
+    {
+        switch (key)
+        {
+            case GLFW_KEY_ENTER:
+            case GLFW_KEY_KP_ENTER:
+            {
+                // Commit edit to region
+                if (r)
+                {
+                    if (activeField_ == Field::Name)
+                        r->name = editBuffer_.empty() ? "Unnamed Region" : editBuffer_;
+                    else if (activeField_ == Field::Note)
+                        r->note = editBuffer_;
+                }
+                activeField_ = Field::None;
+                return true;
+            }
+            case GLFW_KEY_ESCAPE:
+            {
+                // Cancel — discard changes
+                activeField_ = Field::None;
+                return true;
+            }
+            case GLFW_KEY_BACKSPACE:
+            {
+                if (cursorPos_ > 0)
+                {
+                    editBuffer_.erase(cursorPos_ - 1, 1);
+                    cursorPos_--;
+                }
+                return true;
+            }
+            case GLFW_KEY_DELETE:
+            {
+                if (cursorPos_ < static_cast<int>(editBuffer_.size()))
+                    editBuffer_.erase(cursorPos_, 1);
+                return true;
+            }
+            case GLFW_KEY_LEFT:
+            {
+                if (cursorPos_ > 0) cursorPos_--;
+                return true;
+            }
+            case GLFW_KEY_RIGHT:
+            {
+                if (cursorPos_ < static_cast<int>(editBuffer_.size())) cursorPos_++;
+                return true;
+            }
+            case GLFW_KEY_HOME:
+                cursorPos_ = 0;
+                return true;
+            case GLFW_KEY_END:
+                cursorPos_ = static_cast<int>(editBuffer_.size());
+                return true;
+            default:
+                return true; // swallow all other keys while typing
+        }
+    }
 
     // --- Save ---
     if (key == GLFW_KEY_S)
@@ -287,7 +450,21 @@ bool UILayer::onKeyPress(int key, Core& core)
         else if (selection.contextMenuOpen)
             selection.closeContextMenu();
         else
-            selection.clear();
+        {
+            // Commit any active text field before closing
+            if (activeField_ != Field::None && r)
+            {
+                if (activeField_ == Field::Name)
+                    r->name = editBuffer_.empty() ? "Unnamed Region" : editBuffer_;
+                else if (activeField_ == Field::Note)
+                    r->note = editBuffer_;
+                activeField_ = Field::None;
+            }
+            else
+            {
+                selection.clear();
+            }
+        }
         return true;
     }
 
@@ -379,9 +556,9 @@ void UILayer::renderPopup(Core& core)
     const float  S   = 1.5f;
     const int    MC  = uiMaxChars(PW, PAD, S);
 
-    // Calculate dynamic panel height based on number of sub-regions
+    // Calculate dynamic panel height
     int numChildren = static_cast<int>(region.children.size());
-    double PH = 210.0 + (numChildren > 0 ? 20.0 + numChildren * 22.0 : 0.0);
+    double PH = 255.0 + (numChildren > 0 ? 20.0 + numChildren * 22.0 : 0.0);
     if (selection.canGoBack()) PH += 22.0;
 
     uiDrawPanel(PX, PY, PW, PH, 0.1f, 0.1f, 0.12f, 0.92f);
@@ -401,22 +578,30 @@ void UILayer::renderPopup(Core& core)
         cursor += 22.0;
     }
 
-    // Region name
-    uiDrawString(PX + PAD, cursor,
-                 uiTrunc(region.name, uiMaxChars(PW, PAD, 1.8f)),
-                 1.f, 1.f, 1.f, 1.8f);
-    cursor += 29.0;
+    // Region name field
+    bool nameActive = (activeField_ == Field::Name);
+    std::string nameDisplay = nameActive ? editBuffer_ : region.name;
+    uiDrawString(PX + PAD, cursor, "Name:", 0.6f, 0.6f, 0.65f, S);
+    cursor += 14.0;
+    renderTextField(PX + PAD, cursor, PW - PAD * 2, 20.0,
+                    nameDisplay, nameActive, "Unnamed Region");
+    subRegionZones_.push_back({ PX + PAD, cursor, PW - PAD * 2, 20.0, -2 });
+    cursor += 26.0;
 
     uiDrawString(PX + PAD, cursor,
                  uiTrunc("Status: " + regionStatusToString(region.status), MC),
                  0.8f, 0.8f, 0.8f, S);
     cursor += 20.0;
 
-    std::string note = region.note.empty() ? "(no note)" : region.note;
-    uiDrawString(PX + PAD, cursor,
-                 uiTrunc("Note: " + note, MC),
-                 0.7f, 0.7f, 0.7f, S);
-    cursor += 24.0;
+    // Note field
+    bool noteActive = (activeField_ == Field::Note);
+    std::string noteDisplay = noteActive ? editBuffer_ : region.note;
+    uiDrawString(PX + PAD, cursor, "Note:", 0.6f, 0.6f, 0.65f, S);
+    cursor += 14.0;
+    renderTextField(PX + PAD, cursor, PW - PAD * 2, 20.0,
+                    noteDisplay, noteActive, "Click to add note...");
+    subRegionZones_.push_back({ PX + PAD, cursor, PW - PAD * 2, 20.0, -3 });
+    cursor += 26.0;
 
     uiDrawString(PX + PAD, cursor, "Colour:", 0.7f, 0.7f, 0.7f, S);
     uiDrawPanel(PX + PAD + 54, cursor - 5, 24.0, 13.0,

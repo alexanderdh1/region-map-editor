@@ -94,9 +94,19 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
         window,
         [](GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/)
         {
-            if (action != GLFW_PRESS) return;
+            if (action != GLFW_PRESS && action != GLFW_REPEAT) return;
             auto* ctx = static_cast<WindowContext*>(glfwGetWindowUserPointer(window));
             ctx->uiLayer->onKeyPress(key, *ctx->core);
+        }
+    );
+
+    // Character input — for text fields (handles keyboard layout correctly)
+    glfwSetCharCallback(
+        window,
+        [](GLFWwindow* window, unsigned int codepoint)
+        {
+            auto* ctx = static_cast<WindowContext*>(glfwGetWindowUserPointer(window));
+            ctx->uiLayer->onCharInput(codepoint, *ctx->core);
         }
     );
 }
