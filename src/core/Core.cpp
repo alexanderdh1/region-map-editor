@@ -87,7 +87,12 @@ void Core::update(GLFWwindow* window)
     if (input.hasCompletedRect())
     {
         Vec2 worldA = input.getDrawStartWorld();
-        Vec2 worldB = camera.screenToWorld(input.getDrawCurrent());
+
+        // Clamp current to viewport before converting to world space
+        Vec2 cur = input.getDrawCurrent();
+        cur.x = std::max(0.0, std::min(cur.x, camera.viewportSize.x));
+        cur.y = std::max(0.0, std::min(cur.y, camera.viewportSize.y));
+        Vec2 worldB = camera.screenToWorld(cur);
 
         // Clamp worldB to parent bounds if needed
         if (hasPendingParent)

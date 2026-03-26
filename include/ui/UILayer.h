@@ -16,18 +16,23 @@ public:
     bool isTextInputActive() const { return nameFieldActive_ || noteFieldActive_; }
 
 private:
-    void renderSidebar(Core& core);
+    void renderSidebar(Core& core);       // right sidebar (tools)
+    void renderRegionTree(Core& core);    // left sidebar (region tree)
     void renderPopup(Core& core);
     void renderContextMenu(Core& core);
+
+    // Right sidebar state
+    // (no extra state needed yet)
+
+    // Left sidebar state
+    bool treeExpanded_      = false;
+    bool openColourPicker_  = false;
 
     // ImGui text field focus tracking
     bool nameFieldActive_ = false;
     bool noteFieldActive_ = false;
 
-    // Legacy bitmap UI state (kept for onMouseClick click zone detection)
-    struct ClickZone {
-        double x, y, w, h;
-        int childIndex;
-    };
+    // Legacy click zones (kept for structure, unused)
+    struct ClickZone { double x, y, w, h; int childIndex; };
     std::vector<ClickZone> subRegionZones_;
 };

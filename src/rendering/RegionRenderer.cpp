@@ -55,9 +55,13 @@ void RegionRenderer::renderRegion(const Region& region, const Camera& camera) co
 void RegionRenderer::renderRectPreview(
     const Input& input, const Camera& camera) const
 {
-    // Start corner is already in world space
     Vec2 worldA = input.getDrawStartWorld();
-    Vec2 worldB = camera.screenToWorld(input.getDrawCurrent());
+
+    // Clamp current mouse to viewport bounds
+    Vec2 cur = input.getDrawCurrent();
+    cur.x = std::max(0.0, std::min(cur.x, camera.viewportSize.x));
+    cur.y = std::max(0.0, std::min(cur.y, camera.viewportSize.y));
+    Vec2 worldB = camera.screenToWorld(cur);
 
     double minX = std::min(worldA.x, worldB.x);
     double maxX = std::max(worldA.x, worldB.x);
