@@ -11,6 +11,7 @@ enum class InputMode
 
 enum class DrawTool
 {
+    Navigate,
     Rectangle,
     Polygon
 };

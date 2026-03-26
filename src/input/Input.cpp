@@ -26,14 +26,11 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
 
             if (isDoubleClick && polyDrawing && polyWorldPoints.size() >= 3)
             {
-                // The first click of the double-click already added a point
-                // via pendingPolyPoint — Core has not yet consumed it, so
-                // we just mark complete. Core will skip the pending point.
-                completedPoly  = polyWorldPoints;
+                completedPoly    = polyWorldPoints;
                 polyWorldPoints.clear();
                 pendingPolyPoint = false;
-                polyDrawing    = false;
-                polyCompleted  = true;
+                polyDrawing      = false;
+                polyCompleted    = true;
             }
             else
             {
@@ -50,12 +47,12 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
         // ---- RECT MODE ----
         if (shiftHeld && activeTool == DrawTool::Rectangle)
         {
-            mode             = InputMode::DrawRect;
-            drawing          = true;
-            rectCompleted    = false;
-            rectJustStarted  = true;
-            drawStart        = mousePos;
-            drawCurrent      = mousePos;
+            mode            = InputMode::DrawRect;
+            drawing         = true;
+            rectCompleted   = false;
+            rectJustStarted = true;
+            drawStart       = mousePos;
+            drawCurrent     = mousePos;
             return;
         }
 

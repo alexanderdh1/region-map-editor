@@ -5,6 +5,8 @@
 #include "input/Input.h"
 #include "rendering/Camera.h"
 
+#include "imgui.h"
+
 #include <GLFW/glfw3.h>
 #include <string>
 #include <cmath>
@@ -196,231 +198,33 @@ static constexpr int NUM_COLOURS = 6;
 void UILayer::render(Core& core)
 {
     subRegionZones_.clear();
-    cursorBlink_ += 0.016; // ~60fps accumulator for cursor blink
-    renderToolIndicator(core);
+
+    renderSidebar(core);
     renderContextMenu(core);
     renderPopup(core);
 }
 
-void UILayer::onCharInput(unsigned int codepoint, Core& core)
+void UILayer::onCharInput(unsigned int /*codepoint*/, Core& /*core*/)
 {
-    if (activeField_ == Field::None) return;
-    if (codepoint > 126) return; // only ASCII printable
-
-    char c = static_cast<char>(codepoint);
-    editBuffer_.insert(editBuffer_.begin() + cursorPos_, c);
-    cursorPos_++;
+    // ImGui handles all text input directly via its own char callback
 }
 
-bool UILayer::renderTextField(
-    double x, double y, double w, double h,
-    const std::string& value,
-    bool active,
-    const std::string& placeholder)
+bool UILayer::onMouseClick(const Vec2& /*screenPos*/, Core& /*core*/)
 {
-    // Background
-    float bg = active ? 0.22f : 0.15f;
-    uiDrawPanel(x, y, w, h, bg, bg, bg + 0.03f, 1.0f);
-
-    // Border
-    float br = active ? 0.4f : 0.25f;
-    float bg2 = active ? 0.6f : 0.3f;
-    float bb = active ? 1.0f : 0.35f;
-    // Top
-    uiDrawPanel(x, y, w, 1.0, br, bg2, bb, 1.0f);
-    // Bottom
-    uiDrawPanel(x, y + h - 1, w, 1.0, br, bg2, bb, 1.0f);
-    // Left
-    uiDrawPanel(x, y, 1.0, h, br, bg2, bb, 1.0f);
-    // Right
-    uiDrawPanel(x + w - 1, y, 1.0, h, br, bg2, bb, 1.0f);
-
-    const float S    = 1.5f;
-    const double PAD = 5.0;
-
-    if (value.empty() && !active)
-    {
-        uiDrawString(x + PAD, y + 4, placeholder, 0.4f, 0.4f, 0.45f, S);
-    }
-    else
-    {
-        uiDrawString(x + PAD, y + 4, value, 0.95f, 0.95f, 0.95f, S);
-    }
-
-    // Blinking cursor
-    if (active && static_cast<int>(cursorBlink_ * 2) % 2 == 0)
-    {
-        double cursorX = x + PAD + cursorPos_ * 6.0 * S;
-        uiDrawPanel(cursorX, y + 3, 1.5, h - 6, 1.0f, 1.0f, 1.0f, 0.9f);
-    }
-
-    return false; // click detection done via ClickZone
-}
-
-bool UILayer::onMouseClick(const Vec2& screenPos, Core& core)
-{
-    SelectionState& selection = core.getSelection();
-
-    // Close context menu on any click outside it
-    if (selection.contextMenuOpen)
-    {
-        Vec2 cm = selection.contextMenuScreen;
-        bool insideMenu =
-            screenPos.x >= cm.x && screenPos.x <= cm.x + 190.0 &&
-            screenPos.y >= cm.y && screenPos.y <= cm.y + 28.0;
-
-        if (!insideMenu)
-        {
-            selection.closeContextMenu();
-            return false;
-        }
-    }
-
-    // Check all registered click zones (sub-region rows + context menu actions)
-    for (const auto& zone : subRegionZones_)
-    {
-        if (screenPos.x >= zone.x && screenPos.x <= zone.x + zone.w &&
-            screenPos.y >= zone.y && screenPos.y <= zone.y + zone.h)
-        {
-            if (zone.childIndex == -1)
-            {
-                // "Add sub-region" action from context menu
-                if (selection.contextRegion)
-                {
-                    core.setPendingParent(selection.contextRegion->id);
-                    selection.closeContextMenu();
-                    selection.clear();
-                }
-                return true;
-            }
-            else if (zone.childIndex == -2)
-            {
-                // Name field clicked
-                if (selection.selectedRegion)
-                {
-                    // Commit any active note first
-                    if (activeField_ == Field::Note && selection.selectedRegion)
-                        selection.selectedRegion->note = editBuffer_;
-
-                    activeField_ = Field::Name;
-                    editBuffer_  = selection.selectedRegion->name;
-                    cursorPos_   = static_cast<int>(editBuffer_.size());
-                    cursorBlink_ = 0.0;
-                }
-                return true;
-            }
-            else if (zone.childIndex == -3)
-            {
-                // Note field clicked
-                if (selection.selectedRegion)
-                {
-                    // Commit any active name first
-                    if (activeField_ == Field::Name && selection.selectedRegion)
-                        selection.selectedRegion->name = editBuffer_.empty()
-                            ? "Unnamed Region" : editBuffer_;
-
-                    activeField_ = Field::Note;
-                    editBuffer_  = selection.selectedRegion->note;
-                    cursorPos_   = static_cast<int>(editBuffer_.size());
-                    cursorBlink_ = 0.0;
-                }
-                return true;
-            }
-            else
-            {
-                // Navigate into sub-region
-                if (selection.selectedRegion &&
-                    zone.childIndex < static_cast<int>(selection.selectedRegion->children.size()))
-                {
-                    selection.pushView(selection.selectedRegion->children[zone.childIndex].get());
-                }
-                return true;
-            }
-        }
-    }
-
-    // Click landed outside all zones — deactivate text field if active
-    if (activeField_ != Field::None)
-    {
-        Region* r = core.getSelection().selectedRegion;
-        if (r)
-        {
-            if (activeField_ == Field::Name)
-                r->name = editBuffer_.empty() ? "Unnamed Region" : editBuffer_;
-            else if (activeField_ == Field::Note)
-                r->note = editBuffer_;
-        }
-        activeField_ = Field::None;
-    }
-
+    // ImGui handles all UI clicks via WantCaptureMouse in WindowCallbacks.
+    // This function is kept for any future non-ImGui click handling.
     return false;
 }
+
 bool UILayer::onKeyPress(int key, Core& core)
 {
     auto& input     = core.getInput();
     auto& selection = core.getSelection();
     Region* r       = selection.selectedRegion;
 
-    // ---- Text field active — capture all input ----
-    if (activeField_ != Field::None)
-    {
-        switch (key)
-        {
-            case GLFW_KEY_ENTER:
-            case GLFW_KEY_KP_ENTER:
-            {
-                // Commit edit to region
-                if (r)
-                {
-                    if (activeField_ == Field::Name)
-                        r->name = editBuffer_.empty() ? "Unnamed Region" : editBuffer_;
-                    else if (activeField_ == Field::Note)
-                        r->note = editBuffer_;
-                }
-                activeField_ = Field::None;
-                return true;
-            }
-            case GLFW_KEY_ESCAPE:
-            {
-                // Cancel — discard changes
-                activeField_ = Field::None;
-                return true;
-            }
-            case GLFW_KEY_BACKSPACE:
-            {
-                if (cursorPos_ > 0)
-                {
-                    editBuffer_.erase(cursorPos_ - 1, 1);
-                    cursorPos_--;
-                }
-                return true;
-            }
-            case GLFW_KEY_DELETE:
-            {
-                if (cursorPos_ < static_cast<int>(editBuffer_.size()))
-                    editBuffer_.erase(cursorPos_, 1);
-                return true;
-            }
-            case GLFW_KEY_LEFT:
-            {
-                if (cursorPos_ > 0) cursorPos_--;
-                return true;
-            }
-            case GLFW_KEY_RIGHT:
-            {
-                if (cursorPos_ < static_cast<int>(editBuffer_.size())) cursorPos_++;
-                return true;
-            }
-            case GLFW_KEY_HOME:
-                cursorPos_ = 0;
-                return true;
-            case GLFW_KEY_END:
-                cursorPos_ = static_cast<int>(editBuffer_.size());
-                return true;
-            default:
-                return true; // swallow all other keys while typing
-        }
-    }
+    // ImGui text fields handle their own input — swallow keys when active
+    if (nameFieldActive_ || noteFieldActive_)
+        return true;
 
     // --- Save ---
     if (key == GLFW_KEY_S)
@@ -428,6 +232,8 @@ bool UILayer::onKeyPress(int key, Core& core)
         RegionSerializer::save(core.getRegionTree(), "regions.json");
         return true;
     }
+
+    // --- Tool shortcuts ---
     if (key == GLFW_KEY_R)
     {
         input.setDrawTool(DrawTool::Rectangle);
@@ -440,7 +246,7 @@ bool UILayer::onKeyPress(int key, Core& core)
         return true;
     }
 
-    // --- Cancel drawing, close context menu, or navigate back ---
+    // --- Escape ---
     if (key == GLFW_KEY_ESCAPE)
     {
         if (input.isDrawingPolygon())
@@ -450,64 +256,13 @@ bool UILayer::onKeyPress(int key, Core& core)
         else if (selection.contextMenuOpen)
             selection.closeContextMenu();
         else
-        {
-            // Commit any active text field before closing
-            if (activeField_ != Field::None && r)
-            {
-                if (activeField_ == Field::Name)
-                    r->name = editBuffer_.empty() ? "Unnamed Region" : editBuffer_;
-                else if (activeField_ == Field::Note)
-                    r->note = editBuffer_;
-                activeField_ = Field::None;
-            }
-            else
-            {
-                selection.clear();
-            }
-        }
+            selection.clear();
+        input.setDrawTool(DrawTool::Navigate);
         return true;
     }
 
-    // --- Back navigation in sub-region popup ---
-    if (key == GLFW_KEY_B && selection.canGoBack())
-    {
-        selection.popView();
-        return true;
-    }
-
-    // --- Context menu: close on any key ---
-    if (selection.contextMenuOpen)
-    {
-        selection.closeContextMenu();
-        return true;
-    }
-
-    // --- Region editing (only when a region is selected) ---
-    if (!r) return false;
-
-    // Number keys: navigate into sub-region if children exist, else set status
-    int numChildren = static_cast<int>(r->children.size());
-    if (numChildren > 0)
-    {
-        if (key == GLFW_KEY_1 && numChildren >= 1)
-        { selection.pushView(r->children[0].get()); return true; }
-        if (key == GLFW_KEY_2 && numChildren >= 2)
-        { selection.pushView(r->children[1].get()); return true; }
-        if (key == GLFW_KEY_3 && numChildren >= 3)
-        { selection.pushView(r->children[2].get()); return true; }
-        if (key == GLFW_KEY_4 && numChildren >= 4)
-        { selection.pushView(r->children[3].get()); return true; }
-    }
-    else
-    {
-        // No children — number keys set status
-        if (key == GLFW_KEY_1) { r->status = RegionStatus::None;       return true; }
-        if (key == GLFW_KEY_2) { r->status = RegionStatus::InProgress; return true; }
-        if (key == GLFW_KEY_3) { r->status = RegionStatus::Done;       return true; }
-    }
-
-    // Colour cycle
-    if (key == GLFW_KEY_C)
+    // --- Colour cycle (kept as keyboard shortcut) ---
+    if (key == GLFW_KEY_C && r)
     {
         int next = 0;
         for (int i = 0; i < NUM_COLOURS; i++)
@@ -526,8 +281,8 @@ bool UILayer::onKeyPress(int key, Core& core)
         return true;
     }
 
-    // Delete
-    if (key == GLFW_KEY_DELETE)
+    // --- Delete region shortcut ---
+    if (key == GLFW_KEY_DELETE && r)
     {
         RegionId id = r->id;
         selection.clear();
@@ -539,7 +294,7 @@ bool UILayer::onKeyPress(int key, Core& core)
 }
 
 // ============================================================
-// Private — popup panel
+// Private — popup panel (ImGui)
 // ============================================================
 
 void UILayer::renderPopup(Core& core)
@@ -547,113 +302,137 @@ void UILayer::renderPopup(Core& core)
     SelectionState& selection = core.getSelection();
     if (!selection.popupOpen || !selection.selectedRegion) return;
 
-    const Region& region = *selection.selectedRegion;
+    Region& region = *selection.selectedRegion;
+    const Camera& camera = core.getCamera();
 
-    const double PX  = 20.0;
-    const double PY  = 20.0;
-    const double PW  = 270.0;
-    const double PAD = 12.0;
-    const float  S   = 1.5f;
-    const int    MC  = uiMaxChars(PW, PAD, S);
+    float viewW = static_cast<float>(camera.viewportSize.x);
+    float sidebarW = 44.0f;
 
-    // Calculate dynamic panel height
-    int numChildren = static_cast<int>(region.children.size());
-    double PH = 255.0 + (numChildren > 0 ? 20.0 + numChildren * 22.0 : 0.0);
-    if (selection.canGoBack()) PH += 22.0;
+    ImGui::SetNextWindowPos(ImVec2(viewW - sidebarW - 280.0f, 8.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(270.0f, 0.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowBgAlpha(0.92f);
 
-    uiDrawPanel(PX, PY, PW, PH, 0.1f, 0.1f, 0.12f, 0.92f);
-    uiDrawPanel(PX, PY, PW, 6.0,
-                region.colorR, region.colorG, region.colorB, 1.0f);
+    ImGuiWindowFlags flags =
+        ImGuiWindowFlags_NoResize        |
+        ImGuiWindowFlags_NoMove          |
+        ImGuiWindowFlags_NoSavedSettings |
+        ImGuiWindowFlags_NoCollapse      |
+        ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-    double cursor = PY + 15.0;
+    // Coloured top border via header colour
+    ImGui::PushStyleColor(ImGuiCol_TitleBg,       ImVec4(region.colorR, region.colorG, region.colorB, 0.85f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive,  ImVec4(region.colorR, region.colorG, region.colorB, 0.85f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg,       ImVec4(0.10f, 0.10f, 0.13f, 0.92f));
 
-    // Back button if navigated into sub-region
-    if (selection.canGoBack())
+    bool open = true;
+    ImGui::Begin("Region", &open, flags);
+
+    if (!open)
     {
-        uiDrawPanel(PX + PAD, cursor, PW - PAD * 2, 14.0,
-                    0.2f, 0.2f, 0.25f, 0.9f);
-        uiDrawString(PX + PAD + 4, cursor + 3,
-                     uiTrunc("[B] Back to " + selection.viewStack.back()->name, MC),
-                     0.6f, 0.8f, 1.0f, S);
-        cursor += 22.0;
+        selection.clear();
+        ImGui::End();
+        ImGui::PopStyleColor(3);
+        return;
     }
 
-    // Region name field
-    bool nameActive = (activeField_ == Field::Name);
-    std::string nameDisplay = nameActive ? editBuffer_ : region.name;
-    uiDrawString(PX + PAD, cursor, "Name:", 0.6f, 0.6f, 0.65f, S);
-    cursor += 14.0;
-    renderTextField(PX + PAD, cursor, PW - PAD * 2, 20.0,
-                    nameDisplay, nameActive, "Unnamed Region");
-    subRegionZones_.push_back({ PX + PAD, cursor, PW - PAD * 2, 20.0, -2 });
-    cursor += 26.0;
+    // Back button
+    if (selection.canGoBack())
+    {
+        if (ImGui::Button(("< " + selection.viewStack.back()->name).c_str()))
+            selection.popView();
+        ImGui::Separator();
+    }
 
-    uiDrawString(PX + PAD, cursor,
-                 uiTrunc("Status: " + regionStatusToString(region.status), MC),
-                 0.8f, 0.8f, 0.8f, S);
-    cursor += 20.0;
+    // Name field
+    ImGui::Text("Name");
+    static char nameBuf[256];
+    if (!nameFieldActive_)
+        strncpy(nameBuf, region.name.c_str(), sizeof(nameBuf) - 1);
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::InputText("##name", nameBuf, sizeof(nameBuf)))
+    {
+        region.name = nameBuf;
+        nameFieldActive_ = true;
+    }
+    if (!ImGui::IsItemActive()) nameFieldActive_ = false;
+
+    ImGui::Spacing();
+
+    // Status buttons
+    ImGui::Text("Status");
+    auto statusBtn = [&](const char* label, RegionStatus s) {
+        bool active = region.status == s;
+        if (active) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.45f, 0.85f, 1.0f));
+        if (ImGui::Button(label)) region.status = s;
+        if (active) ImGui::PopStyleColor();
+        ImGui::SameLine();
+    };
+    statusBtn("None",        RegionStatus::None);
+    statusBtn("In Progress", RegionStatus::InProgress);
+    statusBtn("Done",        RegionStatus::Done);
+    ImGui::NewLine();
+
+    ImGui::Spacing();
 
     // Note field
-    bool noteActive = (activeField_ == Field::Note);
-    std::string noteDisplay = noteActive ? editBuffer_ : region.note;
-    uiDrawString(PX + PAD, cursor, "Note:", 0.6f, 0.6f, 0.65f, S);
-    cursor += 14.0;
-    renderTextField(PX + PAD, cursor, PW - PAD * 2, 20.0,
-                    noteDisplay, noteActive, "Click to add note...");
-    subRegionZones_.push_back({ PX + PAD, cursor, PW - PAD * 2, 20.0, -3 });
-    cursor += 26.0;
+    ImGui::Text("Note");
+    static char noteBuf[1024];
+    if (!noteFieldActive_)
+        strncpy(noteBuf, region.note.c_str(), sizeof(noteBuf) - 1);
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::InputTextMultiline("##note", noteBuf, sizeof(noteBuf), ImVec2(-1, 60)))
+    {
+        region.note = noteBuf;
+        noteFieldActive_ = true;
+    }
+    if (!ImGui::IsItemActive()) noteFieldActive_ = false;
 
-    uiDrawString(PX + PAD, cursor, "Colour:", 0.7f, 0.7f, 0.7f, S);
-    uiDrawPanel(PX + PAD + 54, cursor - 5, 24.0, 13.0,
-                region.colorR, region.colorG, region.colorB, 1.0f);
-    cursor += 21.0;
+    ImGui::Spacing();
 
-    // Sub-regions list — clickable rows
+    // Colour hint
+    ImGui::TextDisabled("[C] Cycle colour");
+
+    // Sub-regions
+    int numChildren = static_cast<int>(region.children.size());
     if (numChildren > 0)
     {
-        uiDrawPanel(PX + 8, cursor, PW - 16, 1.0, 0.3f, 0.3f, 0.35f, 1.0f);
-        cursor += 8.0;
-        uiDrawString(PX + PAD, cursor, "Sub-regions:", 0.6f, 0.6f, 0.7f, S);
-        cursor += 18.0;
-
+        ImGui::Separator();
+        ImGui::Text("Sub-regions");
         for (int i = 0; i < numChildren; i++)
         {
-            const Region* child = region.children[i].get();
-            double rowH = 18.0;
-
-            // Highlight row background
-            uiDrawPanel(PX + PAD, cursor, PW - PAD * 2, rowH,
-                        child->colorR, child->colorG, child->colorB, 0.25f);
-
-            uiDrawString(PX + PAD + 4, cursor + 4,
-                         uiTrunc(child->name, MC - 2),
-                         0.9f, 0.9f, 0.9f, S);
-
-            // Register click zone for this row
-            subRegionZones_.push_back({ PX + PAD, cursor, PW - PAD * 2, rowH, i });
-
-            cursor += rowH + 4.0;
+            Region* child = region.children[i].get();
+            ImGui::PushStyleColor(ImGuiCol_Button,
+                ImVec4(child->colorR, child->colorG, child->colorB, 0.35f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                ImVec4(child->colorR, child->colorG, child->colorB, 0.55f));
+            if (ImGui::Button(child->name.c_str(), ImVec2(-1, 0)))
+                selection.pushView(child);
+            ImGui::PopStyleColor(2);
         }
     }
 
-    // Separator + controls
-    uiDrawPanel(PX + 8, cursor, PW - 16, 1.0, 0.3f, 0.3f, 0.35f, 1.0f);
-    cursor += 11.0;
+    ImGui::Separator();
 
-    uiDrawString(PX + PAD, cursor,
-                 uiTrunc("[C] Colour  [B] Back  [Esc] Close", MC),
-                 0.5f, 0.5f, 0.6f, S);
-    cursor += 23.0;
-    uiDrawString(PX + PAD, cursor,
-                 uiTrunc("[Del] Delete  Right-click: sub-region", MC),
-                 0.5f, 0.5f, 0.6f, S);
+    // Delete button
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.65f, 0.15f, 0.15f, 0.8f));
+    if (ImGui::Button("Delete region", ImVec2(-1, 0)))
+    {
+        RegionId id = region.id;
+        selection.clear();
+        core.getRegionTree().removeRegion(id);
+        ImGui::PopStyleColor();
+        ImGui::End();
+        ImGui::PopStyleColor(3);
+        return;
+    }
+    ImGui::PopStyleColor();
 
-    // Handle number keys for sub-region navigation (override status keys when children exist)
-    // This is handled in onKeyPress via the numChildren check
+    ImGui::End();
+    ImGui::PopStyleColor(3);
 }
 
 // ============================================================
-// Private — context menu (right-click)
+// Private — context menu (right-click, ImGui)
 // ============================================================
 
 void UILayer::renderContextMenu(Core& core)
@@ -661,69 +440,134 @@ void UILayer::renderContextMenu(Core& core)
     SelectionState& selection = core.getSelection();
     if (!selection.contextMenuOpen || !selection.contextRegion) return;
 
-    const double X   = selection.contextMenuScreen.x;
-    const double Y   = selection.contextMenuScreen.y;
-    const double W   = 190.0;
-    const double PAD = 10.0;
-    const float  S   = 1.5f;
+    ImVec2 pos = ImVec2(
+        static_cast<float>(selection.contextMenuScreen.x),
+        static_cast<float>(selection.contextMenuScreen.y)
+    );
+    ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
 
-    // One row per action
-    const double rowH = 24.0;
-    const double H    = rowH + 4.0;
+    ImGui::OpenPopup("##contextmenu");
+    if (ImGui::BeginPopup("##contextmenu"))
+    {
+        ImGui::TextDisabled(selection.contextRegion->name.c_str());
+        ImGui::Separator();
 
-    uiDrawPanel(X, Y, W, H, 0.12f, 0.12f, 0.15f, 0.95f);
-    uiDrawPanel(X, Y, W, 2.0,
-                selection.contextRegion->colorR,
-                selection.contextRegion->colorG,
-                selection.contextRegion->colorB, 1.0f);
+        if (ImGui::MenuItem("Add sub-region"))
+        {
+            core.setPendingParent(selection.contextRegion->id);
+            selection.closeContextMenu();
+            selection.clear();
+        }
 
-    // "Add sub-region" row
-    uiDrawPanel(X + 2, Y + 3, W - 4, rowH - 2, 0.18f, 0.18f, 0.22f, 0.0f);
-    uiDrawString(X + PAD, Y + 9, "Add sub-region", 0.9f, 0.9f, 0.9f, S);
+        if (ImGui::MenuItem("Cancel"))
+            selection.closeContextMenu();
 
-    // Register as click zone (childIndex -1 = "add sub-region" action)
-    subRegionZones_.push_back({ X, Y + 3, W, rowH, -1 });
+        ImGui::EndPopup();
+    }
+    else
+    {
+        // Popup closed by clicking outside
+        selection.closeContextMenu();
+    }
 }
 
 // ============================================================
-// Private — tool indicator
+// Private — sidebar (ImGui)
 // ============================================================
 
-void UILayer::renderToolIndicator(const Core& core)
+void UILayer::renderSidebar(Core& core)
 {
-    const Input&  input  = core.getInput();
+    Input& input = core.getInput();
     const Camera& camera = core.getCamera();
 
-    bool isRect = input.getDrawTool() == DrawTool::Rectangle;
-    bool isPoly = input.getDrawTool() == DrawTool::Polygon;
+    const float sidebarW = 44.0f;
+    const float viewH    = static_cast<float>(camera.viewportSize.y);
+    const float viewW    = static_cast<float>(camera.viewportSize.x);
 
-    const double W = 200.0;
-    const double H = 32.0;
-    const double X = 20.0;
-    const double Y = camera.viewportSize.y - H - 20.0;
+    ImGui::SetNextWindowPos(ImVec2(viewW - sidebarW, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(sidebarW, viewH), ImGuiCond_Always);
+    ImGui::SetNextWindowBgAlpha(0.92f);
 
-    uiDrawPanel(X, Y, W, H, 0.1f, 0.1f, 0.12f, 0.88f);
+    ImGuiWindowFlags flags =
+        ImGuiWindowFlags_NoTitleBar      |
+        ImGuiWindowFlags_NoResize        |
+        ImGuiWindowFlags_NoMove          |
+        ImGuiWindowFlags_NoScrollbar     |
+        ImGuiWindowFlags_NoSavedSettings |
+        ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-    float ar = isRect ? 0.4f : 0.3f;
-    float ag = isRect ? 0.6f : 0.85f;
-    float ab = isRect ? 1.0f : 0.45f;
-    uiDrawPanel(X, Y, W, 3.0, ar, ag, ab, 1.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 8));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,   ImVec2(4, 8));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.10f, 0.10f, 0.13f, 0.92f));
 
-    float rr = isRect ? 0.4f : 0.25f;
-    float rg = isRect ? 0.6f : 0.25f;
-    float rb = isRect ? 1.0f : 0.25f;
-    uiDrawPanel(X + 8, Y + 8, 16.0, 16.0, rr, rg, rb, isRect ? 0.95f : 0.4f);
-    uiDrawString(X + 28, Y + 11, "[R] Rect",
-                 isRect ? 1.f : 0.45f, isRect ? 1.f : 0.45f, isRect ? 1.f : 0.45f);
+    ImGui::Begin("##sidebar", nullptr, flags);
 
-    float pr = isPoly ? 0.3f  : 0.25f;
-    float pg = isPoly ? 0.85f : 0.25f;
-    float pb = isPoly ? 0.45f : 0.25f;
-    uiDrawPanel(X + 108, Y + 8, 16.0, 16.0, pr, pg, pb, isPoly ? 0.95f : 0.4f);
-    uiDrawString(X + 128, Y + 11, "[P] Poly",
-                 isPoly ? 1.f : 0.45f, isPoly ? 1.f : 0.45f, isPoly ? 1.f : 0.45f);
+    // ---- Region tool icon ----
+    bool isDrawing = input.isDrawingRect() || input.isDrawingPolygon();
 
-    // Save hint
-    uiDrawString(X + 1, Y + H + 4, "[S] Save",
-                 0.4f, 0.4f, 0.45f, 1.3f);
+    // Only highlight button when actively drawing
+    if (isDrawing)
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.45f, 0.85f, 1.0f));
+
+    if (ImGui::Button("##region", ImVec2(36, 36)))
+        ImGui::OpenPopup("RegionToolPopup");
+
+    if (isDrawing)
+        ImGui::PopStyleColor();
+
+    // Draw a simple region icon inside the button area
+    ImDrawList* draw = ImGui::GetWindowDrawList();
+    ImVec2 btnMin = ImGui::GetItemRectMin();
+    ImVec2 btnMax = ImGui::GetItemRectMax();
+    ImVec2 center = ImVec2((btnMin.x + btnMax.x) * 0.5f,
+                           (btnMin.y + btnMax.y) * 0.5f);
+
+    float iconSize = 11.0f;
+    draw->AddRect(
+        ImVec2(center.x - iconSize, center.y - iconSize * 0.7f),
+        ImVec2(center.x + iconSize, center.y + iconSize * 0.7f),
+        isDrawing ? IM_COL32(120, 180, 255, 255)
+                  : IM_COL32(180, 180, 200, 255),
+        2.0f, 0, 1.5f
+    );
+
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Region");
+
+    // ---- Region tool popup ----
+    ImGui::SetNextWindowPos(
+        ImVec2(viewW - sidebarW - 130.0f, 8.0f),
+        ImGuiCond_Always
+    );
+
+    if (ImGui::BeginPopup("RegionToolPopup"))
+    {
+        ImGui::TextDisabled("Draw region");
+        ImGui::Separator();
+
+        bool rectActive = input.getDrawTool() == DrawTool::Rectangle;
+        bool polyActive = input.getDrawTool() == DrawTool::Polygon;
+
+        // Uniform highlight colour for active tool
+        const ImVec4 activeCol = ImVec4(0.4f, 0.7f, 1.0f, 1.0f);
+
+        if (rectActive) ImGui::PushStyleColor(ImGuiCol_Text, activeCol);
+        if (ImGui::MenuItem("Rectangle  [R]", nullptr, rectActive))
+        {
+            input.setDrawTool(DrawTool::Rectangle);
+            input.cancelPolygon();
+        }
+        if (rectActive) ImGui::PopStyleColor();
+
+        if (polyActive) ImGui::PushStyleColor(ImGuiCol_Text, activeCol);
+        if (ImGui::MenuItem("Polygon    [P]", nullptr, polyActive))
+            input.setDrawTool(DrawTool::Polygon);
+        if (polyActive) ImGui::PopStyleColor();
+
+        ImGui::EndPopup();
+    }
+
+    ImGui::End();
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor();
 }

@@ -1,5 +1,9 @@
 #include <GLFW/glfw3.h>
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl2.h"
+
 #include "core/Core.h"
 #include "rendering/Renderer.h"
 #include "ui/UILayer.h"
@@ -25,6 +29,20 @@ int main()
         return -1;
 
     setupOpenGLState();
+
+    // --- ImGui setup ---
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    // Load JetBrains Mono as default font
+    io.Fonts->AddFontFromFileTTF("assets/fonts/JetBrainsMono-Regular.ttf", 16.0f);
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, false);
+    ImGui_ImplOpenGL2_Init();
 
     Core     core;
     Renderer renderer;
@@ -67,13 +85,27 @@ int main()
         // 1. Map + regions (world-space)
         renderer.render(core);
 
-        // 2. UI overlay (screen-space)
+        // 2. ImGui frame
+        ImGui_ImplOpenGL2_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // 3. UI overlay (screen-space)
         uiLayer.render(core);
+
+        // 4. Render ImGui
+        ImGui::Render();
+        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
 
         updateWindowTitle(window, core);
     }
+
+    // --- ImGui cleanup ---
+    ImGui_ImplOpenGL2_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     destroyWindow(window);
     return 0;

@@ -6,6 +6,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# ImGui sources
+set(IMGUI_DIR external/imgui)
+set(IMGUI_SOURCES
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_demo.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/imgui_impl_glfw.cpp
+    ${IMGUI_DIR}/imgui_impl_opengl2.cpp
+)
 
 # Executable
 add_executable(main
@@ -27,12 +38,14 @@ add_executable(main
     src/data/RegionSerializer.cpp
     src/window/OpenGLSetup.cpp
     src/ui/UILayer.cpp
+    ${IMGUI_SOURCES}
 )
 
 # Include directories
-target_include_directories(main PRIVATE 
-include
-external
+target_include_directories(main PRIVATE
+    include
+    external
+    ${IMGUI_DIR}
 )
 
 # GLFW
