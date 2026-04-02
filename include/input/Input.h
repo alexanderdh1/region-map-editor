@@ -73,31 +73,29 @@ public:
     void closePolygon();
 
     // --- Edit mode ---
-    // A drag on a handle or inside a region was just started (press, no shift)
+    bool isEditMouseHeld() const      { return editMouseButtonHeld; }
+
     bool hasEditDragStart() const     { return editDragStartPending; }
     Vec2 consumeEditDragStart()       { editDragStartPending = false; return editDragStartPos; }
 
-    // Mouse moved while edit-dragging
     bool isEditDragging() const       { return editDragging; }
     Vec2 getEditDragCurrent() const   { return drawCurrent; }
-    Vec2 getEditDragDelta()           // delta since last frame, resets each call
+    Vec2 getEditDragDelta()
     {
         Vec2 d = editDragDelta;
         editDragDelta = { 0.0, 0.0 };
         return d;
     }
 
-    // Drag ended
     bool hasEditDragEnd() const       { return editDragEndPending; }
     void consumeEditDragEnd()         { editDragEndPending = false; }
 
-    // Plain click in edit mode (no drag) — used for edge insertion and target selection
     bool hasEditClick() const         { return editClickPending; }
     Vec2 consumeEditClick()           { editClickPending = false; return editClickPos; }
 
     void cancelEdit();
 
-    // --- Click (left, no shift, no drag, non-edit mode) ---
+    // --- Click ---
     bool hasClick() const;
     Vec2 consumeClick();
 
@@ -145,6 +143,7 @@ private:
     Vec2 rightClickPos     { 0.0, 0.0 };
 
     // Edit mode
+    bool editMouseButtonHeld = false; // true only while LMB is physically held
     bool editDragging         = false;
     bool editDragStartPending = false;
     bool editDragEndPending   = false;

@@ -4,7 +4,7 @@
 
 static constexpr double DOUBLE_CLICK_SECONDS = 0.35;
 static constexpr double DOUBLE_CLICK_RADIUS  = 10.0;
-static constexpr double EDIT_DRAG_THRESHOLD  = 3.0; // pixels before drag registers
+static constexpr double EDIT_DRAG_THRESHOLD  = 3.0;
 
 void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
 {
@@ -13,13 +13,13 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
         // ---- EDIT MODE ----
         if (activeTool == DrawTool::Edit)
         {
-            mode              = InputMode::Edit;
-            editDragging      = false;
-            editDidDrag       = false;
-            editDragStartPos  = mousePos;
-            editLastMousePos  = mousePos;
-            editDragDelta     = { 0.0, 0.0 };
-            // Drag start is confirmed lazily once threshold is exceeded (in onMouseMove)
+            mode                = InputMode::Edit;
+            editMouseButtonHeld = true;
+            editDragging        = false;
+            editDidDrag         = false;
+            editDragStartPos    = mousePos;
+            editLastMousePos    = mousePos;
+            editDragDelta       = { 0.0, 0.0 };
             return;
         }
 
@@ -33,7 +33,6 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
                 mousePos.x - lastClickPos.x,
                 mousePos.y - lastClickPos.y
             );
-
             bool isDoubleClick =
                 (now - lastClickTime < DOUBLE_CLICK_SECONDS) &&
                 (dist < DOUBLE_CLICK_RADIUS);
@@ -82,19 +81,21 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
         // Edit mode release
         if (activeTool == DrawTool::Edit)
         {
+            editMouseButtonHeld = false;
+
             if (editDragging)
             {
-                editDragging      = false;
+                editDragging       = false;
                 editDragEndPending = true;
             }
             else if (!editDidDrag)
             {
-                // No drag occurred — treat as a plain click (target select / edge insert)
                 editClickPending = true;
                 editClickPos     = mousePos;
             }
-            editDidDrag = false;
-            mode = InputMode::Navigate;
+            editDidDrag      = false;
+            editDragDelta    = { 0.0, 0.0 }; // flush any residual delta
+            mode             = InputMode::Navigate;
             return;
         }
 
@@ -109,7 +110,6 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
         if (mode == InputMode::DrawPolygon)
             return;
 
-        // Navigate release
         if (!didDrag)
             clickPending = true;
 
@@ -123,33 +123,37 @@ void Input::onMouseMove(const Vec2& mousePos)
 {
     drawCurrent = mousePos;
 
-    // Edit mode drag accumulation
     if (activeTool == DrawTool::Edit)
     {
-        Vec2 delta {
-            mousePos.x - editLastMousePos.x,
-            mousePos.y - editLastMousePos.y
-        };
-
-        // Check if we've exceeded the drag threshold
-        if (!editDragging)
+        // Only accumulate drag state while the mouse button is actually held.
+        // Without this guard, releasing the button mid-motion left editDragging=true
+        // and caused the "stuck mouse" bug.
+        if (editMouseButtonHeld)
         {
-            double totalDist = std::hypot(
-                mousePos.x - editDragStartPos.x,
-                mousePos.y - editDragStartPos.y
-            );
-            if (totalDist >= EDIT_DRAG_THRESHOLD)
+            Vec2 delta {
+                mousePos.x - editLastMousePos.x,
+                mousePos.y - editLastMousePos.y
+            };
+
+            if (!editDragging)
             {
-                editDragging         = true;
-                editDidDrag          = true;
-                editDragStartPending = true;
+                double totalDist = std::hypot(
+                    mousePos.x - editDragStartPos.x,
+                    mousePos.y - editDragStartPos.y
+                );
+                if (totalDist >= EDIT_DRAG_THRESHOLD)
+                {
+                    editDragging         = true;
+                    editDidDrag          = true;
+                    editDragStartPending = true;
+                }
             }
-        }
 
-        if (editDragging)
-        {
-            editDragDelta.x += delta.x;
-            editDragDelta.y += delta.y;
+            if (editDragging)
+            {
+                editDragDelta.x += delta.x;
+                editDragDelta.y += delta.y;
+            }
         }
 
         editLastMousePos = mousePos;
@@ -179,12 +183,7 @@ void Input::onScroll(double yOffset)
     zoomDelta += yOffset;
 }
 
-// --- Navigation ---
-
-bool Input::hasPanDelta() const
-{
-    return panDelta.x != 0.0 || panDelta.y != 0.0;
-}
+bool Input::hasPanDelta() const { return panDelta.x != 0.0 || panDelta.y != 0.0; }
 
 Vec2 Input::consumePanDelta()
 {
@@ -202,12 +201,8 @@ double Input::consumeZoomDelta()
     return result;
 }
 
-// --- Rectangle drawing ---
-
 bool Input::isDrawingRect() const { return drawing; }
-
 bool Input::hasCompletedRect() const { return rectCompleted; }
-
 void Input::consumeCompletedRect() { rectCompleted = false; }
 
 void Input::cancelRect()
@@ -216,8 +211,6 @@ void Input::cancelRect()
     rectCompleted = false;
     mode          = InputMode::Navigate;
 }
-
-// --- Polygon drawing ---
 
 bool Input::hasCompletedPolygon() const { return polyCompleted; }
 
@@ -237,7 +230,7 @@ void Input::cancelPolygon()
 
 void Input::closePolygon()
 {
-    completedPoly = polyWorldPoints;
+    completedPoly    = polyWorldPoints;
     polyWorldPoints.clear();
     pendingPolyPoint = false;
     polyDrawing      = false;
@@ -245,10 +238,9 @@ void Input::closePolygon()
     mode             = InputMode::Navigate;
 }
 
-// --- Edit mode ---
-
 void Input::cancelEdit()
 {
+    editMouseButtonHeld  = false;
     editDragging         = false;
     editDragStartPending = false;
     editDragEndPending   = false;
@@ -257,8 +249,6 @@ void Input::cancelEdit()
     editDragDelta        = { 0.0, 0.0 };
     mode                 = InputMode::Navigate;
 }
-
-// --- Click ---
 
 bool Input::hasClick() const { return clickPending; }
 

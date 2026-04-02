@@ -71,8 +71,8 @@ public:
     EditState& getEditState()             { return editState; }
     const EditState& getEditState() const { return editState; }
 
-    // Deletes the currently selected polygon point in edit mode.
-    // Connects the two neighbouring points. No-op if < 4 points or no handle selected.
+    // Deletes the selected polygon point, connecting its two neighbours.
+    // No-op if fewer than 4 points or no PolyPoint handle is selected.
     void deleteEditPoint();
 
     void setPendingParent(RegionId id) { pendingParentId = id; hasPendingParent = true; }

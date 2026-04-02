@@ -58,40 +58,40 @@ bool Core::childrenBoundingBox(const Region& region,
 
 void Core::update(GLFWwindow* window)
 {
-    Camera& camera = getCamera();
+    Camera& cam = getCamera();
 
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
     Vec2 mouseScreen{ mouseX, mouseY };
 
-    // PAN
-    if (input.hasPanDelta()) {
-        Vec2 delta = input.consumePanDelta();
-        camera.panBy(delta);
-    }
-
-    // ZOOM
-    if (input.hasZoomDelta()) {
+    // ZOOM always works
+    if (input.hasZoomDelta())
+    {
         double zoomSteps = input.consumeZoomDelta();
         const double zoomFactor = 1.1;
-        Vec2 worldBefore = camera.screenToWorld(mouseScreen);
-        if (zoomSteps > 0) camera.zoomBy(zoomFactor);
-        else               camera.zoomBy(1.0 / zoomFactor);
-        Vec2 worldAfter = camera.screenToWorld(mouseScreen);
-        camera.position.x += (worldBefore.x - worldAfter.x);
-        camera.position.y += (worldBefore.y - worldAfter.y);
+        Vec2 worldBefore = cam.screenToWorld(mouseScreen);
+        if (zoomSteps > 0) cam.zoomBy(zoomFactor);
+        else               cam.zoomBy(1.0 / zoomFactor);
+        Vec2 worldAfter = cam.screenToWorld(mouseScreen);
+        cam.position.x += (worldBefore.x - worldAfter.x);
+        cam.position.y += (worldBefore.y - worldAfter.y);
     }
 
-    camera.clampToBounds(worldWidth, worldHeight);
+    cam.clampToBounds(worldWidth, worldHeight);
 
-    // Edit mode has its own update path
     if (input.getDrawTool() == DrawTool::Edit)
     {
         updateEditMode(window);
         return;
     }
 
-    // Helper: add region and auto-save
+    // PAN
+    if (input.hasPanDelta())
+    {
+        Vec2 delta = input.consumePanDelta();
+        cam.panBy(delta);
+    }
+
     auto addRegion = [&](std::unique_ptr<Region> region)
     {
         if (hasPendingParent)
@@ -114,10 +114,10 @@ void Core::update(GLFWwindow* window)
         return parent->geometry.contains(worldPt);
     };
 
-    // RECT — capture start
+    // RECT
     if (input.isRectJustStarted())
     {
-        Vec2 worldStart = camera.screenToWorld(input.getDrawStart());
+        Vec2 worldStart = cam.screenToWorld(input.getDrawStart());
         if (!isInsideParent(worldStart))
             input.cancelRect();
         else
@@ -127,14 +127,13 @@ void Core::update(GLFWwindow* window)
         }
     }
 
-    // RECT — finalise
     if (input.hasCompletedRect())
     {
         Vec2 worldA = input.getDrawStartWorld();
         Vec2 cur = input.getDrawCurrent();
-        cur.x = std::max(0.0, std::min(cur.x, camera.viewportSize.x));
-        cur.y = std::max(0.0, std::min(cur.y, camera.viewportSize.y));
-        Vec2 worldB = camera.screenToWorld(cur);
+        cur.x = std::max(0.0, std::min(cur.x, cam.viewportSize.x));
+        cur.y = std::max(0.0, std::min(cur.y, cam.viewportSize.y));
+        Vec2 worldB = cam.screenToWorld(cur);
 
         if (hasPendingParent)
         {
@@ -173,11 +172,11 @@ void Core::update(GLFWwindow* window)
         input.consumeCompletedRect();
     }
 
-    // POLYGON — add point
+    // POLYGON
     if (input.hasPendingPolyPoint())
     {
         Vec2 screenPt = input.consumePendingPolyPoint();
-        Vec2 worldPt  = camera.screenToWorld(screenPt);
+        Vec2 worldPt  = cam.screenToWorld(screenPt);
 
         if (isInsideParent(worldPt))
         {
@@ -186,7 +185,7 @@ void Core::update(GLFWwindow* window)
 
             if (existing.size() >= 3)
             {
-                Vec2 firstScreen = camera.worldToScreen(existing[0]);
+                Vec2 firstScreen = cam.worldToScreen(existing[0]);
                 double dist = std::hypot(
                     screenPt.x - firstScreen.x,
                     screenPt.y - firstScreen.y
@@ -202,7 +201,6 @@ void Core::update(GLFWwindow* window)
         }
     }
 
-    // POLYGON — finalise
     if (input.hasCompletedPolygon())
     {
         std::vector<Vec2> worldPoints = input.consumeCompletedPolygon();
@@ -232,11 +230,11 @@ void Core::update(GLFWwindow* window)
         }
     }
 
-    // CLICK — select region
+    // CLICK
     if (input.hasClick())
     {
         Vec2 screenPos = input.consumeClick();
-        Vec2 worldPos  = camera.screenToWorld(screenPos);
+        Vec2 worldPos  = cam.screenToWorld(screenPos);
 
         Region* hit = nullptr;
         regionTree.forEach([&](Region& r)
@@ -266,7 +264,7 @@ void Core::update(GLFWwindow* window)
     if (input.hasRightClick())
     {
         Vec2 screenPos = input.consumeRightClick();
-        Vec2 worldPos  = camera.screenToWorld(screenPos);
+        Vec2 worldPos  = cam.screenToWorld(screenPos);
 
         Region* hit = nullptr;
         regionTree.forEach([&](Region& r)
@@ -284,18 +282,22 @@ void Core::update(GLFWwindow* window)
 // Edit mode update
 // ---------------------------------------------------------------
 
-void Core::updateEditMode(GLFWwindow* /*window*/)
+void Core::updateEditMode(GLFWwindow* window)
 {
-    const Camera& camera = getCamera();
-    Vec2 mouseScreen = input.getEditDragCurrent();
+    Camera& cam = getCamera();
 
-    // ---- Plain click: select target or insert edge point ----
+    double mouseX, mouseY;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+    Vec2 mouseScreen{ mouseX, mouseY };
+
+    // Pan is disabled in edit mode.
+
+    // ---- Polygon edge insertion (plain click on edge) ----
     if (input.hasEditClick())
     {
         Vec2 clickScreen = input.consumeEditClick();
-        Vec2 clickWorld  = camera.screenToWorld(clickScreen);
+        Vec2 clickWorld  = cam.screenToWorld(clickScreen);
 
-        // Polygon edge insertion on current target
         if (editState.isActive() &&
             editState.target->geometry.type == GeometryType::Polygon)
         {
@@ -309,8 +311,8 @@ void Core::updateEditMode(GLFWwindow* /*window*/)
             for (int i = 0; i < n; i++)
             {
                 int j = (i + 1) % n;
-                Vec2 sA = camera.worldToScreen(pts[i]);
-                Vec2 sB = camera.worldToScreen(pts[j]);
+                Vec2 sA = cam.worldToScreen(pts[i]);
+                Vec2 sB = cam.worldToScreen(pts[j]);
 
                 double dA = std::hypot(clickScreen.x - sA.x, clickScreen.y - sA.y);
                 double dB = std::hypot(clickScreen.x - sB.x, clickScreen.y - sB.y);
@@ -331,7 +333,6 @@ void Core::updateEditMode(GLFWwindow* /*window*/)
                     clickScreen.x - closest.x,
                     clickScreen.y - closest.y
                 );
-
                 if (dist < bestDist) { bestDist = dist; bestEdge = i; }
             }
 
@@ -339,19 +340,10 @@ void Core::updateEditMode(GLFWwindow* /*window*/)
             {
                 pts.insert(pts.begin() + bestEdge + 1, clickWorld);
                 RegionSerializer::save(regionTree, "regions.json");
-                return;
             }
         }
-
-        // Hit-test to set new edit target
-        Region* hit = nullptr;
-        regionTree.forEach([&](Region& r)
-        {
-            if (r.geometry.contains(clickWorld)) hit = &r;
-        });
-
-        editState.target = hit;
-        editState.clearDrag();
+        // Note: target selection is no longer done here.
+        // The edit target is always the selected region (set when entering edit mode).
         return;
     }
 
@@ -360,6 +352,7 @@ void Core::updateEditMode(GLFWwindow* /*window*/)
     {
         Vec2 startScreen = input.consumeEditDragStart();
         editState.clearDrag();
+
         if (!editState.isActive()) return;
 
         Region& region = *editState.target;
@@ -367,10 +360,10 @@ void Core::updateEditMode(GLFWwindow* /*window*/)
         if (region.geometry.type == GeometryType::Rectangle)
         {
             Vec2 corners[4] = {
-                camera.worldToScreen({ region.geometry.rectMin.x, region.geometry.rectMax.y }),
-                camera.worldToScreen({ region.geometry.rectMax.x, region.geometry.rectMax.y }),
-                camera.worldToScreen({ region.geometry.rectMax.x, region.geometry.rectMin.y }),
-                camera.worldToScreen({ region.geometry.rectMin.x, region.geometry.rectMin.y }),
+                cam.worldToScreen({ region.geometry.rectMin.x, region.geometry.rectMax.y }),
+                cam.worldToScreen({ region.geometry.rectMax.x, region.geometry.rectMax.y }),
+                cam.worldToScreen({ region.geometry.rectMax.x, region.geometry.rectMin.y }),
+                cam.worldToScreen({ region.geometry.rectMin.x, region.geometry.rectMin.y }),
             };
             for (int i = 0; i < 4; i++)
             {
@@ -391,7 +384,7 @@ void Core::updateEditMode(GLFWwindow* /*window*/)
             const auto& pts = region.geometry.points;
             for (int i = 0; i < static_cast<int>(pts.size()); i++)
             {
-                Vec2 s = camera.worldToScreen(pts[i]);
+                Vec2 s = cam.worldToScreen(pts[i]);
                 double dist = std::hypot(
                     startScreen.x - s.x,
                     startScreen.y - s.y
@@ -406,19 +399,16 @@ void Core::updateEditMode(GLFWwindow* /*window*/)
         }
     }
 
-    // ---- Dragging: apply delta ----
+    // ---- Dragging ----
     if (input.isEditDragging())
     {
-        // Always consume the delta — even if we can't apply it.
-        // Bug fix: not consuming caused delta accumulation, making the
-        // handle drift away from the cursor when blocked by a constraint.
-        Vec2 screenDelta = input.getEditDragDelta();
+        Vec2 screenDelta = input.getEditDragDelta(); // always consume
 
         if (!editState.isDragging()) return;
         if (screenDelta.x == 0.0 && screenDelta.y == 0.0) return;
 
-        double worldDx =  screenDelta.x / camera.zoom;
-        double worldDy = -screenDelta.y / camera.zoom;
+        double worldDx =  screenDelta.x / cam.zoom;
+        double worldDy = -screenDelta.y / cam.zoom;
 
         Region& region = *editState.target;
 
@@ -507,11 +497,7 @@ void Core::updateEditMode(GLFWwindow* /*window*/)
 }
 
 // ---------------------------------------------------------------
-// Delete polygon point in edit mode
-// Called from UILayer when [Del] is pressed while edit tool is active
-// and a polygon point handle is selected.
-// Connects the two neighbours and removes the point.
-// Minimum 3 points enforced.
+// Delete polygon point
 // ---------------------------------------------------------------
 
 void Core::deleteEditPoint()
@@ -521,17 +507,13 @@ void Core::deleteEditPoint()
 
     Region& region = *editState.target;
     auto& pts = region.geometry.points;
-    int n = static_cast<int>(pts.size());
+    int n   = static_cast<int>(pts.size());
     int idx = editState.handleIndex;
 
     if (idx < 0 || idx >= n) return;
-
-    // Need at least 3 points after deletion to remain a valid polygon
     if (n <= 3) return;
 
     pts.erase(pts.begin() + idx);
-
-    // Clamp handleIndex so it stays valid after erasure
     editState.handleIndex = std::min(editState.handleIndex,
                                      static_cast<int>(pts.size()) - 1);
 

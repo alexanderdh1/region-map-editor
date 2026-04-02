@@ -12,6 +12,32 @@
 #include <cmath>
 
 // ============================================================
+// Helpers
+// ============================================================
+
+static void enterEditMode(Core& core)
+{
+    // Edit target is always the currently selected region
+    Region* target = core.getSelection().selectedRegion;
+    if (!target) return;
+
+    core.getInput().cancelPolygon();
+    core.getInput().cancelRect();
+    core.getInput().setDrawTool(DrawTool::Edit);
+    core.getEditState().target = target;
+    core.getEditState().clearDrag();
+}
+
+static void exitEditMode(Core& core, bool save)
+{
+    if (save && core.getEditState().isActive())
+        RegionSerializer::save(core.getRegionTree(), "regions.json");
+    core.getEditState().clear();
+    core.getInput().cancelEdit();
+    core.getInput().setDrawTool(DrawTool::Navigate);
+}
+
+// ============================================================
 // UILayer
 // ============================================================
 
@@ -23,10 +49,7 @@ void UILayer::render(Core& core)
     renderPopup(core);
 }
 
-void UILayer::onCharInput(unsigned int /*codepoint*/, Core& /*core*/)
-{
-    // ImGui handles all text input directly via its own char callback
-}
+void UILayer::onCharInput(unsigned int /*codepoint*/, Core& /*core*/) {}
 
 bool UILayer::onMouseClick(const Vec2& /*screenPos*/, Core& /*core*/)
 {
@@ -50,45 +73,14 @@ bool UILayer::onKeyPress(int key, Core& core)
         return true;
     }
 
-    // --- Edit tool toggle [E] ---
+    // --- [E] — toggle edit mode, only when a region is selected ---
     if (key == GLFW_KEY_E)
     {
         if (input.getDrawTool() == DrawTool::Edit)
-        {
-            if (editState.isActive())
-                RegionSerializer::save(core.getRegionTree(), "regions.json");
-            editState.clear();
-            input.cancelEdit();
-            input.setDrawTool(DrawTool::Navigate);
-        }
-        else
-        {
-            input.cancelPolygon();
-            input.cancelRect();
-            input.setDrawTool(DrawTool::Edit);
-        }
-        return true;
-    }
-
-    // --- [Del] ---
-    if (key == GLFW_KEY_DELETE)
-    {
-        if (input.getDrawTool() == DrawTool::Edit)
-        {
-            // In edit mode: delete the selected polygon point (connects neighbours)
-            // Only acts when a PolyPoint handle is actively selected
-            if (editState.handleType == EditHandleType::PolyPoint)
-                core.deleteEditPoint();
-            // No-op for rect corners — deleting a corner doesn't make sense
-        }
+            exitEditMode(core, true);
         else if (r)
-        {
-            // Normal mode: delete the whole region
-            RegionId id = r->id;
-            selection.clear();
-            core.getRegionTree().removeRegion(id);
-            RegionSerializer::save(core.getRegionTree(), "regions.json");
-        }
+            enterEditMode(core);
+        // No-op if no region selected and not already in edit mode
         return true;
     }
 
@@ -120,13 +112,7 @@ bool UILayer::onKeyPress(int key, Core& core)
     if (key == GLFW_KEY_ESCAPE)
     {
         if (input.getDrawTool() == DrawTool::Edit)
-        {
-            if (editState.isActive())
-                RegionSerializer::save(core.getRegionTree(), "regions.json");
-            editState.clear();
-            input.cancelEdit();
-            input.setDrawTool(DrawTool::Navigate);
-        }
+            exitEditMode(core, true);
         else if (input.isDrawingPolygon())
             input.cancelPolygon();
         else if (input.isDrawingRect())
@@ -138,6 +124,24 @@ bool UILayer::onKeyPress(int key, Core& core)
 
         if (input.getDrawTool() != DrawTool::Edit)
             input.setDrawTool(DrawTool::Navigate);
+        return true;
+    }
+
+    // --- Delete ---
+    if (key == GLFW_KEY_DELETE)
+    {
+        if (input.getDrawTool() == DrawTool::Edit)
+        {
+            if (editState.handleType == EditHandleType::PolyPoint)
+                core.deleteEditPoint();
+        }
+        else if (r)
+        {
+            RegionId id = r->id;
+            selection.clear();
+            core.getRegionTree().removeRegion(id);
+            RegionSerializer::save(core.getRegionTree(), "regions.json");
+        }
         return true;
     }
 
@@ -155,6 +159,8 @@ void UILayer::renderPopup(Core& core)
 
     Region& region = *selection.selectedRegion;
     const Camera& camera = core.getCamera();
+    bool isEditMode = core.getInput().getDrawTool() == DrawTool::Edit;
+    bool isEditTarget = isEditMode && core.getEditState().target == &region;
 
     float viewW    = static_cast<float>(camera.viewportSize.x);
     float viewH    = static_cast<float>(camera.viewportSize.y);
@@ -183,12 +189,14 @@ void UILayer::renderPopup(Core& core)
 
     if (!open)
     {
+        if (isEditMode) exitEditMode(core, true);
         selection.clear();
         ImGui::End();
         ImGui::PopStyleColor(3);
         return;
     }
 
+    // Back button
     if (selection.canGoBack())
     {
         if (ImGui::Button(("< " + selection.viewStack.back()->name).c_str()))
@@ -259,7 +267,6 @@ void UILayer::renderPopup(Core& core)
 #else
     struct WrapState { int maxCharsPerLine; };
     static WrapState wrapState{ 33 };
-
     auto wrapCallback = [](ImGuiInputTextCallbackData* data) -> int
     {
         if (data->EventFlag != ImGuiInputTextFlags_CallbackEdit) return 0;
@@ -276,7 +283,6 @@ void UILayer::renderPopup(Core& core)
         data->BufDirty = true;
         return 0;
     };
-
     ImGui::SetNextItemWidth(-1);
     if (ImGui::InputTextMultiline("##note", noteBuf, sizeof(noteBuf),
         ImVec2(-1, noteH), ImGuiInputTextFlags_CallbackEdit,
@@ -317,6 +323,24 @@ void UILayer::renderPopup(Core& core)
         ImGui::EndPopup();
     }
 
+    ImGui::Spacing();
+
+    // ---- Edit region button ----
+    if (isEditTarget)
+    {
+        // Currently editing this region — show active state + exit button
+        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.25f, 0.45f, 0.85f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.30f, 0.55f, 1.00f, 1.0f));
+        if (ImGui::Button("Stop editing  [E]", ImVec2(-1, 0)))
+            exitEditMode(core, true);
+        ImGui::PopStyleColor(2);
+    }
+    else
+    {
+        if (ImGui::Button("Edit region  [E]", ImVec2(-1, 0)))
+            enterEditMode(core);
+    }
+
     // Sub-regions
     int numChildren = static_cast<int>(region.children.size());
     if (numChildren > 0)
@@ -344,6 +368,7 @@ void UILayer::renderPopup(Core& core)
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.65f, 0.15f, 0.15f, 0.8f));
     if (ImGui::Button("Delete region", ImVec2(-1, 0)))
     {
+        if (isEditMode) exitEditMode(core, false);
         RegionId id = region.id;
         selection.clear();
         core.getRegionTree().removeRegion(id);
@@ -499,7 +524,7 @@ void UILayer::renderRegionTree(Core& core)
 }
 
 // ============================================================
-// Private — right sidebar
+// Private — right sidebar (region tool only, no edit button)
 // ============================================================
 
 void UILayer::renderSidebar(Core& core)
@@ -530,16 +555,14 @@ void UILayer::renderSidebar(Core& core)
 
     ImDrawList* draw = ImGui::GetWindowDrawList();
 
-    bool isDrawing  = input.isDrawingRect() || input.isDrawingPolygon();
-    bool isEditMode = input.getDrawTool() == DrawTool::Edit;
+    bool isDrawing    = input.isDrawingRect() || input.isDrawingPolygon();
+    bool regionActive = input.getDrawTool() == DrawTool::Rectangle ||
+                        input.getDrawTool() == DrawTool::Polygon;
 
-    // ---- Region tool button ----
-    bool regionActive = !isEditMode && (input.getDrawTool() == DrawTool::Rectangle ||
-                                        input.getDrawTool() == DrawTool::Polygon);
-    if (isDrawing || regionActive)
-        ImGui::PushStyleColor(ImGuiCol_Button,
-            isDrawing ? ImVec4(0.25f, 0.45f, 0.85f, 1.0f)
-                      : ImVec4(0.20f, 0.35f, 0.65f, 1.0f));
+    if (isDrawing)
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.45f, 0.85f, 1.0f));
+    else if (regionActive)
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.35f, 0.65f, 1.0f));
 
     if (ImGui::Button("##region", ImVec2(36, 36)))
         ImGui::OpenPopup("RegionToolPopup");
@@ -563,64 +586,7 @@ void UILayer::renderSidebar(Core& core)
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Region [R/P]");
 
-    // ---- Edit tool button ----
-    if (isEditMode)
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.45f, 0.85f, 1.0f));
-
-    if (ImGui::Button("##edit", ImVec2(36, 36)))
-    {
-        if (isEditMode)
-        {
-            auto& editState = core.getEditState();
-            if (editState.isActive())
-                RegionSerializer::save(core.getRegionTree(), "regions.json");
-            editState.clear();
-            input.cancelEdit();
-            input.setDrawTool(DrawTool::Navigate);
-        }
-        else
-        {
-            input.cancelPolygon();
-            input.cancelRect();
-            input.setDrawTool(DrawTool::Edit);
-        }
-    }
-
-    if (isEditMode) ImGui::PopStyleColor();
-
-    {
-        ImVec2 btnMin = ImGui::GetItemRectMin();
-        ImVec2 btnMax = ImGui::GetItemRectMax();
-        ImVec2 center = ImVec2((btnMin.x + btnMax.x) * 0.5f,
-                               (btnMin.y + btnMax.y) * 0.5f);
-        ImU32 iconCol = isEditMode
-            ? IM_COL32(120, 180, 255, 255)
-            : IM_COL32(180, 180, 200, 255);
-
-        draw->AddLine(
-            ImVec2(center.x - 7, center.y + 7),
-            ImVec2(center.x + 7, center.y - 7),
-            iconCol, 2.0f
-        );
-        draw->AddTriangleFilled(
-            ImVec2(center.x - 10, center.y + 8),
-            ImVec2(center.x - 7,  center.y + 11),
-            ImVec2(center.x - 4,  center.y + 8),
-            iconCol
-        );
-        draw->AddLine(
-            ImVec2(center.x + 6,  center.y - 8),
-            ImVec2(center.x + 9,  center.y - 5),
-            iconCol, 2.0f
-        );
-    }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Edit [E]");
-
-    // ---- Region tool popup ----
-    ImGui::SetNextWindowPos(
-        ImVec2(viewW - sidebarW - 130.0f, 8.0f),
-        ImGuiCond_Always
-    );
+    ImGui::SetNextWindowPos(ImVec2(viewW - sidebarW - 130.0f, 8.0f), ImGuiCond_Always);
     if (ImGui::BeginPopup("RegionToolPopup"))
     {
         ImGui::TextDisabled("Draw region");
