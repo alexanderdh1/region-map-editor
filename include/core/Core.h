@@ -8,6 +8,36 @@
 
 struct GLFWwindow;
 
+enum class EditHandleType
+{
+    None,
+    RectCorner,  // index 0-3: TL, TR, BR, BL
+    PolyPoint,   // index = point index in geometry.points
+};
+
+struct EditState
+{
+    Region*        target      = nullptr;
+    EditHandleType handleType  = EditHandleType::None;
+    int            handleIndex = -1;
+
+    bool isActive()   const { return target != nullptr; }
+    bool isDragging() const { return handleType != EditHandleType::None; }
+
+    void clear()
+    {
+        target      = nullptr;
+        handleType  = EditHandleType::None;
+        handleIndex = -1;
+    }
+
+    void clearDrag()
+    {
+        handleType  = EditHandleType::None;
+        handleIndex = -1;
+    }
+};
+
 class Core {
 public:
     Core();
@@ -38,8 +68,13 @@ public:
     SelectionState& getSelection()             { return selection; }
     const SelectionState& getSelection() const { return selection; }
 
-    // Sub-region: set a pending parent before drawing begins.
-    // The next completed region will be added as a child of this parent.
+    EditState& getEditState()             { return editState; }
+    const EditState& getEditState() const { return editState; }
+
+    // Deletes the currently selected polygon point in edit mode.
+    // Connects the two neighbouring points. No-op if < 4 points or no handle selected.
+    void deleteEditPoint();
+
     void setPendingParent(RegionId id) { pendingParentId = id; hasPendingParent = true; }
     void clearPendingParent()          { hasPendingParent = false; }
     bool isPendingParentSet() const    { return hasPendingParent; }
@@ -49,6 +84,7 @@ private:
     Input          input;
     RegionTree     regionTree;
     SelectionState selection;
+    EditState      editState;
 
     bool     hasPendingParent = false;
     RegionId pendingParentId  = 0;
@@ -60,4 +96,14 @@ private:
     int worldMinBlockZ = 0;
     int worldMaxBlockX = 0;
     int worldMaxBlockZ = 0;
+
+    void updateEditMode(GLFWwindow* window);
+
+    void regionBoundingBox(const Region& region,
+                           double& minX, double& minY,
+                           double& maxX, double& maxY) const;
+
+    bool childrenBoundingBox(const Region& region,
+                             double& minX, double& minY,
+                             double& maxX, double& maxY) const;
 };

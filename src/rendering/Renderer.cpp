@@ -5,16 +5,19 @@ void Renderer::render(const Core& core)
 {
     const Camera& camera = core.getCamera();
 
-    // 1. Map tiles (background)
+    // 1. Map tiles
     tileLayer.render(camera);
 
-    // 2. Regions (on top of map, world-space aligned)
+    // 2. Regions
     regionRenderer.render(core.getRegionTree(), camera);
 
-    // 3. Live drawing preview (world-space aligned)
+    // 3. Edit handles (drawn on top of regions, below UI)
+    regionRenderer.renderEditHandles(core);
+
+    // 4. Live drawing preview
     regionRenderer.renderPreview(core.getInput(), camera);
 
-    // 4. Debug grid (optional)
+    // 5. Debug grid
     if (showGrid)
         gridRenderer.render(camera);
 }

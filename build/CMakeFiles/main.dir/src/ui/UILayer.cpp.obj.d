@@ -222,11 +222,4 @@ CMakeFiles/main.dir/src/ui/UILayer.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/tr1/modified_bessel_func.tcc \
  C:/msys64/mingw64/include/c++/15.2.0/tr1/poly_hermite.tcc \
  C:/msys64/mingw64/include/c++/15.2.0/tr1/poly_laguerre.tcc \
- C:/msys64/mingw64/include/c++/15.2.0/tr1/riemann_zeta.tcc \
- C:/msys64/mingw64/include/c++/15.2.0/algorithm \
- C:/msys64/mingw64/include/c++/15.2.0/bits/stl_algo.h \
- C:/msys64/mingw64/include/c++/15.2.0/bits/algorithmfwd.h \
- C:/msys64/mingw64/include/c++/15.2.0/bits/stl_heap.h \
- C:/msys64/mingw64/include/c++/15.2.0/bits/uniform_int_dist.h \
- C:/msys64/mingw64/include/c++/15.2.0/bits/ranges_algo.h \
- C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_algorithm_defs.h
+ C:/msys64/mingw64/include/c++/15.2.0/tr1/riemann_zeta.tcc

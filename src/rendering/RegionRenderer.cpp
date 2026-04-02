@@ -2,6 +2,7 @@
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
+#include <cmath>
 
 void RegionRenderer::render(const RegionTree& tree, const Camera& camera) const
 {
@@ -20,12 +21,114 @@ void RegionRenderer::renderPreview(const Input& input, const Camera& camera) con
         renderPolygonPreview(input, camera);
 }
 
-// ---- Private ----
+// ---------------------------------------------------------------
+// Edit handles
+// ---------------------------------------------------------------
+
+void RegionRenderer::renderEditHandles(const Core& core) const
+{
+    const EditState& edit   = core.getEditState();
+    const Camera&    camera = core.getCamera();
+
+    if (!edit.isActive()) return;
+
+    const Region& region = *edit.target;
+
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Highlight outline of the edit target
+    auto pts = region.geometry.getPoints();
+    glColor4f(1.0f, 1.0f, 1.0f, 0.6f);
+    glLineWidth(1.5f);
+    glBegin(GL_LINE_LOOP);
+    for (const Vec2& p : pts)
+    {
+        Vec2 s = camera.worldToScreen(p);
+        glVertex2d(s.x, s.y);
+    }
+    glEnd();
+    glLineWidth(1.0f);
+
+    if (region.geometry.type == GeometryType::Rectangle)
+    {
+        Vec2 corners[4] = {
+            camera.worldToScreen({ region.geometry.rectMin.x, region.geometry.rectMax.y }),
+            camera.worldToScreen({ region.geometry.rectMax.x, region.geometry.rectMax.y }),
+            camera.worldToScreen({ region.geometry.rectMax.x, region.geometry.rectMin.y }),
+            camera.worldToScreen({ region.geometry.rectMin.x, region.geometry.rectMin.y }),
+        };
+        for (int i = 0; i < 4; i++)
+        {
+            bool active = (edit.handleType == EditHandleType::RectCorner &&
+                           edit.handleIndex == i);
+            drawHandle(corners[i], active ? 1.0f : 1.0f,
+                                   active ? 0.85f : 1.0f,
+                                   active ? 0.2f : 1.0f,
+                                   active ? 7.0f : 6.0f);
+        }
+    }
+    else if (region.geometry.type == GeometryType::Polygon)
+    {
+        const auto& polyPts = region.geometry.points;
+        for (int i = 0; i < static_cast<int>(polyPts.size()); i++)
+        {
+            Vec2 s = camera.worldToScreen(polyPts[i]);
+            bool active = (edit.handleType == EditHandleType::PolyPoint &&
+                           edit.handleIndex == i);
+            drawHandle(s, active ? 1.0f : 1.0f,
+                          active ? 0.85f : 1.0f,
+                          active ? 0.2f : 1.0f,
+                          active ? 7.0f : 6.0f);
+        }
+    }
+}
+
+void RegionRenderer::drawHandle(const Vec2& screenPos,
+                                float r, float g, float b,
+                                float radius) const
+{
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_STENCIL_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    static constexpr int    SEG     = 16;
+    static constexpr double TWO_PI  = 6.28318530718;
+
+    // Dark outline ring
+    glColor4f(0.0f, 0.0f, 0.0f, 0.7f);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2d(screenPos.x, screenPos.y);
+    for (int i = 0; i <= SEG; i++)
+    {
+        double angle = TWO_PI * i / SEG;
+        glVertex2d(screenPos.x + std::cos(angle) * (radius + 1.5),
+                   screenPos.y + std::sin(angle) * (radius + 1.5));
+    }
+    glEnd();
+
+    // Coloured fill
+    glColor4f(r, g, b, 1.0f);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2d(screenPos.x, screenPos.y);
+    for (int i = 0; i <= SEG; i++)
+    {
+        double angle = TWO_PI * i / SEG;
+        glVertex2d(screenPos.x + std::cos(angle) * radius,
+                   screenPos.y + std::sin(angle) * radius);
+    }
+    glEnd();
+}
+
+// ---------------------------------------------------------------
+// Region rendering
+// ---------------------------------------------------------------
 
 void RegionRenderer::renderRegion(const Region& region, const Camera& camera) const
 {
-    if (!region.geometry.isValid())
-        return;
+    if (!region.geometry.isValid()) return;
 
     std::vector<Vec2> pts = region.geometry.getPoints();
 
@@ -54,20 +157,16 @@ void RegionRenderer::renderRectPreview(
     const Input& input, const Camera& camera) const
 {
     Vec2 worldA = input.getDrawStartWorld();
-
-    Vec2 cur = input.getDrawCurrent();
+    Vec2 cur    = input.getDrawCurrent();
     cur.x = std::max(0.0, std::min(cur.x, camera.viewportSize.x));
     cur.y = std::max(0.0, std::min(cur.y, camera.viewportSize.y));
     Vec2 worldB = camera.screenToWorld(cur);
 
-    double minX = std::min(worldA.x, worldB.x);
-    double maxX = std::max(worldA.x, worldB.x);
-    double minY = std::min(worldA.y, worldB.y);
-    double maxY = std::max(worldA.y, worldB.y);
-
     std::vector<Vec2> corners = {
-        { minX, minY }, { maxX, minY },
-        { maxX, maxY }, { minX, maxY }
+        { std::min(worldA.x, worldB.x), std::min(worldA.y, worldB.y) },
+        { std::max(worldA.x, worldB.x), std::min(worldA.y, worldB.y) },
+        { std::max(worldA.x, worldB.x), std::max(worldA.y, worldB.y) },
+        { std::min(worldA.x, worldB.x), std::max(worldA.y, worldB.y) },
     };
 
     drawFilledPolygon(camera, corners, 1.0f, 1.0f, 1.0f, 0.15f);
@@ -96,13 +195,12 @@ void RegionRenderer::renderPolygonPreview(
         glLineWidth(1.0f);
     }
 
-    Vec2 cursor       = camera.screenToWorld(input.getPolygonCursor());
     Vec2 lastScreen   = camera.worldToScreen(worldPts.back());
-    Vec2 cursorScreen = camera.worldToScreen(cursor);
+    Vec2 cursorScreen = input.getPolygonCursor();
 
     glColor4f(1.0f, 1.0f, 1.0f, 0.35f);
     glBegin(GL_LINES);
-    glVertex2d(lastScreen.x,   lastScreen.y);
+    glVertex2d(lastScreen.x,  lastScreen.y);
     glVertex2d(cursorScreen.x, cursorScreen.y);
     glEnd();
 
@@ -129,6 +227,18 @@ void RegionRenderer::renderPolygonPreview(
     }
 }
 
+// ---------------------------------------------------------------
+// Filled polygon — nonzero winding rule, no GL_CULL_FACE
+//
+// Instead of relying on face orientation (which is unpredictable in
+// 2D ortho), we draw the TRIANGLE_FAN twice:
+//   Pass A: forward vertex order  → GL_INCR  (contributes +1 winding)
+//   Pass B: reversed vertex order → GL_DECR  (contributes -1 winding)
+//
+// Pixels where the two passes don't cancel (stencil != 0) are inside
+// by the nonzero winding rule — including the interior of star shapes.
+// ---------------------------------------------------------------
+
 void RegionRenderer::drawFilledPolygon(
     const Camera& camera,
     const std::vector<Vec2>& worldPoints,
@@ -137,26 +247,10 @@ void RegionRenderer::drawFilledPolygon(
     if (worldPoints.size() < 3) return;
 
     glDisable(GL_TEXTURE_2D);
+    glDisable(GL_CULL_FACE);
     glEnable(GL_STENCIL_TEST);
 
-    // ---------------------------------------------------------------
-    // Nonzero winding rule using legacy OpenGL (no glStencilOpSeparate).
-    //
-    // We draw the polygon twice into the stencil buffer:
-    //   Pass A — front-facing (CCW) triangles increment the stencil value.
-    //   Pass B — back-facing  (CW)  triangles decrement the stencil value.
-    //
-    // Any pixel where the two passes don't cancel out (stencil != 0)
-    // is considered "inside" by the nonzero winding rule. This correctly
-    // fills concave and self-crossing polygons such as stars.
-    // ---------------------------------------------------------------
-
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    glStencilMask(0xFF);
-    glClear(GL_STENCIL_BUFFER_BIT);
-    glStencilFunc(GL_ALWAYS, 0, 0xFF);
-
-    // Pre-convert points to screen space once
+    // Pre-convert to screen space once
     std::vector<Vec2> screen;
     screen.reserve(worldPoints.size());
     for (const Vec2& wp : worldPoints)
@@ -164,11 +258,13 @@ void RegionRenderer::drawFilledPolygon(
 
     Vec2 origin = screen[0];
 
-    // Pass A: increment for CCW (front-facing) — GL default front face is CCW
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);       // draw only front-facing (CCW) triangles
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glStencilMask(0xFF);
+    glClear(GL_STENCIL_BUFFER_BIT);
+    glStencilFunc(GL_ALWAYS, 0, 0xFF);
+
+    // Pass A: forward order → increment
     glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
-
     glBegin(GL_TRIANGLE_FAN);
     glVertex2d(origin.x, origin.y);
     for (size_t i = 1; i < screen.size(); i++)
@@ -176,20 +272,16 @@ void RegionRenderer::drawFilledPolygon(
     glVertex2d(origin.x, origin.y);
     glEnd();
 
-    // Pass B: decrement for CW (back-facing) triangles
-    glCullFace(GL_FRONT);      // draw only back-facing (CW) triangles
+    // Pass B: reversed order → decrement
     glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
-
     glBegin(GL_TRIANGLE_FAN);
     glVertex2d(origin.x, origin.y);
-    for (size_t i = 1; i < screen.size(); i++)
+    for (int i = static_cast<int>(screen.size()) - 1; i >= 1; i--)
         glVertex2d(screen[i].x, screen[i].y);
     glVertex2d(origin.x, origin.y);
     glEnd();
 
-    glDisable(GL_CULL_FACE);
-
-    // Pass C: colour pixels where stencil != 0, then reset stencil to 0
+    // Pass C: colour pixels where stencil != 0, reset stencil to 0
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
     glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
@@ -215,6 +307,7 @@ void RegionRenderer::drawOutline(
     bool closed) const
 {
     glDisable(GL_TEXTURE_2D);
+    glDisable(GL_STENCIL_TEST);
     glLineWidth(1.5f);
     glColor4f(r, g, b, a);
     glBegin(closed ? GL_LINE_LOOP : GL_LINE_STRIP);

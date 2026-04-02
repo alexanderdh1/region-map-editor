@@ -4,17 +4,31 @@
 
 static constexpr double DOUBLE_CLICK_SECONDS = 0.35;
 static constexpr double DOUBLE_CLICK_RADIUS  = 10.0;
+static constexpr double EDIT_DRAG_THRESHOLD  = 3.0; // pixels before drag registers
 
 void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
 {
     if (pressed)
     {
+        // ---- EDIT MODE ----
+        if (activeTool == DrawTool::Edit)
+        {
+            mode              = InputMode::Edit;
+            editDragging      = false;
+            editDidDrag       = false;
+            editDragStartPos  = mousePos;
+            editLastMousePos  = mousePos;
+            editDragDelta     = { 0.0, 0.0 };
+            // Drag start is confirmed lazily once threshold is exceeded (in onMouseMove)
+            return;
+        }
+
         // ---- POLYGON MODE ----
         if (shiftHeld && activeTool == DrawTool::Polygon)
         {
             mode = InputMode::DrawPolygon;
 
-            double now = glfwGetTime();
+            double now  = glfwGetTime();
             double dist = std::hypot(
                 mousePos.x - lastClickPos.x,
                 mousePos.y - lastClickPos.y
@@ -65,6 +79,25 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
     }
     else // released
     {
+        // Edit mode release
+        if (activeTool == DrawTool::Edit)
+        {
+            if (editDragging)
+            {
+                editDragging      = false;
+                editDragEndPending = true;
+            }
+            else if (!editDidDrag)
+            {
+                // No drag occurred — treat as a plain click (target select / edge insert)
+                editClickPending = true;
+                editClickPos     = mousePos;
+            }
+            editDidDrag = false;
+            mode = InputMode::Navigate;
+            return;
+        }
+
         if (mode == InputMode::DrawRect && drawing)
         {
             drawing       = false;
@@ -74,9 +107,9 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
         }
 
         if (mode == InputMode::DrawPolygon)
-            return; // polygon points are placed on press, not release
+            return;
 
-        // Navigate release — register click if no drag occurred
+        // Navigate release
         if (!didDrag)
             clickPending = true;
 
@@ -88,8 +121,40 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
 
 void Input::onMouseMove(const Vec2& mousePos)
 {
-    // Update cursor for both rect and polygon preview
     drawCurrent = mousePos;
+
+    // Edit mode drag accumulation
+    if (activeTool == DrawTool::Edit)
+    {
+        Vec2 delta {
+            mousePos.x - editLastMousePos.x,
+            mousePos.y - editLastMousePos.y
+        };
+
+        // Check if we've exceeded the drag threshold
+        if (!editDragging)
+        {
+            double totalDist = std::hypot(
+                mousePos.x - editDragStartPos.x,
+                mousePos.y - editDragStartPos.y
+            );
+            if (totalDist >= EDIT_DRAG_THRESHOLD)
+            {
+                editDragging         = true;
+                editDidDrag          = true;
+                editDragStartPending = true;
+            }
+        }
+
+        if (editDragging)
+        {
+            editDragDelta.x += delta.x;
+            editDragDelta.y += delta.y;
+        }
+
+        editLastMousePos = mousePos;
+        return;
+    }
 
     if (mode == InputMode::DrawPolygon || mode == InputMode::DrawRect)
         return;
@@ -137,7 +202,7 @@ double Input::consumeZoomDelta()
     return result;
 }
 
-// --- Rectangle ---
+// --- Rectangle drawing ---
 
 bool Input::isDrawingRect() const { return drawing; }
 
@@ -152,7 +217,7 @@ void Input::cancelRect()
     mode          = InputMode::Navigate;
 }
 
-// --- Polygon ---
+// --- Polygon drawing ---
 
 bool Input::hasCompletedPolygon() const { return polyCompleted; }
 
@@ -172,12 +237,25 @@ void Input::cancelPolygon()
 
 void Input::closePolygon()
 {
-    completedPoly  = polyWorldPoints;
+    completedPoly = polyWorldPoints;
     polyWorldPoints.clear();
     pendingPolyPoint = false;
-    polyDrawing    = false;
-    polyCompleted  = true;
-    mode           = InputMode::Navigate;
+    polyDrawing      = false;
+    polyCompleted    = true;
+    mode             = InputMode::Navigate;
+}
+
+// --- Edit mode ---
+
+void Input::cancelEdit()
+{
+    editDragging         = false;
+    editDragStartPending = false;
+    editDragEndPending   = false;
+    editDidDrag          = false;
+    editClickPending     = false;
+    editDragDelta        = { 0.0, 0.0 };
+    mode                 = InputMode::Navigate;
 }
 
 // --- Click ---
@@ -198,4 +276,3 @@ void Input::onMouseButtonRight(bool pressed, const Vec2& mousePos)
         rightClickPos     = mousePos;
     }
 }
-
