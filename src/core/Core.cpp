@@ -2,10 +2,15 @@
 #include "input/Input.h"
 #include "math/Vec2.h"
 #include "data/Region.h"
+#include "data/RegionSerializer.h"
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <memory>
 #include <cmath>
+
+// Minimum side length in world-units for a new region.
+// Prevents unclickable 1-pixel-wide regions from being created.
+static constexpr double MIN_REGION_SIZE = 4.0;
 
 Core::Core() = default;
 
@@ -44,7 +49,7 @@ void Core::update(GLFWwindow* window)
     // Enforce zoom limits and keep camera within world bounds
     camera.clampToBounds(worldWidth, worldHeight);
 
-    // Helper to add region — respects pending parent
+    // Helper to add region — respects pending parent, then auto-saves
     auto addRegion = [&](std::unique_ptr<Region> region)
     {
         if (hasPendingParent)
@@ -56,6 +61,7 @@ void Core::update(GLFWwindow* window)
         {
             regionTree.addRegion(std::move(region));
         }
+        RegionSerializer::save(regionTree, "regions.json");
     };
 
     // Helper: check if a world point is inside the pending parent region
@@ -121,7 +127,12 @@ void Core::update(GLFWwindow* window)
         geom.rectMax = { std::max(worldA.x, worldB.x),
                          std::max(worldA.y, worldB.y) };
 
-        if (geom.isValid())
+        // Enforce minimum size — reject regions too small to click
+        bool tooSmall =
+            (geom.rectMax.x - geom.rectMin.x) < MIN_REGION_SIZE ||
+            (geom.rectMax.y - geom.rectMin.y) < MIN_REGION_SIZE;
+
+        if (geom.isValid() && !tooSmall)
         {
             auto region      = std::make_unique<Region>();
             region->id       = regionTree.nextId();
@@ -167,7 +178,7 @@ void Core::update(GLFWwindow* window)
         }
     }
 
-    // POLYGON DRAWING — finalise when double-click or first-point click detected
+    // POLYGON — finalise when double-click or first-point click detected
     if (input.hasCompletedPolygon())
     {
         std::vector<Vec2> worldPoints = input.consumeCompletedPolygon();
@@ -176,12 +187,29 @@ void Core::update(GLFWwindow* window)
         geom.type   = GeometryType::Polygon;
         geom.points = worldPoints;
 
+        // Enforce minimum bounding box size for polygons
         if (geom.isValid())
         {
-            auto region      = std::make_unique<Region>();
-            region->id       = regionTree.nextId();
-            region->geometry = geom;
-            addRegion(std::move(region));
+            const auto& pts = geom.points;
+            double minX = pts[0].x, maxX = pts[0].x;
+            double minY = pts[0].y, maxY = pts[0].y;
+            for (const auto& p : pts)
+            {
+                minX = std::min(minX, p.x); maxX = std::max(maxX, p.x);
+                minY = std::min(minY, p.y); maxY = std::max(maxY, p.y);
+            }
+
+            bool tooSmall =
+                (maxX - minX) < MIN_REGION_SIZE &&
+                (maxY - minY) < MIN_REGION_SIZE;
+
+            if (!tooSmall)
+            {
+                auto region      = std::make_unique<Region>();
+                region->id       = regionTree.nextId();
+                region->geometry = geom;
+                addRegion(std::move(region));
+            }
         }
     }
 
@@ -219,7 +247,6 @@ void Core::update(GLFWwindow* window)
     }
 
     // RIGHT-CLICK — hit-test for context menu (handled by UILayer)
-    // We just store the hit region in selection as contextRegion
     if (input.hasRightClick())
     {
         Vec2 screenPos = input.consumeRightClick();
@@ -256,16 +283,13 @@ const Input& Core::getInput() const {
 
 void Core::setWorldSize(double width, double height)
 {
-    worldWidth = width;
+    worldWidth  = width;
     worldHeight = height;
-
-
 
     double minZoomX = camera.viewportSize.x / worldWidth;
     double minZoomY = camera.viewportSize.y / worldHeight;
 
     camera.minZoom = std::max(minZoomX, minZoomY);
-    
 }
 
 void Core::setWorldBlockBounds(

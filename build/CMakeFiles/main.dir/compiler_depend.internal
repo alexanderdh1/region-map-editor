@@ -1355,6 +1355,7 @@ CMakeFiles/main.dir/src/core/Core.cpp.obj
  C:/Users/alexa/Documents/spatial-map-editor/include/data/Marker.h
  C:/Users/alexa/Documents/spatial-map-editor/include/data/Region.h
  C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionGeometry.h
+ C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionSerializer.h
  C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionStatus.h
  C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionTree.h
  C:/Users/alexa/Documents/spatial-map-editor/include/input/Input.h

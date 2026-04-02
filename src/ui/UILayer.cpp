@@ -10,6 +10,7 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include <cmath>
+#include <algorithm>
 
 // ============================================================
 // UILayer
@@ -31,7 +32,6 @@ void UILayer::onCharInput(unsigned int /*codepoint*/, Core& /*core*/)
 bool UILayer::onMouseClick(const Vec2& /*screenPos*/, Core& /*core*/)
 {
     // ImGui handles all UI clicks via WantCaptureMouse in WindowCallbacks.
-    // This function is kept for any future non-ImGui click handling.
     return false;
 }
 
@@ -88,12 +88,13 @@ bool UILayer::onKeyPress(int key, Core& core)
         return true;
     }
 
-    // --- Delete region shortcut ---
+    // --- Delete region shortcut — auto-saves after removal ---
     if (key == GLFW_KEY_DELETE && r)
     {
         RegionId id = r->id;
         selection.clear();
         core.getRegionTree().removeRegion(id);
+        RegionSerializer::save(core.getRegionTree(), "regions.json");
         return true;
     }
 
@@ -112,9 +113,9 @@ void UILayer::renderPopup(Core& core)
     Region& region = *selection.selectedRegion;
     const Camera& camera = core.getCamera();
 
-    float viewW     = static_cast<float>(camera.viewportSize.x);
-    float viewH     = static_cast<float>(camera.viewportSize.y);
-    float sidebarW  = 44.0f;
+    float viewW    = static_cast<float>(camera.viewportSize.x);
+    float viewH    = static_cast<float>(camera.viewportSize.y);
+    float sidebarW = 44.0f;
 
     float maxPopupH = viewH - 16.0f;
     ImGui::SetNextWindowPos(ImVec2(viewW - sidebarW - 280.0f, 8.0f), ImGuiCond_Always);
@@ -130,10 +131,9 @@ void UILayer::renderPopup(Core& core)
         ImGuiWindowFlags_NoBringToFrontOnFocus |
         ImGuiWindowFlags_AlwaysVerticalScrollbar;
 
-    // Coloured top border via header colour
-    ImGui::PushStyleColor(ImGuiCol_TitleBg,       ImVec4(region.colorR, region.colorG, region.colorB, 0.85f));
-    ImGui::PushStyleColor(ImGuiCol_TitleBgActive,  ImVec4(region.colorR, region.colorG, region.colorB, 0.85f));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg,       ImVec4(0.10f, 0.10f, 0.13f, 0.92f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBg,      ImVec4(region.colorR, region.colorG, region.colorB, 0.85f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(region.colorR, region.colorG, region.colorB, 0.85f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg,      ImVec4(0.10f, 0.10f, 0.13f, 0.92f));
 
     bool open = true;
     ImGui::Begin("Region", &open, flags);
@@ -154,7 +154,7 @@ void UILayer::renderPopup(Core& core)
         ImGui::Separator();
     }
 
-    // Name field — single line, capped width
+    // Name field
     ImGui::Text("Name");
     static char nameBuf[256];
     if (!nameFieldActive_)
@@ -188,7 +188,8 @@ void UILayer::renderPopup(Core& core)
 
     ImGui::Spacing();
 
-    // Note field — auto word wrap via callback
+    // ---- Note field ----
+    // Height grows with content and clamps to available space.
     ImGui::Text("Note");
     static char noteBuf[2048];
     if (!noteFieldActive_)
@@ -197,7 +198,6 @@ void UILayer::renderPopup(Core& core)
         noteBuf[sizeof(noteBuf) - 1] = '\0';
     }
 
-    // Calculate height based on line count
     int lineCount = 1;
     for (const char* c = noteBuf; *c; c++)
         if (*c == '\n') lineCount++;
@@ -205,43 +205,56 @@ void UILayer::renderPopup(Core& core)
     float minH    = lineH * 3.0f;
     float wantedH = lineH * (lineCount + 1);
     float maxH    = std::max(minH, ImGui::GetContentRegionAvail().y - 80.0f);
-    float noteH   = std::min(wantedH, maxH);
-    noteH         = std::max(noteH, minH);
+    float noteH   = std::clamp(wantedH, minH, maxH);
 
-    // Callback to auto-insert newline when line gets too long
+#ifdef ImGuiInputTextFlags_WordWrap
+    // Modern ImGui (1.90+): use the native word-wrap flag
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::InputTextMultiline("##note", noteBuf, sizeof(noteBuf),
+        ImVec2(-1, noteH), ImGuiInputTextFlags_WordWrap))
+    {
+        region.note      = noteBuf;
+        noteFieldActive_ = true;
+    }
+#else
+    // Fallback for older ImGui: manual word-wrap via edit callback.
+    // Inserts a newline at the last word boundary once the current line
+    // reaches maxCharsPerLine. Only fires on new input, not on load.
     struct WrapState { int maxCharsPerLine; };
-    static WrapState wrapState{ 30 }; // ~30 chars at 16px JetBrains Mono in 270px panel
+    static WrapState wrapState{ 33 }; // ~33 chars fits 270px at 16px JetBrains Mono
 
     auto wrapCallback = [](ImGuiInputTextCallbackData* data) -> int
     {
-        if (data->EventFlag == ImGuiInputTextFlags_CallbackEdit)
-        {
-            WrapState* ws = static_cast<WrapState*>(data->UserData);
-            // Find last newline before cursor
-            int lineStart = 0;
-            for (int i = 0; i < data->CursorPos; i++)
-                if (data->Buf[i] == '\n') lineStart = i + 1;
+        if (data->EventFlag != ImGuiInputTextFlags_CallbackEdit)
+            return 0;
 
-            int lineLen = data->CursorPos - lineStart;
-            if (lineLen >= ws->maxCharsPerLine)
+        WrapState* ws = static_cast<WrapState*>(data->UserData);
+
+        // Find the start of the line the cursor is on
+        int lineStart = 0;
+        for (int i = 0; i < data->CursorPos; i++)
+            if (data->Buf[i] == '\n') lineStart = i + 1;
+
+        if (data->CursorPos - lineStart < ws->maxCharsPerLine)
+            return 0;
+
+        // Prefer breaking at the last space on this line
+        int breakAt = -1;
+        for (int i = data->CursorPos - 1; i >= lineStart; i--)
+        {
+            if (data->Buf[i] == ' ')
             {
-                // Find last space to break at word boundary
-                int breakAt = -1;
-                for (int i = data->CursorPos - 1; i >= lineStart; i--)
-                {
-                    if (data->Buf[i] == ' ')
-                    {
-                        breakAt = i;
-                        break;
-                    }
-                }
-                if (breakAt >= 0)
-                    data->Buf[breakAt] = '\n';
-                else
-                    data->InsertChars(data->CursorPos, "\n");
-                data->BufDirty = true;
+                breakAt = i;
+                break;
             }
         }
+
+        if (breakAt >= 0)
+            data->Buf[breakAt] = '\n';   // replace space with newline
+        else
+            data->InsertChars(data->CursorPos, "\n"); // hard break
+
+        data->BufDirty = true;
         return 0;
     };
 
@@ -251,9 +264,10 @@ void UILayer::renderPopup(Core& core)
         ImGuiInputTextFlags_CallbackEdit,
         wrapCallback, &wrapState))
     {
-        region.note = noteBuf;
+        region.note      = noteBuf;
         noteFieldActive_ = true;
     }
+#endif
     if (!ImGui::IsItemActive()) noteFieldActive_ = false;
 
     ImGui::Spacing();
@@ -287,6 +301,8 @@ void UILayer::renderPopup(Core& core)
     }
 
     // Sub-regions
+    // PushID(i) per child prevents ImGui ID collisions when multiple
+    // children share the same name — this was the source of hover warnings.
     int numChildren = static_cast<int>(region.children.size());
     if (numChildren > 0)
     {
@@ -295,6 +311,7 @@ void UILayer::renderPopup(Core& core)
         for (int i = 0; i < numChildren; i++)
         {
             Region* child = region.children[i].get();
+            ImGui::PushID(i);
             ImGui::PushStyleColor(ImGuiCol_Button,
                 ImVec4(child->colorR, child->colorG, child->colorB, 0.35f));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
@@ -302,18 +319,20 @@ void UILayer::renderPopup(Core& core)
             if (ImGui::Button(child->name.c_str(), ImVec2(-1, 0)))
                 selection.pushView(child);
             ImGui::PopStyleColor(2);
+            ImGui::PopID();
         }
     }
 
     ImGui::Separator();
 
-    // Delete button
+    // Delete button — auto-saves after removal
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.65f, 0.15f, 0.15f, 0.8f));
     if (ImGui::Button("Delete region", ImVec2(-1, 0)))
     {
         RegionId id = region.id;
         selection.clear();
         core.getRegionTree().removeRegion(id);
+        RegionSerializer::save(core.getRegionTree(), "regions.json");
         ImGui::PopStyleColor();
         ImGui::End();
         ImGui::PopStyleColor(3);
@@ -360,7 +379,6 @@ void UILayer::renderContextMenu(Core& core)
     }
     else
     {
-        // Popup closed by clicking outside
         selection.closeContextMenu();
     }
 }
@@ -369,7 +387,6 @@ void UILayer::renderContextMenu(Core& core)
 // Private — left region tree sidebar (ImGui)
 // ============================================================
 
-// Recursive helper to draw one region row + its children indented
 static void drawRegionNode(
     const Region& region,
     SelectionState& selection,
@@ -377,15 +394,14 @@ static void drawRegionNode(
 {
     ImDrawList* draw = ImGui::GetWindowDrawList();
 
-    // Indentation per depth level
     if (depth > 0)
         ImGui::Indent(14.0f * depth);
 
-    // Colour circle icon
-    ImVec2 pos = ImGui::GetCursorScreenPos();
-    float circleR = 5.0f;
-    float circleX = pos.x + circleR + 2.0f;
-    float circleY = pos.y + ImGui::GetTextLineHeight() * 0.5f;
+    // Colour circle
+    ImVec2 pos     = ImGui::GetCursorScreenPos();
+    float circleR  = 5.0f;
+    float circleX  = pos.x + circleR + 2.0f;
+    float circleY  = pos.y + ImGui::GetTextLineHeight() * 0.5f;
     draw->AddCircleFilled(
         ImVec2(circleX, circleY), circleR,
         IM_COL32(
@@ -396,20 +412,17 @@ static void drawRegionNode(
         )
     );
 
-    // Offset text to make room for circle
     ImGui::SetCursorScreenPos(ImVec2(pos.x + circleR * 2 + 6.0f, pos.y));
 
     bool isSelected = (selection.selectedRegion == &region);
-
-    // Highlight selected
     if (isSelected)
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.7f, 1.0f, 1.0f));
 
-    // Selectable row
+    // PushID on region.id ensures unique widget IDs across the whole tree
+    ImGui::PushID(static_cast<int>(region.id));
     std::string label = region.name + "##" + std::to_string(region.id);
     if (ImGui::Selectable(label.c_str(), isSelected, 0, ImVec2(0, 0)))
     {
-        // Build viewStack from parent chain
         selection.viewStack.clear();
         const Region* ancestor = region.parent;
         while (ancestor)
@@ -421,6 +434,7 @@ static void drawRegionNode(
         selection.selectedRegion = const_cast<Region*>(&region);
         selection.popupOpen      = true;
     }
+    ImGui::PopID();
 
     if (isSelected)
         ImGui::PopStyleColor();
@@ -428,7 +442,6 @@ static void drawRegionNode(
     if (depth > 0)
         ImGui::Unindent(14.0f * depth);
 
-    // Draw children recursively
     for (const auto& child : region.children)
         drawRegionNode(*child, selection, depth + 1);
 }
@@ -461,7 +474,6 @@ void UILayer::renderRegionTree(Core& core)
 
     ImGui::Begin("##regiontree", nullptr, flags);
 
-    // Toggle button — arrow pointing right/left
     const char* arrow = treeExpanded_ ? "<" : ">";
     if (ImGui::Button(arrow, ImVec2(16, 16)))
         treeExpanded_ = !treeExpanded_;
@@ -473,14 +485,10 @@ void UILayer::renderRegionTree(Core& core)
         ImGui::Separator();
 
         if (tree.roots().empty())
-        {
             ImGui::TextDisabled("No regions yet.");
-        }
         else
-        {
             for (const auto& root : tree.roots())
                 drawRegionNode(*root, selection, 0);
-        }
     }
 
     ImGui::End();
@@ -489,12 +497,12 @@ void UILayer::renderRegionTree(Core& core)
 }
 
 // ============================================================
-// Private — sidebar (ImGui)
+// Private — right sidebar (ImGui)
 // ============================================================
 
 void UILayer::renderSidebar(Core& core)
 {
-    Input& input = core.getInput();
+    Input& input         = core.getInput();
     const Camera& camera = core.getCamera();
 
     const float sidebarW = 44.0f;
@@ -519,10 +527,8 @@ void UILayer::renderSidebar(Core& core)
 
     ImGui::Begin("##sidebar", nullptr, flags);
 
-    // ---- Region tool icon ----
     bool isDrawing = input.isDrawingRect() || input.isDrawingPolygon();
 
-    // Only highlight button when actively drawing
     if (isDrawing)
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.45f, 0.85f, 1.0f));
 
@@ -532,13 +538,11 @@ void UILayer::renderSidebar(Core& core)
     if (isDrawing)
         ImGui::PopStyleColor();
 
-    // Draw a simple region icon inside the button area
     ImDrawList* draw = ImGui::GetWindowDrawList();
     ImVec2 btnMin = ImGui::GetItemRectMin();
     ImVec2 btnMax = ImGui::GetItemRectMax();
     ImVec2 center = ImVec2((btnMin.x + btnMax.x) * 0.5f,
                            (btnMin.y + btnMax.y) * 0.5f);
-
     float iconSize = 11.0f;
     draw->AddRect(
         ImVec2(center.x - iconSize, center.y - iconSize * 0.7f),
@@ -551,7 +555,6 @@ void UILayer::renderSidebar(Core& core)
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Region");
 
-    // ---- Region tool popup ----
     ImGui::SetNextWindowPos(
         ImVec2(viewW - sidebarW - 130.0f, 8.0f),
         ImGuiCond_Always
@@ -564,8 +567,6 @@ void UILayer::renderSidebar(Core& core)
 
         bool rectActive = input.getDrawTool() == DrawTool::Rectangle;
         bool polyActive = input.getDrawTool() == DrawTool::Polygon;
-
-        // Uniform highlight colour for active tool
         const ImVec4 activeCol = ImVec4(0.4f, 0.7f, 1.0f, 1.0f);
 
         if (rectActive) ImGui::PushStyleColor(ImGuiCol_Text, activeCol);

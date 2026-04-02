@@ -29,13 +29,12 @@ void RegionRenderer::renderRegion(const Region& region, const Camera& camera) co
 
     std::vector<Vec2> pts = region.geometry.getPoints();
 
-    // Sub-regions get slightly reduced fill opacity so parent shows through
     float depth = 0.0f;
     const Region* p = region.parent;
     while (p) { depth += 1.0f; p = p->parent; }
 
     float fillAlpha    = region.colorA * (1.0f - depth * 0.08f);
-    float outlineWidth = 1.5f + depth * 1.0f; // thicker outline per level
+    float outlineWidth = 1.5f + depth * 1.0f;
 
     drawFilledPolygon(camera, pts,
         region.colorR, region.colorG, region.colorB,
@@ -47,7 +46,6 @@ void RegionRenderer::renderRegion(const Region& region, const Camera& camera) co
         std::min(1.0f, region.colorA + 0.4f));
     glLineWidth(1.0f);
 
-    // Render children recursively
     for (const auto& child : region.children)
         renderRegion(*child, camera);
 }
@@ -57,7 +55,6 @@ void RegionRenderer::renderRectPreview(
 {
     Vec2 worldA = input.getDrawStartWorld();
 
-    // Clamp current mouse to viewport bounds
     Vec2 cur = input.getDrawCurrent();
     cur.x = std::max(0.0, std::min(cur.x, camera.viewportSize.x));
     cur.y = std::max(0.0, std::min(cur.y, camera.viewportSize.y));
@@ -85,7 +82,6 @@ void RegionRenderer::renderPolygonPreview(
 
     glDisable(GL_TEXTURE_2D);
 
-    // Lines between placed points
     if (worldPts.size() >= 2)
     {
         glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
@@ -100,19 +96,16 @@ void RegionRenderer::renderPolygonPreview(
         glLineWidth(1.0f);
     }
 
-    // Thin line from last point to cursor
     Vec2 cursor       = camera.screenToWorld(input.getPolygonCursor());
     Vec2 lastScreen   = camera.worldToScreen(worldPts.back());
     Vec2 cursorScreen = camera.worldToScreen(cursor);
 
     glColor4f(1.0f, 1.0f, 1.0f, 0.35f);
-    glLineWidth(1.0f);
     glBegin(GL_LINES);
     glVertex2d(lastScreen.x,   lastScreen.y);
     glVertex2d(cursorScreen.x, cursorScreen.y);
     glEnd();
 
-    // White dots at each confirmed point
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glPointSize(6.0f);
     glBegin(GL_POINTS);
@@ -124,7 +117,6 @@ void RegionRenderer::renderPolygonPreview(
     glEnd();
     glPointSize(1.0f);
 
-    // Yellow dot on first point when enough points to close
     if (worldPts.size() >= 3)
     {
         Vec2 first = camera.worldToScreen(worldPts[0]);
@@ -147,28 +139,57 @@ void RegionRenderer::drawFilledPolygon(
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_STENCIL_TEST);
 
-    // --- Pass 1: build stencil mask using even-odd (GL_INVERT) ---
-    // Self-overlapping areas cancel out, so only odd-coverage pixels remain.
+    // ---------------------------------------------------------------
+    // Nonzero winding rule using legacy OpenGL (no glStencilOpSeparate).
+    //
+    // We draw the polygon twice into the stencil buffer:
+    //   Pass A — front-facing (CCW) triangles increment the stencil value.
+    //   Pass B — back-facing  (CW)  triangles decrement the stencil value.
+    //
+    // Any pixel where the two passes don't cancel out (stencil != 0)
+    // is considered "inside" by the nonzero winding rule. This correctly
+    // fills concave and self-crossing polygons such as stars.
+    // ---------------------------------------------------------------
+
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    glStencilFunc(GL_ALWAYS, 0, 0xFF);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_INVERT);
     glStencilMask(0xFF);
     glClear(GL_STENCIL_BUFFER_BIT);
+    glStencilFunc(GL_ALWAYS, 0, 0xFF);
 
-    Vec2 origin = camera.worldToScreen(worldPoints[0]);
+    // Pre-convert points to screen space once
+    std::vector<Vec2> screen;
+    screen.reserve(worldPoints.size());
+    for (const Vec2& wp : worldPoints)
+        screen.push_back(camera.worldToScreen(wp));
+
+    Vec2 origin = screen[0];
+
+    // Pass A: increment for CCW (front-facing) — GL default front face is CCW
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);       // draw only front-facing (CCW) triangles
+    glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+
     glBegin(GL_TRIANGLE_FAN);
     glVertex2d(origin.x, origin.y);
-    for (size_t i = 1; i < worldPoints.size(); i++)
-    {
-        Vec2 s = camera.worldToScreen(worldPoints[i]);
-        glVertex2d(s.x, s.y);
-    }
+    for (size_t i = 1; i < screen.size(); i++)
+        glVertex2d(screen[i].x, screen[i].y);
     glVertex2d(origin.x, origin.y);
     glEnd();
 
-    // --- Pass 2: draw colour once per pixel, reset stencil after ---
-    // GL_ZERO resets stencil as we draw, preventing any pixel from
-    // being coloured more than once even across multiple regions.
+    // Pass B: decrement for CW (back-facing) triangles
+    glCullFace(GL_FRONT);      // draw only back-facing (CW) triangles
+    glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
+
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2d(origin.x, origin.y);
+    for (size_t i = 1; i < screen.size(); i++)
+        glVertex2d(screen[i].x, screen[i].y);
+    glVertex2d(origin.x, origin.y);
+    glEnd();
+
+    glDisable(GL_CULL_FACE);
+
+    // Pass C: colour pixels where stencil != 0, then reset stencil to 0
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
     glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
@@ -179,11 +200,8 @@ void RegionRenderer::drawFilledPolygon(
 
     glBegin(GL_TRIANGLE_FAN);
     glVertex2d(origin.x, origin.y);
-    for (size_t i = 1; i < worldPoints.size(); i++)
-    {
-        Vec2 s = camera.worldToScreen(worldPoints[i]);
-        glVertex2d(s.x, s.y);
-    }
+    for (size_t i = 1; i < screen.size(); i++)
+        glVertex2d(screen[i].x, screen[i].y);
     glVertex2d(origin.x, origin.y);
     glEnd();
 
@@ -208,4 +226,3 @@ void RegionRenderer::drawOutline(
     glEnd();
     glLineWidth(1.0f);
 }
-

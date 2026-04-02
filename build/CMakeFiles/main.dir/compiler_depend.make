@@ -1347,6 +1347,7 @@ CMakeFiles/main.dir/src/core/Core.cpp.obj: C:/Users/alexa/Documents/spatial-map-
   C:/Users/alexa/Documents/spatial-map-editor/include/data/Marker.h \
   C:/Users/alexa/Documents/spatial-map-editor/include/data/Region.h \
   C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionGeometry.h \
+  C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionSerializer.h \
   C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionStatus.h \
   C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionTree.h \
   C:/Users/alexa/Documents/spatial-map-editor/include/input/Input.h \
@@ -5629,6 +5630,8 @@ C:/msys64/mingw64/include/psdk_inc/_xmitfile.h:
 
 C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionGeometry.h:
 
+C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionSerializer.h:
+
 C:/Users/alexa/Documents/spatial-map-editor/include/input/Input.h:
 
 C:/msys64/mingw64/include/_mingw_stat64.h:
@@ -5828,8 +5831,6 @@ C:/msys64/mingw64/include/wchar.h:
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/vaesintrin.h:
 
 C:/Users/alexa/Documents/spatial-map-editor/external/nlohmann/json.hpp:
-
-C:/Users/alexa/Documents/spatial-map-editor/include/data/RegionSerializer.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/chrono.h:
 
