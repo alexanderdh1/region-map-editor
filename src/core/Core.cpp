@@ -103,7 +103,7 @@ void Core::update(GLFWwindow* window)
         {
             regionTree.addRegion(std::move(region));
         }
-        RegionSerializer::save(regionTree, "regions.json");
+        RegionSerializer::save(regionTree, "regions.json", *this);
     };
 
     auto isInsideParent = [&](const Vec2& worldPt) -> bool
@@ -346,7 +346,7 @@ void Core::updateEditMode(GLFWwindow* window)
             if (bestEdge >= 0)
             {
                 pts.insert(pts.begin() + bestEdge + 1, clickWorld);
-                RegionSerializer::save(regionTree, "regions.json");
+                RegionSerializer::save(regionTree, "regions.json", *this);
             }
         }
         // Note: target selection is no longer done here.
@@ -533,7 +533,7 @@ void Core::updateEditMode(GLFWwindow* window)
     if (input.hasEditDragEnd())
     {
         input.consumeEditDragEnd();
-        RegionSerializer::save(regionTree, "regions.json");
+        RegionSerializer::save(regionTree, "regions.json", *this);
     }
 }
 
@@ -558,7 +558,7 @@ void Core::deleteEditPoint()
     editState.handleIndex = std::min(editState.handleIndex,
                                      static_cast<int>(pts.size()) - 1);
 
-    RegionSerializer::save(regionTree, "regions.json");
+    RegionSerializer::save(regionTree, "regions.json", *this);
 }
 
 // ---------------------------------------------------------------

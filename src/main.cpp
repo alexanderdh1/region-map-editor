@@ -22,23 +22,17 @@
 
 int main()
 {
-    GLFWwindow* window =
-        createWindow(1280, 720, "Spatial Map Editor");
-
-    if (!window)
-        return -1;
+    GLFWwindow* window = createWindow(1280, 720, "Spatial Map Editor");
+    if (!window) return -1;
 
     setupOpenGLState();
 
-    // --- ImGui setup ---
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    // Load JetBrains Mono as default font
     io.Fonts->AddFontFromFileTTF("assets/fonts/JetBrainsMono-Regular.ttf", 16.0f);
-
     ImGui::StyleColorsDark();
 
     ImGui_ImplGlfw_InitForOpenGL(window, false);
@@ -50,11 +44,7 @@ int main()
 
     try
     {
-        loadSingleImageWorld(
-            "assets/overworld",
-            core,
-            renderer
-        );
+        loadSingleImageWorld("assets/overworld", core, renderer);
     }
     catch (const std::exception& e)
     {
@@ -63,9 +53,9 @@ int main()
         return -1;
     }
 
-    // Auto-load regions if save file exists
+    // Auto-load regions — world mode is now set, coordinates convert correctly
     if (std::filesystem::exists("regions.json"))
-        RegionSerializer::load(core.getRegionTree(), "regions.json");
+        RegionSerializer::load(core.getRegionTree(), "regions.json", core);
 
     WindowContext context{ &core, &uiLayer };
     setupWindowCallbacks(window, &context);
@@ -73,40 +63,31 @@ int main()
 
     glClearColor(0.08f, 0.08f, 0.1f, 1.0f);
 
-    // -------- Main Loop --------
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-
         core.update(window);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        // 1. Map + regions (world-space)
         renderer.render(core);
 
-        // 2. ImGui frame
         ImGui_ImplOpenGL2_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // 3. UI overlay (screen-space)
         uiLayer.render(core);
 
-        // 4. Render ImGui
         ImGui::Render();
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
-
         updateWindowTitle(window, core);
     }
 
-    // --- ImGui cleanup ---
     ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-
     destroyWindow(window);
     return 0;
 }

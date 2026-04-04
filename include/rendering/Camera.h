@@ -5,22 +5,25 @@ class Camera {
 public:
     Camera();
 
-    Vec2 position;
+    Vec2   position;
     double zoom;
-    Vec2 viewportSize;
+    Vec2   viewportSize;
 
-    // Configuration
     double minZoom;
     double maxZoom;
 
-    // Camera control
     void panBy(const Vec2& delta);
     void zoomBy(double factor);
 
-    // Clamp position and zoom to world bounds
+    // Clamp position and zoom to world bounds.
+    // Also caches the world size so panBy can hard-clamp immediately.
     void clampToBounds(double worldWidth, double worldHeight);
 
-    // Coordinate conversion
     Vec2 worldToScreen(const Vec2& worldPos) const;
     Vec2 screenToWorld(const Vec2& screenPos) const;
+
+private:
+    // Cached world size — set by clampToBounds, used by panBy
+    double worldWidth_  = 0.0;
+    double worldHeight_ = 0.0;
 };

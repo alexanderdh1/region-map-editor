@@ -11,8 +11,8 @@ struct GLFWwindow;
 enum class EditHandleType
 {
     None,
-    RectCorner,  // index 0-3: TL, TR, BR, BL
-    PolyPoint,   // index = point index in geometry.points
+    RectCorner,
+    PolyPoint,
 };
 
 struct EditState
@@ -20,9 +20,6 @@ struct EditState
     Region*        target      = nullptr;
     EditHandleType handleType  = EditHandleType::None;
     int            handleIndex = -1;
-
-    // World-space position of the dragged point/corner at drag start.
-    // Used with total mouse delta for constraint-safe absolute positioning.
     Vec2 dragOriginWorld { 0.0, 0.0 };
 
     bool isActive()   const { return target != nullptr; }
@@ -30,9 +27,9 @@ struct EditState
 
     void clear()
     {
-        target         = nullptr;
-        handleType     = EditHandleType::None;
-        handleIndex    = -1;
+        target          = nullptr;
+        handleType      = EditHandleType::None;
+        handleIndex     = -1;
         dragOriginWorld = { 0.0, 0.0 };
     }
 
@@ -59,11 +56,18 @@ public:
     void setWorldSize(double width, double height);
 
     void setWorldBlockBounds(
-        int minBlockX,
-        int minBlockZ,
-        int maxBlockX,
-        int maxBlockZ
+        int minBlockX, int minBlockZ,
+        int maxBlockX, int maxBlockZ
     );
+
+    // Called by WorldLoader to signal which coordinate mode is active.
+    // minecraft = true  → save/load in block coordinates (requires JSON metadata)
+    // minecraft = false → save/load in normalised image coordinates (0.0–1.0)
+    void setMinecraftMode(bool enabled) { minecraftMode_ = enabled; }
+    bool isMinecraftMode()        const { return minecraftMode_; }
+
+    double getWorldWidth()  const { return worldWidth; }
+    double getWorldHeight() const { return worldHeight; }
 
     Vec2 blockToWorld(const BlockCoord& block) const;
     BlockCoord worldToBlock(const Vec2& worldPos) const;
@@ -77,8 +81,6 @@ public:
     EditState& getEditState()             { return editState; }
     const EditState& getEditState() const { return editState; }
 
-    // Deletes the selected polygon point, connecting its two neighbours.
-    // No-op if fewer than 4 points or no PolyPoint handle is selected.
     void deleteEditPoint();
 
     void setPendingParent(RegionId id) { pendingParentId = id; hasPendingParent = true; }
@@ -97,6 +99,8 @@ private:
 
     double worldWidth  = 0.0;
     double worldHeight = 0.0;
+
+    bool minecraftMode_ = false;
 
     int worldMinBlockX = 0;
     int worldMinBlockZ = 0;

@@ -6,13 +6,21 @@ Camera::Camera()
       zoom{1.0},
       viewportSize{800.0, 600.0},
       minZoom{0.1},
-      maxZoom{10.0}
+      maxZoom{10.0},
+      worldWidth_{0.0},
+      worldHeight_{0.0}
 {
 }
 
-void Camera::panBy(const Vec2& delta) {
+void Camera::panBy(const Vec2& delta)
+{
     position.x -= delta.x / zoom;
     position.y += delta.y / zoom;
+
+    // Hard clamp immediately so a single fast swipe never overshoots
+    // the world border even for one frame.
+    if (worldWidth_ > 0.0 && worldHeight_ > 0.0)
+        clampToBounds(worldWidth_, worldHeight_);
 }
 
 void Camera::zoomBy(double factor) {
@@ -22,7 +30,10 @@ void Camera::zoomBy(double factor) {
 
 void Camera::clampToBounds(double worldWidth, double worldHeight)
 {
-    // Enforce dynamic minimum zoom so the world always fills the viewport
+    // Cache for use in panBy
+    worldWidth_  = worldWidth;
+    worldHeight_ = worldHeight;
+
     double minZoomX = viewportSize.x / worldWidth;
     double minZoomY = viewportSize.y / worldHeight;
     double dynamicMinZoom = std::max(minZoomX, minZoomY);
@@ -36,33 +47,17 @@ void Camera::clampToBounds(double worldWidth, double worldHeight)
     double visibleHalfW = viewportSize.x / (2.0 * zoom);
     double visibleHalfH = viewportSize.y / (2.0 * zoom);
 
-    // X axis — center if fully zoomed out
     if (visibleHalfW >= halfW)
-    {
         position.x = 0.0;
-    }
     else
-    {
-        position.x = std::clamp(
-            position.x,
-            -halfW + visibleHalfW,
-             halfW - visibleHalfW
-        );
-    }
+        position.x = std::clamp(position.x,
+            -halfW + visibleHalfW, halfW - visibleHalfW);
 
-    // Y axis — center if fully zoomed out
     if (visibleHalfH >= halfH)
-    {
         position.y = 0.0;
-    }
     else
-    {
-        position.y = std::clamp(
-            position.y,
-            -halfH + visibleHalfH,
-             halfH - visibleHalfH
-        );
-    }
+        position.y = std::clamp(position.y,
+            -halfH + visibleHalfH, halfH - visibleHalfH);
 }
 
 Vec2 Camera::worldToScreen(const Vec2& worldPos) const {

@@ -29,7 +29,7 @@ static void enterEditMode(Core& core)
 static void exitEditMode(Core& core, bool save)
 {
     if (save && core.getEditState().isActive())
-        RegionSerializer::save(core.getRegionTree(), "regions.json");
+        RegionSerializer::save(core.getRegionTree(), "regions.json", core);
     core.getEditState().clear();
     core.getInput().cancelEdit();
     core.getInput().setDrawTool(DrawTool::Navigate);
@@ -61,7 +61,7 @@ void UILayer::render(Core& core)
         double now = glfwGetTime();
         if (!fieldStillActive && (now - dirtyTime_) >= SAVE_DEBOUNCE_S)
         {
-            RegionSerializer::save(core.getRegionTree(), "regions.json");
+            RegionSerializer::save(core.getRegionTree(), "regions.json", core);
             dirtyTime_ = -1.0;
         }
     }
@@ -85,7 +85,7 @@ bool UILayer::onKeyPress(int key, Core& core)
 
     if (key == GLFW_KEY_S)
     {
-        RegionSerializer::save(core.getRegionTree(), "regions.json");
+        RegionSerializer::save(core.getRegionTree(), "regions.json", core);
         dirtyTime_ = -1.0;
         return true;
     }
@@ -122,7 +122,7 @@ bool UILayer::onKeyPress(int key, Core& core)
             RegionId id = r->id;
             selection.clear();
             core.getRegionTree().removeRegion(id);
-            RegionSerializer::save(core.getRegionTree(), "regions.json");
+            RegionSerializer::save(core.getRegionTree(), "regions.json", core);
         }
         return true;
     }
@@ -313,7 +313,7 @@ void UILayer::renderPopup(Core& core)
             RegionId id = region.id;
             selection.clear();
             core.getRegionTree().removeRegion(id);
-            RegionSerializer::save(core.getRegionTree(), "regions.json");
+            RegionSerializer::save(core.getRegionTree(), "regions.json", core);
             ImGui::PopStyleColor();
             ImGui::End();
             ImGui::PopStyleColor(3);
@@ -340,6 +340,7 @@ static void drawRegionNode(
     const Region& region,
     SelectionState& selection,
     RegionTree& tree,
+    Core& core,
     RegionId& pendingSourceId,   // out: set when a valid drop is detected
     RegionId& pendingTargetId,   // out: 0 = root, otherwise target region id
     bool& pendingDropReady,      // out: true = execute the move this frame
@@ -367,7 +368,7 @@ static void drawRegionNode(
         if (ImGui::Button(arrow, ImVec2(arrowW, rowH)))
         {
             const_cast<Region&>(region).collapsed = !region.collapsed;
-            RegionSerializer::save(tree, "regions.json");
+            RegionSerializer::save(tree, "regions.json", core);
         }
         ImGui::PopStyleVar();
         ImGui::PopStyleColor(3);
@@ -390,7 +391,7 @@ static void drawRegionNode(
     if (ImGui::IsItemClicked())
     {
         setHiddenRecursive(const_cast<Region&>(region), !region.hidden, tree);
-        RegionSerializer::save(tree, "regions.json");
+        RegionSerializer::save(tree, "regions.json", core);
     }
     if (circleHov)
         ImGui::SetTooltip(region.hidden ? "Click to show on map" : "Click to hide on map");
@@ -471,7 +472,7 @@ static void drawRegionNode(
         for (const auto& c : region.children) childPtrs.push_back(c.get());
 
         for (Region* child : childPtrs)
-            drawRegionNode(*child, selection, tree,
+            drawRegionNode(*child, selection, tree, core,
                            pendingSourceId, pendingTargetId, pendingDropReady, depth + 1);
     }
 }
@@ -551,7 +552,7 @@ void UILayer::renderRegionTree(Core& core)
             for (const auto& r : tree.roots()) rootPtrs.push_back(r.get());
 
             for (Region* root : rootPtrs)
-                drawRegionNode(*root, sel, tree,
+                drawRegionNode(*root, sel, tree, core,
                                pendingSource, pendingTarget, dropReady, 0);
         }
 
@@ -603,7 +604,7 @@ void UILayer::renderRegionTree(Core& core)
                 if (src && geometryOk)
                 {
                     tree.moveRegion(pendingSource, pendingTarget);
-                    RegionSerializer::save(tree, "regions.json");
+                    RegionSerializer::save(tree, "regions.json", core);
                     sel.clear(); // clear stale parent pointers in viewStack
                 }
             }
