@@ -114,10 +114,25 @@ void Core::update(GLFWwindow* window)
         return parent->geometry.contains(worldPt);
     };
 
+    // Auto sub-region: if a region is selected and drawing starts inside it,
+    // automatically treat the new shape as a child — no right-click needed.
+    auto autoSetPendingParent = [&](const Vec2& worldPt)
+    {
+        if (hasPendingParent) return; // already set explicitly
+        Region* selected = selection.selectedRegion;
+        if (!selected) return;
+        if (selected->geometry.contains(worldPt))
+        {
+            pendingParentId  = selected->id;
+            hasPendingParent = true;
+        }
+    };
+
     // RECT
     if (input.isRectJustStarted())
     {
         Vec2 worldStart = cam.screenToWorld(input.getDrawStart());
+        autoSetPendingParent(worldStart);
         if (!isInsideParent(worldStart))
             input.cancelRect();
         else
@@ -177,6 +192,10 @@ void Core::update(GLFWwindow* window)
     {
         Vec2 screenPt = input.consumePendingPolyPoint();
         Vec2 worldPt  = cam.screenToWorld(screenPt);
+
+        // Auto sub-region on first polygon point
+        if (input.getPolygonWorldPoints().empty())
+            autoSetPendingParent(worldPt);
 
         if (isInsideParent(worldPt))
         {
@@ -239,7 +258,7 @@ void Core::update(GLFWwindow* window)
         Region* hit = nullptr;
         regionTree.forEach([&](Region& r)
         {
-            if (r.geometry.contains(worldPos)) hit = &r;
+            if (!r.hidden && r.geometry.contains(worldPos)) hit = &r;
         });
 
         if (hit)
@@ -260,22 +279,10 @@ void Core::update(GLFWwindow* window)
         }
     }
 
-    // RIGHT-CLICK
+    // Right-click is not used in the current UI — input is consumed to keep
+    // the Input state clean, but no action is taken.
     if (input.hasRightClick())
-    {
-        Vec2 screenPos = input.consumeRightClick();
-        Vec2 worldPos  = cam.screenToWorld(screenPos);
-
-        Region* hit = nullptr;
-        regionTree.forEach([&](Region& r)
-        {
-            if (r.geometry.contains(worldPos)) hit = &r;
-        });
-
-        selection.contextRegion     = hit;
-        selection.contextMenuOpen   = (hit != nullptr);
-        selection.contextMenuScreen = screenPos;
-    }
+        input.consumeRightClick();
 }
 
 // ---------------------------------------------------------------
@@ -359,22 +366,23 @@ void Core::updateEditMode(GLFWwindow* window)
 
         if (region.geometry.type == GeometryType::Rectangle)
         {
-            Vec2 corners[4] = {
-                cam.worldToScreen({ region.geometry.rectMin.x, region.geometry.rectMax.y }),
-                cam.worldToScreen({ region.geometry.rectMax.x, region.geometry.rectMax.y }),
-                cam.worldToScreen({ region.geometry.rectMax.x, region.geometry.rectMin.y }),
-                cam.worldToScreen({ region.geometry.rectMin.x, region.geometry.rectMin.y }),
+            // Corner world positions: TL, TR, BR, BL
+            Vec2 worldCorners[4] = {
+                { region.geometry.rectMin.x, region.geometry.rectMax.y },
+                { region.geometry.rectMax.x, region.geometry.rectMax.y },
+                { region.geometry.rectMax.x, region.geometry.rectMin.y },
+                { region.geometry.rectMin.x, region.geometry.rectMin.y },
             };
             for (int i = 0; i < 4; i++)
             {
-                double dist = std::hypot(
-                    startScreen.x - corners[i].x,
-                    startScreen.y - corners[i].y
-                );
+                Vec2 s = cam.worldToScreen(worldCorners[i]);
+                double dist = std::hypot(startScreen.x - s.x, startScreen.y - s.y);
                 if (dist <= HANDLE_RADIUS_PX)
                 {
-                    editState.handleType  = EditHandleType::RectCorner;
-                    editState.handleIndex = i;
+                    editState.handleType     = EditHandleType::RectCorner;
+                    editState.handleIndex    = i;
+                    // Store the world position of this corner at drag start
+                    editState.dragOriginWorld = worldCorners[i];
                     return;
                 }
             }
@@ -385,14 +393,13 @@ void Core::updateEditMode(GLFWwindow* window)
             for (int i = 0; i < static_cast<int>(pts.size()); i++)
             {
                 Vec2 s = cam.worldToScreen(pts[i]);
-                double dist = std::hypot(
-                    startScreen.x - s.x,
-                    startScreen.y - s.y
-                );
+                double dist = std::hypot(startScreen.x - s.x, startScreen.y - s.y);
                 if (dist <= HANDLE_RADIUS_PX)
                 {
-                    editState.handleType  = EditHandleType::PolyPoint;
-                    editState.handleIndex = i;
+                    editState.handleType      = EditHandleType::PolyPoint;
+                    editState.handleIndex     = i;
+                    // Store the world position of this point at drag start
+                    editState.dragOriginWorld = pts[i];
                     return;
                 }
             }
@@ -400,15 +407,27 @@ void Core::updateEditMode(GLFWwindow* window)
     }
 
     // ---- Dragging ----
+    // Use ABSOLUTE positioning: new position = dragOriginWorld + totalMouseDelta/zoom.
+    // This means constraints never cause offset accumulation — if the mouse moves
+    // 1000px past a constraint boundary and reverses, the geometry only starts
+    // moving again exactly when the mouse returns to the constraint point.
     if (input.isEditDragging())
     {
-        Vec2 screenDelta = input.getEditDragDelta(); // always consume
+        // Per-frame delta must always be consumed to prevent stale accumulation
+        input.getEditDragDelta();
 
         if (!editState.isDragging()) return;
-        if (screenDelta.x == 0.0 && screenDelta.y == 0.0) return;
 
-        double worldDx =  screenDelta.x / cam.zoom;
-        double worldDy = -screenDelta.y / cam.zoom;
+        // Convert total mouse movement to world space
+        Vec2 totalScreen = input.getEditDragTotalDelta();
+        double worldDx =  totalScreen.x / cam.zoom;
+        double worldDy = -totalScreen.y / cam.zoom;
+
+        // Desired absolute world position of the dragged point
+        Vec2 desiredWorld {
+            editState.dragOriginWorld.x + worldDx,
+            editState.dragOriginWorld.y + worldDy
+        };
 
         Region& region = *editState.target;
 
@@ -419,31 +438,51 @@ void Core::updateEditMode(GLFWwindow* window)
 
             switch (editState.handleIndex)
             {
-                case 0: newMin.x += worldDx; newMax.y += worldDy; break; // TL
-                case 1: newMax.x += worldDx; newMax.y += worldDy; break; // TR
-                case 2: newMax.x += worldDx; newMin.y += worldDy; break; // BR
-                case 3: newMin.x += worldDx; newMin.y += worldDy; break; // BL
+                case 0: newMin.x = desiredWorld.x; newMax.y = desiredWorld.y; break; // TL
+                case 1: newMax.x = desiredWorld.x; newMax.y = desiredWorld.y; break; // TR
+                case 2: newMax.x = desiredWorld.x; newMin.y = desiredWorld.y; break; // BR
+                case 3: newMin.x = desiredWorld.x; newMin.y = desiredWorld.y; break; // BL
             }
 
-            if (newMax.x - newMin.x < MIN_REGION_SIZE ||
-                newMax.y - newMin.y < MIN_REGION_SIZE)
-                return;
+            // Enforce minimum size — keep opposite corner fixed
+            if (newMax.x - newMin.x < MIN_REGION_SIZE)
+            {
+                if (editState.handleIndex == 0 || editState.handleIndex == 3)
+                    newMin.x = newMax.x - MIN_REGION_SIZE;
+                else
+                    newMax.x = newMin.x + MIN_REGION_SIZE;
+            }
+            if (newMax.y - newMin.y < MIN_REGION_SIZE)
+            {
+                if (editState.handleIndex == 2 || editState.handleIndex == 3)
+                    newMin.y = newMax.y - MIN_REGION_SIZE;
+                else
+                    newMax.y = newMin.y + MIN_REGION_SIZE;
+            }
 
+            // Build the four corners of the proposed new rect
+            Vec2 proposed[4] = {
+                { newMin.x, newMax.y }, // TL
+                { newMax.x, newMax.y }, // TR
+                { newMax.x, newMin.y }, // BR
+                { newMin.x, newMin.y }, // BL
+            };
+
+            // Parent containment: every corner of this rect must be inside parent.
+            // We use contains() so non-rectangular parents work correctly.
             if (region.parent)
             {
-                auto pPts = region.parent->geometry.getPoints();
-                double pMinX = pPts[0].x, pMaxX = pPts[0].x;
-                double pMinY = pPts[0].y, pMaxY = pPts[0].y;
-                for (const auto& p : pPts)
+                for (const Vec2& corner : proposed)
                 {
-                    pMinX = std::min(pMinX, p.x); pMaxX = std::max(pMaxX, p.x);
-                    pMinY = std::min(pMinY, p.y); pMaxY = std::max(pMaxY, p.y);
+                    if (!region.parent->geometry.contains(corner))
+                    {
+                        // Desired position violates parent — keep current geometry
+                        return;
+                    }
                 }
-                if (newMin.x < pMinX || newMax.x > pMaxX ||
-                    newMin.y < pMinY || newMax.y > pMaxY)
-                    return;
             }
 
+            // Children containment: rect cannot shrink below children bounding box
             double cMinX, cMinY, cMaxX, cMaxY;
             if (childrenBoundingBox(region, cMinX, cMinY, cMaxX, cMaxY))
             {
@@ -461,11 +500,13 @@ void Core::updateEditMode(GLFWwindow* window)
             auto& pts = region.geometry.points;
             if (idx < 0 || idx >= static_cast<int>(pts.size())) return;
 
-            Vec2 newPt { pts[idx].x + worldDx, pts[idx].y + worldDy };
+            Vec2 newPt = desiredWorld;
 
+            // Parent containment: the moved point must be inside parent
             if (region.parent && !region.parent->geometry.contains(newPt))
-                return;
+                return; // hold position — mouse will re-engage when it returns
 
+            // Children containment: polygon bounding box must still cover children
             double cMinX, cMinY, cMaxX, cMaxY;
             if (childrenBoundingBox(region, cMinX, cMinY, cMaxX, cMaxY))
             {

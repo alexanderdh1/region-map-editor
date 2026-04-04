@@ -21,20 +21,26 @@ struct EditState
     EditHandleType handleType  = EditHandleType::None;
     int            handleIndex = -1;
 
+    // World-space position of the dragged point/corner at drag start.
+    // Used with total mouse delta for constraint-safe absolute positioning.
+    Vec2 dragOriginWorld { 0.0, 0.0 };
+
     bool isActive()   const { return target != nullptr; }
     bool isDragging() const { return handleType != EditHandleType::None; }
 
     void clear()
     {
-        target      = nullptr;
-        handleType  = EditHandleType::None;
-        handleIndex = -1;
+        target         = nullptr;
+        handleType     = EditHandleType::None;
+        handleIndex    = -1;
+        dragOriginWorld = { 0.0, 0.0 };
     }
 
     void clearDrag()
     {
-        handleType  = EditHandleType::None;
-        handleIndex = -1;
+        handleType      = EditHandleType::None;
+        handleIndex     = -1;
+        dragOriginWorld = { 0.0, 0.0 };
     }
 };
 

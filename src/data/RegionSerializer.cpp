@@ -2,7 +2,6 @@
 
 #include "data/Region.h"
 #include "data/RegionGeometry.h"
-#include "data/RegionStatus.h"
 
 #include <fstream>
 #include <iostream>
@@ -12,13 +11,10 @@
 using json = nlohmann::json;
 
 // ============================================================
-// Serialization helpers
+// Helpers
 // ============================================================
 
-static json serializeVec2(const Vec2& v)
-{
-    return { v.x, v.y };
-}
+static json serializeVec2(const Vec2& v) { return { v.x, v.y }; }
 
 static Vec2 deserializeVec2(const json& j)
 {
@@ -68,14 +64,14 @@ static RegionGeometry deserializeGeometry(const json& j)
 static json serializeRegion(const Region& r)
 {
     json j;
-    j["id"]     = r.id;
-    j["name"]   = r.name;
-    j["note"]   = r.note;
-    j["status"] = regionStatusToString(r.status);
-    j["color"]  = { r.colorR, r.colorG, r.colorB, r.colorA };
+    j["id"]       = r.id;
+    j["name"]     = r.name;
+    j["note"]     = r.note;
+    j["color"]    = { r.colorR, r.colorG, r.colorB, r.colorA };
+    j["hidden"]   = r.hidden;
+    j["collapsed"]= r.collapsed;
     j["geometry"] = serializeGeometry(r.geometry);
 
-    // Children (recursive)
     json children = json::array();
     for (const auto& child : r.children)
         children.push_back(serializeRegion(*child));
@@ -86,11 +82,10 @@ static json serializeRegion(const Region& r)
 
 static std::unique_ptr<Region> deserializeRegion(const json& j, RegionTree& tree)
 {
-    auto r      = std::make_unique<Region>();
-    r->id       = j.at("id").get<RegionId>();
-    r->name     = j.at("name").get<std::string>();
-    r->note     = j.at("note").get<std::string>();
-    r->status   = regionStatusFromString(j.at("status").get<std::string>());
+    auto r  = std::make_unique<Region>();
+    r->id   = j.at("id").get<RegionId>();
+    r->name = j.at("name").get<std::string>();
+    r->note = j.at("note").get<std::string>();
 
     const auto& c = j.at("color");
     r->colorR = c[0].get<float>();
@@ -98,12 +93,14 @@ static std::unique_ptr<Region> deserializeRegion(const json& j, RegionTree& tree
     r->colorB = c[2].get<float>();
     r->colorA = c[3].get<float>();
 
+    // hidden / collapsed — default false if missing (backwards compat)
+    r->hidden    = j.value("hidden",    false);
+    r->collapsed = j.value("collapsed", false);
+
     r->geometry = deserializeGeometry(j.at("geometry"));
 
-    // Ensure the tree's ID counter stays above any loaded ID
     tree.ensureNextIdAbove(r->id);
 
-    // Children (recursive)
     for (const auto& childJson : j.at("children"))
     {
         auto child = deserializeRegion(childJson, tree);
@@ -120,7 +117,7 @@ static std::unique_ptr<Region> deserializeRegion(const json& j, RegionTree& tree
 bool RegionSerializer::save(const RegionTree& tree, const std::string& path)
 {
     json root;
-    root["version"] = 1;
+    root["version"] = 2; // bumped: status removed, hidden/collapsed added
 
     json regions = json::array();
     for (const auto& r : tree.roots())
@@ -135,7 +132,7 @@ bool RegionSerializer::save(const RegionTree& tree, const std::string& path)
         return false;
     }
 
-    file << root.dump(2); // pretty-print with 2-space indent
+    file << root.dump(2);
     std::cout << "[RegionSerializer] Saved " << regions.size() << " region(s) to " << path << "\n";
     return true;
 }
@@ -150,17 +147,13 @@ bool RegionSerializer::load(RegionTree& tree, const std::string& path)
     }
 
     json root;
-    try
-    {
-        file >> root;
-    }
+    try { file >> root; }
     catch (const std::exception& e)
     {
         std::cerr << "[RegionSerializer] JSON parse error: " << e.what() << "\n";
         return false;
     }
 
-    // Clear existing regions
     while (!tree.roots().empty())
         tree.removeRegion(tree.roots().front()->id);
 

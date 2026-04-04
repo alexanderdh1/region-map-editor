@@ -20,6 +20,7 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
             editDragStartPos    = mousePos;
             editLastMousePos    = mousePos;
             editDragDelta       = { 0.0, 0.0 };
+            editDragTotalDelta  = { 0.0, 0.0 };
             return;
         }
 
@@ -94,7 +95,8 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
                 editClickPos     = mousePos;
             }
             editDidDrag      = false;
-            editDragDelta    = { 0.0, 0.0 }; // flush any residual delta
+            editDragDelta       = { 0.0, 0.0 };
+            editDragTotalDelta  = { 0.0, 0.0 };
             mode             = InputMode::Navigate;
             return;
         }
@@ -151,8 +153,10 @@ void Input::onMouseMove(const Vec2& mousePos)
 
             if (editDragging)
             {
-                editDragDelta.x += delta.x;
-                editDragDelta.y += delta.y;
+                editDragDelta.x      += delta.x;
+                editDragDelta.y      += delta.y;
+                editDragTotalDelta.x += delta.x;
+                editDragTotalDelta.y += delta.y;
             }
         }
 
@@ -247,6 +251,7 @@ void Input::cancelEdit()
     editDidDrag          = false;
     editClickPending     = false;
     editDragDelta        = { 0.0, 0.0 };
+    editDragTotalDelta   = { 0.0, 0.0 };
     mode                 = InputMode::Navigate;
 }
 

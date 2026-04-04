@@ -134,6 +134,7 @@ void RegionRenderer::drawHandle(const Vec2& screenPos,
 void RegionRenderer::renderRegion(const Region& region, const Camera& camera) const
 {
     if (!region.geometry.isValid()) return;
+    if (region.hidden) return; // hidden regions are not rendered
 
     std::vector<Vec2> pts = region.geometry.getPoints();
 

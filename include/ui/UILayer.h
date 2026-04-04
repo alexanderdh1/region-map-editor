@@ -14,15 +14,17 @@ public:
     bool isTextInputActive() const { return nameFieldActive_ || noteFieldActive_; }
 
 private:
-    void renderSidebar(Core& core);       // right sidebar (tools)
-    void renderRegionTree(Core& core);    // left sidebar (region tree)
+    void renderSidebar(Core& core);
+    void renderRegionTree(Core& core);
     void renderPopup(Core& core);
-    void renderContextMenu(Core& core);
 
-    // Left sidebar state
-    bool treeExpanded_ = false;
-
-    // ImGui text field focus tracking
+    bool treeExpanded_    = false;
     bool nameFieldActive_ = false;
     bool noteFieldActive_ = false;
+
+    // Debounce auto-save for name/note text fields.
+    // When either field is edited, dirtyTime_ is set to glfwGetTime().
+    // If it stays dirty for SAVE_DEBOUNCE_S seconds, we save.
+    double dirtyTime_   = -1.0;  // -1 = not dirty
+    static constexpr double SAVE_DEBOUNCE_S = 1.0;
 };

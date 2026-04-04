@@ -73,19 +73,22 @@ public:
     void closePolygon();
 
     // --- Edit mode ---
-    bool isEditMouseHeld() const      { return editMouseButtonHeld; }
-
     bool hasEditDragStart() const     { return editDragStartPending; }
     Vec2 consumeEditDragStart()       { editDragStartPending = false; return editDragStartPos; }
 
     bool isEditDragging() const       { return editDragging; }
     Vec2 getEditDragCurrent() const   { return drawCurrent; }
+    // Per-frame delta (consumed each call) — used for unconstrained ops
     Vec2 getEditDragDelta()
     {
         Vec2 d = editDragDelta;
         editDragDelta = { 0.0, 0.0 };
         return d;
     }
+
+    // Total mouse movement since drag start — used for constraint-safe ops.
+    // Never resets mid-drag, so there is no accumulated offset when blocked.
+    Vec2 getEditDragTotalDelta() const { return editDragTotalDelta; }
 
     bool hasEditDragEnd() const       { return editDragEndPending; }
     void consumeEditDragEnd()         { editDragEndPending = false; }
@@ -150,7 +153,8 @@ private:
     bool editDidDrag          = false;
     bool editClickPending     = false;
     Vec2 editDragStartPos  { 0.0, 0.0 };
-    Vec2 editDragDelta     { 0.0, 0.0 };
-    Vec2 editLastMousePos  { 0.0, 0.0 };
+    Vec2 editDragDelta      { 0.0, 0.0 };
+    Vec2 editDragTotalDelta { 0.0, 0.0 }; // cumulative since drag start
+    Vec2 editLastMousePos   { 0.0, 0.0 };
     Vec2 editClickPos      { 0.0, 0.0 };
 };
