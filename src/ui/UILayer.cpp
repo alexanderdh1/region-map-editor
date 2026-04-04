@@ -1,6 +1,7 @@
 #include "ui/UILayer.h"
 
 #include "data/RegionSerializer.h"
+#include "data/RegionGeometry.h"
 #include "input/Input.h"
 #include "rendering/Camera.h"
 
@@ -41,15 +42,19 @@ static void setHiddenRecursive(Region& region, bool hidden, RegionTree& tree)
         setHiddenRecursive(*child, hidden, tree);
 }
 
+static bool allPointsInsideParent(const Region& region, const RegionGeometry& parentGeom)
+{
+    for (const Vec2& pt : region.geometry.getPoints())
+        if (!parentGeom.contains(pt)) return false;
+    return true;
+}
+
 // ============================================================
 // UILayer::render
 // ============================================================
 
 void UILayer::render(Core& core)
 {
-    // --- Debounce auto-save for name/note fields ---
-    // If either text field was edited, dirtyTime_ is set.
-    // After SAVE_DEBOUNCE_S of inactivity we auto-save.
     if (dirtyTime_ >= 0.0)
     {
         bool fieldStillActive = nameFieldActive_ || noteFieldActive_;
@@ -81,7 +86,7 @@ bool UILayer::onKeyPress(int key, Core& core)
     if (key == GLFW_KEY_S)
     {
         RegionSerializer::save(core.getRegionTree(), "regions.json");
-        dirtyTime_ = -1.0; // manual save clears debounce
+        dirtyTime_ = -1.0;
         return true;
     }
     if (key == GLFW_KEY_E)
@@ -95,32 +100,14 @@ bool UILayer::onKeyPress(int key, Core& core)
         if (key == GLFW_KEY_R) { input.setDrawTool(DrawTool::Rectangle); input.cancelPolygon(); return true; }
         if (key == GLFW_KEY_P) { input.setDrawTool(DrawTool::Polygon); return true; }
     }
-    if (key == GLFW_KEY_B)
-    {
-        if (selection.canGoBack()) selection.popView();
-        return true;
-    }
+    if (key == GLFW_KEY_B) { if (selection.canGoBack()) selection.popView(); return true; }
     if (key == GLFW_KEY_ESCAPE)
     {
-        if (input.getDrawTool() == DrawTool::Edit)
-        {
-            exitEditMode(core, true);
-        }
-        else if (input.isDrawingPolygon())
-        {
-            input.cancelPolygon();
-        }
-        else if (input.isDrawingRect())
-        {
-            input.cancelRect();
-        }
-        else if (selection.popupOpen)
-        {
-            // Escape closes the region popup
-            selection.clear();
-        }
-        if (input.getDrawTool() != DrawTool::Edit)
-            input.setDrawTool(DrawTool::Navigate);
+        if (input.getDrawTool() == DrawTool::Edit)      exitEditMode(core, true);
+        else if (input.isDrawingPolygon())               input.cancelPolygon();
+        else if (input.isDrawingRect())                  input.cancelRect();
+        else if (selection.popupOpen)                    selection.clear();
+        if (input.getDrawTool() != DrawTool::Edit)       input.setDrawTool(DrawTool::Navigate);
         return true;
     }
     if (key == GLFW_KEY_DELETE)
@@ -167,10 +154,8 @@ void UILayer::renderPopup(Core& core)
     ImGui::SetNextWindowBgAlpha(0.92f);
 
     ImGuiWindowFlags flags =
-        ImGuiWindowFlags_NoResize        |
-        ImGuiWindowFlags_NoMove          |
-        ImGuiWindowFlags_NoSavedSettings |
-        ImGuiWindowFlags_NoCollapse      |
+        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoBringToFrontOnFocus |
         ImGuiWindowFlags_AlwaysVerticalScrollbar;
 
@@ -179,8 +164,7 @@ void UILayer::renderPopup(Core& core)
         ImVec4(region.colorR, region.colorG, region.colorB, titleA));
     ImGui::PushStyleColor(ImGuiCol_TitleBgActive,
         ImVec4(region.colorR, region.colorG, region.colorB, titleA));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg,
-        ImVec4(0.10f, 0.10f, 0.13f, 0.92f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.10f, 0.10f, 0.13f, 0.92f));
 
     std::string windowTitle = isHidden
         ? "Region (hidden)###RegionPopup"
@@ -205,32 +189,25 @@ void UILayer::renderPopup(Core& core)
         ImGui::Separator();
     }
 
-    // ---- Name ----
     ImGui::Text("Name");
     static char nameBuf[256];
     if (!nameFieldActive_) { strncpy(nameBuf, region.name.c_str(), 255); nameBuf[255] = 0; }
     ImGui::SetNextItemWidth(-1);
     if (ImGui::InputText("##name", nameBuf, sizeof(nameBuf)))
-    {
-        region.name      = nameBuf;
-        nameFieldActive_ = true;
-        dirtyTime_       = glfwGetTime(); // mark dirty for debounce
-    }
+    { region.name = nameBuf; nameFieldActive_ = true; dirtyTime_ = glfwGetTime(); }
     if (!ImGui::IsItemActive()) nameFieldActive_ = false;
 
     ImGui::Spacing();
-
-    // ---- Note ----
     ImGui::Text("Note");
     static char noteBuf[2048];
     if (!noteFieldActive_) { strncpy(noteBuf, region.note.c_str(), 2047); noteBuf[2047] = 0; }
 
     int lineCount = 1;
     for (const char* c = noteBuf; *c; c++) if (*c == '\n') lineCount++;
-    float lineH   = ImGui::GetTextLineHeightWithSpacing();
-    float minH    = lineH * 3.0f;
-    float noteH   = std::min(std::max(lineH * (lineCount + 1), minH),
-                             std::max(minH, ImGui::GetContentRegionAvail().y - 80.0f));
+    float lineH = ImGui::GetTextLineHeightWithSpacing();
+    float minH  = lineH * 3.0f;
+    float noteH = std::min(std::max(lineH * (lineCount + 1), minH),
+                           std::max(minH, ImGui::GetContentRegionAvail().y - 80.0f));
 
 #ifdef ImGuiInputTextFlags_WordWrap
     ImGui::SetNextItemWidth(-1);
@@ -258,13 +235,10 @@ void UILayer::renderPopup(Core& core)
 #endif
     if (!ImGui::IsItemActive()) noteFieldActive_ = false;
 
-    // ---- Sub-regions (always visible) ----
     int numChildren = static_cast<int>(region.children.size());
     if (numChildren > 0)
     {
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Text("Sub-regions");
+        ImGui::Spacing(); ImGui::Separator(); ImGui::Text("Sub-regions");
         for (int i = 0; i < numChildren; i++)
         {
             Region* child = region.children[i].get();
@@ -280,11 +254,7 @@ void UILayer::renderPopup(Core& core)
         }
     }
 
-    // ---- Tools (disabled when hidden) ----
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Text("Tools");
-    ImGui::Spacing();
+    ImGui::Spacing(); ImGui::Separator(); ImGui::Text("Tools"); ImGui::Spacing();
 
     if (isHidden)
     {
@@ -296,7 +266,6 @@ void UILayer::renderPopup(Core& core)
     }
     else
     {
-        // Colour
         float col[4] = { region.colorR, region.colorG, region.colorB, region.colorA };
         ImGui::PushStyleColor(ImGuiCol_Button,
             ImVec4(region.colorR, region.colorG, region.colorB, 0.85f));
@@ -309,32 +278,26 @@ void UILayer::renderPopup(Core& core)
             if (ImGui::ColorPicker4("##picker", col,
                 ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview |
                 ImGuiColorEditFlags_NoInputs      | ImGuiColorEditFlags_AlphaBar))
-            { region.colorR = col[0]; region.colorG = col[1];
-              region.colorB = col[2]; region.colorA = col[3]; }
+            { region.colorR=col[0]; region.colorG=col[1]; region.colorB=col[2]; region.colorA=col[3]; }
             ImGui::EndPopup();
         }
-
-        // Edit region
         if (isEditTarget)
         {
-            ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.25f, 0.45f, 0.85f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.30f, 0.55f, 1.00f, 1.0f));
-            if (ImGui::Button("Stop editing", ImVec2(-1, 0))) exitEditMode(core, true);
+            ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.25f,0.45f,0.85f,1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.30f,0.55f,1.00f,1.0f));
+            if (ImGui::Button("Stop editing", ImVec2(-1,0))) exitEditMode(core, true);
             ImGui::PopStyleColor(2);
         }
         else
         {
-            if (ImGui::Button("Edit region", ImVec2(-1, 0))) enterEditMode(core);
+            if (ImGui::Button("Edit region", ImVec2(-1,0))) enterEditMode(core);
         }
-
-        // Add sub-region
-        if (ImGui::Button("Add sub-region", ImVec2(-1, 0)))
+        if (ImGui::Button("Add sub-region", ImVec2(-1,0)))
         { core.setPendingParent(region.id); selection.clear(); }
     }
 
     ImGui::Separator();
 
-    // Delete (disabled when hidden)
     if (isHidden)
     {
         ImGui::BeginDisabled(true);
@@ -343,8 +306,8 @@ void UILayer::renderPopup(Core& core)
     }
     else
     {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.65f, 0.15f, 0.15f, 0.8f));
-        if (ImGui::Button("Delete region", ImVec2(-1, 0)))
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.65f,0.15f,0.15f,0.8f));
+        if (ImGui::Button("Delete region", ImVec2(-1,0)))
         {
             if (isEditMode) exitEditMode(core, false);
             RegionId id = region.id;
@@ -364,25 +327,34 @@ void UILayer::renderPopup(Core& core)
 }
 
 // ============================================================
-// Private — left region tree
+// Tree drag-and-drop
+//
+// KEY DESIGN: drop actions are DEFERRED.
+// During tree rendering we only collect what the user wants to do
+// (pendingSourceId_ / pendingTargetId_). The actual moveRegion call
+// happens AFTER the entire tree is drawn, so we never modify the
+// children vector while iterating over it.
 // ============================================================
 
 static void drawRegionNode(
     const Region& region,
     SelectionState& selection,
     RegionTree& tree,
+    RegionId& pendingSourceId,   // out: set when a valid drop is detected
+    RegionId& pendingTargetId,   // out: 0 = root, otherwise target region id
+    bool& pendingDropReady,      // out: true = execute the move this frame
     int depth)
 {
-    ImDrawList* draw     = ImGui::GetWindowDrawList();
-    const float indentW  = 14.0f;
-    const float rowH     = ImGui::GetTextLineHeight() + 6.0f;
-    const float arrowW   = 16.0f;
-    const float circleR  = 5.0f;
-    const float circleW  = circleR * 2 + 8.0f;
+    ImDrawList* draw    = ImGui::GetWindowDrawList();
+    const float indentW = 14.0f;
+    const float rowH    = ImGui::GetTextLineHeight() + 6.0f;
+    const float arrowW  = 16.0f;
+    const float circleR = 5.0f;
+    const float circleW = circleR * 2 + 8.0f;
 
     if (depth > 0) ImGui::Indent(indentW * depth);
 
-    // --- Collapse arrow ---
+    // Collapse arrow
     bool hasChildren = !region.children.empty();
     if (hasChildren)
     {
@@ -401,50 +373,42 @@ static void drawRegionNode(
         ImGui::PopStyleColor(3);
         ImGui::PopID();
     }
-    else
-    {
-        ImGui::Dummy(ImVec2(arrowW, rowH));
-    }
+    else { ImGui::Dummy(ImVec2(arrowW, rowH)); }
     ImGui::SameLine(0, 2);
 
-    // --- Visibility circle ---
+    // Visibility circle
     ImVec2 circlePos = ImGui::GetCursorScreenPos();
     float cx = circlePos.x + circleW * 0.5f;
     float cy = circlePos.y + rowH   * 0.5f;
+    ImU32 circleCol = region.hidden
+        ? IM_COL32(90,90,90,200)
+        : IM_COL32((int)(region.colorR*255),(int)(region.colorG*255),(int)(region.colorB*255),220);
 
     ImGui::PushID((std::string("vis##") + std::to_string(region.id)).c_str());
     ImGui::InvisibleButton("##vis", ImVec2(circleW, rowH));
     bool circleHov = ImGui::IsItemHovered();
-
     if (ImGui::IsItemClicked())
     {
         setHiddenRecursive(const_cast<Region&>(region), !region.hidden, tree);
         RegionSerializer::save(tree, "regions.json");
     }
-
-    // Tooltip on circle
     if (circleHov)
-    {
         ImGui::SetTooltip(region.hidden ? "Click to show on map" : "Click to hide on map");
-    }
-
     float r = circleHov ? circleR + 1.0f : circleR;
-    ImU32 col = region.hidden
-        ? IM_COL32(90, 90, 90, 200)
-        : IM_COL32((int)(region.colorR*255),(int)(region.colorG*255),(int)(region.colorB*255),220);
-    draw->AddCircleFilled(ImVec2(cx, cy), r, col);
+    draw->AddCircleFilled(ImVec2(cx, cy), r, circleCol);
     ImGui::PopID();
 
     ImGui::SameLine(0, 4);
 
-    // --- Selectable name ---
+    // Selectable name
     bool isSelected = (selection.selectedRegion == &region);
     ImVec4 textCol = region.hidden
-        ? ImVec4(0.45f, 0.45f, 0.45f, 1.0f)
-        : (isSelected ? ImVec4(0.4f, 0.7f, 1.0f, 1.0f) : ImGui::GetStyleColorVec4(ImGuiCol_Text));
+        ? ImVec4(0.45f,0.45f,0.45f,1.0f)
+        : (isSelected ? ImVec4(0.4f,0.7f,1.0f,1.0f) : ImGui::GetStyleColorVec4(ImGuiCol_Text));
 
     ImGui::PushStyleColor(ImGuiCol_Text, textCol);
     ImGui::PushID(static_cast<int>(region.id));
+
     std::string label = region.name + "##" + std::to_string(region.id);
     if (ImGui::Selectable(label.c_str(), isSelected,
         ImGuiSelectableFlags_None, ImVec2(0, rowH - ImGui::GetStyle().ItemSpacing.y)))
@@ -459,17 +423,59 @@ static void drawRegionNode(
         selection.selectedRegion = const_cast<Region*>(&region);
         selection.popupOpen      = true;
     }
+
+    // Drag source
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+    {
+        RegionId id = region.id;
+        ImGui::SetDragDropPayload("REGION_ID", &id, sizeof(RegionId));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f,0.7f,1.0f,1.0f));
+        ImGui::Text("  %s", region.name.c_str());
+        ImGui::PopStyleColor();
+        ImGui::EndDragDropSource();
+    }
+
+    // Drop target — only collect, never execute here
+    if (ImGui::BeginDragDropTarget())
+    {
+        ImVec2 rowMin = ImGui::GetItemRectMin();
+        ImVec2 rowMax = ImGui::GetItemRectMax();
+        draw->AddRectFilled(rowMin, rowMax, IM_COL32(60,120,220,60));
+        draw->AddRect(rowMin, rowMax, IM_COL32(80,160,255,200), 0.0f, 0, 1.5f);
+
+        if (const ImGuiPayload* payload =
+            ImGui::AcceptDragDropPayload("REGION_ID",
+                ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+        {
+            if (payload->IsDelivery())
+            {
+                pendingSourceId  = *(const RegionId*)payload->Data;
+                pendingTargetId  = region.id;
+                pendingDropReady = true;
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+
     ImGui::PopID();
     ImGui::PopStyleColor();
 
     if (depth > 0) ImGui::Unindent(indentW * depth);
 
+    // Recurse — children vector is NOT modified here, only pendingDrop is set
     if (!region.collapsed)
-        for (const auto& child : region.children)
-            drawRegionNode(*child, selection, tree, depth + 1);
+    {
+        // Copy children ids to avoid iterator invalidation if anything changes
+        std::vector<Region*> childPtrs;
+        childPtrs.reserve(region.children.size());
+        for (const auto& c : region.children) childPtrs.push_back(c.get());
+
+        for (Region* child : childPtrs)
+            drawRegionNode(*child, selection, tree,
+                           pendingSourceId, pendingTargetId, pendingDropReady, depth + 1);
+    }
 }
 
-// Count all regions recursively
 static int countRegions(const RegionTree& tree)
 {
     int n = 0;
@@ -479,9 +485,9 @@ static int countRegions(const RegionTree& tree)
 
 void UILayer::renderRegionTree(Core& core)
 {
-    const Camera& cam     = core.getCamera();
-    SelectionState& sel   = core.getSelection();
-    RegionTree& tree      = core.getRegionTree();
+    const Camera& cam   = core.getCamera();
+    SelectionState& sel = core.getSelection();
+    RegionTree& tree    = core.getRegionTree();
 
     const float viewH      = static_cast<float>(cam.viewportSize.y);
     const float collapsedW = 30.0f;
@@ -499,10 +505,10 @@ void UILayer::renderRegionTree(Core& core)
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 6));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,   ImVec2(4, 4));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.10f, 0.10f, 0.13f, 0.92f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.10f,0.10f,0.13f,0.92f));
     ImGui::Begin("##regiontree", nullptr, flags);
 
-    // Toggle button — full width, arrow centred via draw list
+    // Toggle button
     {
         const float btnH   = 22.0f;
         ImVec2      btnPos = ImGui::GetCursorScreenPos();
@@ -511,32 +517,97 @@ void UILayer::renderRegionTree(Core& core)
         if (ImGui::IsItemHovered())
             ImGui::GetWindowDrawList()->AddRectFilled(btnPos,
                 ImVec2(btnPos.x + panelW, btnPos.y + btnH), IM_COL32(255,255,255,18));
-        const char* arrow  = treeExpanded_ ? "<" : ">";
+        const char* arrow = treeExpanded_ ? "<" : ">";
         ImVec2 gsz = ImGui::CalcTextSize(arrow);
         ImGui::GetWindowDrawList()->AddText(
             ImVec2(btnPos.x + (panelW - gsz.x) * 0.5f,
                    btnPos.y + (btnH   - gsz.y) * 0.5f),
-            IM_COL32(200, 200, 200, 255), arrow);
+            IM_COL32(200,200,200,255), arrow);
     }
 
-    // Larger font for tree content
     ImGui::SetWindowFontScale(1.10f);
 
     if (treeExpanded_)
     {
         ImGui::Separator();
-
-        // Region count in header
-        int total = countRegions(tree);
-        std::string header = "Regions (" + std::to_string(total) + ")";
-        ImGui::Text("%s", header.c_str());
+        ImGui::Text("Regions (%d)", countRegions(tree));
         ImGui::Separator();
 
+        // Pending drop — collected during tree render, executed after
+        RegionId pendingSource  = 0;
+        RegionId pendingTarget  = 0;
+        bool     dropReady      = false;
+
         if (tree.roots().empty())
+        {
             ImGui::TextDisabled("No regions yet.");
+        }
         else
-            for (const auto& root : tree.roots())
-                drawRegionNode(*root, sel, tree, 0);
+        {
+            // Snapshot root pointers before rendering to avoid issues
+            // if the vector is somehow modified (belt-and-suspenders)
+            std::vector<Region*> rootPtrs;
+            rootPtrs.reserve(tree.roots().size());
+            for (const auto& r : tree.roots()) rootPtrs.push_back(r.get());
+
+            for (Region* root : rootPtrs)
+                drawRegionNode(*root, sel, tree,
+                               pendingSource, pendingTarget, dropReady, 0);
+        }
+
+        // Root-level drop zone — fills all remaining space in the panel.
+        // Any area below the last region row acts as "drop to root".
+        float remainingH = ImGui::GetContentRegionAvail().y;
+        if (remainingH < 20.0f) remainingH = 20.0f;
+
+        ImGui::Dummy(ImVec2(panelW - 8.0f, remainingH));
+        if (ImGui::BeginDragDropTarget())
+        {
+            // Show a horizontal line at the top of the drop zone
+            ImVec2 dropMin = ImGui::GetItemRectMin();
+            ImGui::GetWindowDrawList()->AddLine(
+                dropMin, ImVec2(dropMin.x + panelW, dropMin.y),
+                IM_COL32(80,160,255,200), 2.0f);
+
+            if (const ImGuiPayload* payload =
+                ImGui::AcceptDragDropPayload("REGION_ID",
+                    ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+            {
+                if (payload->IsDelivery())
+                {
+                    pendingSource = *(const RegionId*)payload->Data;
+                    pendingTarget = 0; // root
+                    dropReady     = true;
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        // ---- Execute deferred drop AFTER tree is fully rendered ----
+        if (dropReady && pendingSource != 0)
+        {
+            bool valid = (pendingSource != pendingTarget)
+                && !tree.isAncestorOf(pendingSource, pendingTarget);
+
+            if (valid)
+            {
+                Region* src = tree.findById(pendingSource);
+
+                bool geometryOk = true;
+                if (pendingTarget != 0)
+                {
+                    Region* tgt = tree.findById(pendingTarget);
+                    geometryOk = tgt && allPointsInsideParent(*src, tgt->geometry);
+                }
+
+                if (src && geometryOk)
+                {
+                    tree.moveRegion(pendingSource, pendingTarget);
+                    RegionSerializer::save(tree, "regions.json");
+                    sel.clear(); // clear stale parent pointers in viewStack
+                }
+            }
+        }
     }
 
     ImGui::End();
@@ -550,7 +621,7 @@ void UILayer::renderRegionTree(Core& core)
 
 void UILayer::renderSidebar(Core& core)
 {
-    Input& input     = core.getInput();
+    Input& input      = core.getInput();
     const Camera& cam = core.getCamera();
 
     const float sidebarW = 44.0f;
@@ -568,58 +639,49 @@ void UILayer::renderSidebar(Core& core)
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 8));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,   ImVec2(4, 8));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.10f, 0.10f, 0.13f, 0.92f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.10f,0.10f,0.13f,0.92f));
     ImGui::Begin("##sidebar", nullptr, flags);
 
-    ImDrawList* draw   = ImGui::GetWindowDrawList();
-    bool rectTool      = input.getDrawTool() == DrawTool::Rectangle;
-    bool polyTool      = input.getDrawTool() == DrawTool::Polygon;
-    bool drawingRect   = input.isDrawingRect();
-    bool drawingPoly   = input.isDrawingPolygon();
+    ImDrawList* draw  = ImGui::GetWindowDrawList();
+    bool rectTool     = input.getDrawTool() == DrawTool::Rectangle;
+    bool polyTool     = input.getDrawTool() == DrawTool::Polygon;
+    bool drawingRect  = input.isDrawingRect();
+    bool drawingPoly  = input.isDrawingPolygon();
 
     auto btnCol = [](bool active, bool drawing) -> ImVec4 {
-        if (drawing) return ImVec4(0.25f, 0.45f, 0.85f, 1.0f);
-        if (active)  return ImVec4(0.20f, 0.35f, 0.65f, 1.0f);
-        return ImVec4(0.14f, 0.14f, 0.18f, 1.0f);
+        if (drawing) return ImVec4(0.25f,0.45f,0.85f,1.0f);
+        if (active)  return ImVec4(0.20f,0.35f,0.65f,1.0f);
+        return ImVec4(0.14f,0.14f,0.18f,1.0f);
     };
     auto iconCol = [](bool active, bool drawing) -> ImU32 {
-        return (active || drawing) ? IM_COL32(120,180,255,255) : IM_COL32(180,180,200,255);
+        return (active||drawing) ? IM_COL32(120,180,255,255) : IM_COL32(180,180,200,255);
     };
 
-    // ---- Rectangle button ----
     ImGui::PushStyleColor(ImGuiCol_Button, btnCol(rectTool, drawingRect));
-    if (ImGui::Button("##rect", ImVec2(36, 36)))
+    if (ImGui::Button("##rect", ImVec2(36,36)))
     { input.setDrawTool(DrawTool::Rectangle); input.cancelPolygon(); }
     ImGui::PopStyleColor();
     {
-        ImVec2 mn = ImGui::GetItemRectMin(), mx = ImGui::GetItemRectMax();
-        ImVec2 c  = ImVec2((mn.x+mx.x)*0.5f, (mn.y+mx.y)*0.5f);
-        float  sz = 10.0f;
-        draw->AddRect(ImVec2(c.x-sz, c.y-sz*0.65f), ImVec2(c.x+sz, c.y+sz*0.65f),
-            iconCol(rectTool, drawingRect), 2.0f, 0, 1.8f);
+        ImVec2 mn=ImGui::GetItemRectMin(), mx=ImGui::GetItemRectMax();
+        ImVec2 c=ImVec2((mn.x+mx.x)*0.5f,(mn.y+mx.y)*0.5f); float sz=10.0f;
+        draw->AddRect(ImVec2(c.x-sz,c.y-sz*0.65f),ImVec2(c.x+sz,c.y+sz*0.65f),
+            iconCol(rectTool,drawingRect),2.0f,0,1.8f);
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Rectangle [R]");
 
-    // ---- Polygon button ----
     ImGui::PushStyleColor(ImGuiCol_Button, btnCol(polyTool, drawingPoly));
-    if (ImGui::Button("##poly", ImVec2(36, 36)))
-        input.setDrawTool(DrawTool::Polygon);
+    if (ImGui::Button("##poly", ImVec2(36,36))) input.setDrawTool(DrawTool::Polygon);
     ImGui::PopStyleColor();
     {
-        ImVec2 mn  = ImGui::GetItemRectMin(), mx = ImGui::GetItemRectMax();
-        ImVec2 c   = ImVec2((mn.x+mx.x)*0.5f, (mn.y+mx.y)*0.5f);
-        float  r   = 11.0f;
-        ImU32  col = iconCol(polyTool, drawingPoly);
-        const int  sides = 6;
-        const float PI   = 3.14159265f;
-        for (int i = 0; i < sides; i++)
+        ImVec2 mn=ImGui::GetItemRectMin(), mx=ImGui::GetItemRectMax();
+        ImVec2 c=ImVec2((mn.x+mx.x)*0.5f,(mn.y+mx.y)*0.5f);
+        float r=11.0f; ImU32 col=iconCol(polyTool,drawingPoly);
+        const float PI=3.14159265f;
+        for (int i=0;i<6;i++)
         {
-            float a0 = PI/2.0f + i       * 2.0f*PI/sides;
-            float a1 = PI/2.0f + (i + 1) * 2.0f*PI/sides;
-            draw->AddLine(
-                ImVec2(c.x + r*cosf(a0), c.y - r*sinf(a0)),
-                ImVec2(c.x + r*cosf(a1), c.y - r*sinf(a1)),
-                col, 1.8f);
+            float a0=PI/2.0f+i*2.0f*PI/6.0f, a1=PI/2.0f+(i+1)*2.0f*PI/6.0f;
+            draw->AddLine(ImVec2(c.x+r*cosf(a0),c.y-r*sinf(a0)),
+                          ImVec2(c.x+r*cosf(a1),c.y-r*sinf(a1)),col,1.8f);
         }
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Polygon [P]");

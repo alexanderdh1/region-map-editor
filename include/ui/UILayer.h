@@ -22,9 +22,14 @@ private:
     bool nameFieldActive_ = false;
     bool noteFieldActive_ = false;
 
-    // Debounce auto-save for name/note text fields.
-    // When either field is edited, dirtyTime_ is set to glfwGetTime().
-    // If it stays dirty for SAVE_DEBOUNCE_S seconds, we save.
-    double dirtyTime_   = -1.0;  // -1 = not dirty
+    // Debounce auto-save for name/note text fields
+    double dirtyTime_ = -1.0;
     static constexpr double SAVE_DEBOUNCE_S = 1.0;
+
+    // Tree drag-and-drop state
+    RegionId dragSourceId_  = 0;     // region being dragged (0 = none)
+    RegionId dropTargetId_  = 0;     // region hovered as potential parent (0 = root)
+    bool     draggingInTree_ = false;
+    Vec2     dragGhostPos_  { 0, 0 };
+    std::string dragGhostName_;
 };

@@ -21,6 +21,15 @@ public:
     // Remove a region (and all its children) by id.
     void removeRegion(RegionId id);
 
+    // Move an existing region to a new parent (or to root if newParentId == 0).
+    // The region and all its children move together.
+    // Returns false if the move is invalid (cycle, same parent, not found).
+    bool moveRegion(RegionId regionId, RegionId newParentId);
+
+    // Returns true if 'ancestorId' is an ancestor of 'regionId' (or equal).
+    // Used to prevent cycles when reparenting.
+    bool isAncestorOf(RegionId ancestorId, RegionId regionId) const;
+
     // Find a region by id anywhere in the tree.
     Region* findById(RegionId id) const;
 
@@ -35,7 +44,6 @@ public:
     RegionId nextId();
 
     // Ensure the next generated ID will be above the given value.
-    // Used when loading regions to avoid ID collisions.
     void ensureNextIdAbove(RegionId id)
     {
         if (nextId_ <= id) nextId_ = id + 1;
@@ -45,11 +53,18 @@ private:
     std::vector<std::unique_ptr<Region>> roots_;
     RegionId nextId_ = 1;
 
-    // Internal recursive helpers
     Region* findByIdIn(
         const std::vector<std::unique_ptr<Region>>& list,
         RegionId id
     ) const;
+
+    // Detach a region from wherever it lives, returning ownership.
+    // Does NOT recurse into the detached region's children (they come along).
+    std::unique_ptr<Region> detachRegion(RegionId id);
+    std::unique_ptr<Region> detachFromList(
+        std::vector<std::unique_ptr<Region>>& list,
+        RegionId id
+    );
 
     bool removeFromList(
         std::vector<std::unique_ptr<Region>>& list,
