@@ -20,6 +20,7 @@ struct EditState
     Region*        target      = nullptr;
     EditHandleType handleType  = EditHandleType::None;
     int            handleIndex = -1;
+    int            hoveredHandleIndex = -1;   // index under cursor this frame (-1 = none)
     Vec2 dragOriginWorld { 0.0, 0.0 };
 
     bool isActive()   const { return target != nullptr; }
@@ -30,6 +31,7 @@ struct EditState
         target          = nullptr;
         handleType      = EditHandleType::None;
         handleIndex     = -1;
+        hoveredHandleIndex = -1;
         dragOriginWorld = { 0.0, 0.0 };
     }
 
@@ -37,6 +39,7 @@ struct EditState
     {
         handleType      = EditHandleType::None;
         handleIndex     = -1;
+        hoveredHandleIndex = -1;
         dragOriginWorld = { 0.0, 0.0 };
     }
 };

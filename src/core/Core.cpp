@@ -9,7 +9,7 @@
 #include <cmath>
 
 static constexpr double MIN_REGION_SIZE  = 4.0;
-static constexpr double HANDLE_RADIUS_PX = 8.0;
+static constexpr double HANDLE_RADIUS_PX = 12.0;
 static constexpr double EDGE_HIT_PX     = 8.0;
 
 Core::Core() = default;
@@ -299,6 +299,45 @@ void Core::updateEditMode(GLFWwindow* window)
 
     // Pan is disabled in edit mode.
 
+    // ---- Update hover highlight every frame ----
+    // This drives the visual highlight in RegionRenderer independently of drag state.
+    editState.hoveredHandleIndex = -1;
+    if (editState.isActive() && !editState.isDragging())
+    {
+        const Region& hoverRegion = *editState.target;
+        if (hoverRegion.geometry.type == GeometryType::Polygon)
+        {
+            const auto& pts = hoverRegion.geometry.points;
+            for (int i = 0; i < static_cast<int>(pts.size()); i++)
+            {
+                Vec2 s = cam.worldToScreen(pts[i]);
+                if (std::hypot(mouseScreen.x - s.x, mouseScreen.y - s.y) <= HANDLE_RADIUS_PX)
+                {
+                    editState.hoveredHandleIndex = i;
+                    break;
+                }
+            }
+        }
+        else if (hoverRegion.geometry.type == GeometryType::Rectangle)
+        {
+            Vec2 worldCorners[4] = {
+                { hoverRegion.geometry.rectMin.x, hoverRegion.geometry.rectMax.y },
+                { hoverRegion.geometry.rectMax.x, hoverRegion.geometry.rectMax.y },
+                { hoverRegion.geometry.rectMax.x, hoverRegion.geometry.rectMin.y },
+                { hoverRegion.geometry.rectMin.x, hoverRegion.geometry.rectMin.y },
+            };
+            for (int i = 0; i < 4; i++)
+            {
+                Vec2 s = cam.worldToScreen(worldCorners[i]);
+                if (std::hypot(mouseScreen.x - s.x, mouseScreen.y - s.y) <= HANDLE_RADIUS_PX)
+                {
+                    editState.hoveredHandleIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+
     // ---- Polygon edge insertion (plain click on edge) ----
     if (input.hasEditClick())
     {
@@ -555,8 +594,9 @@ void Core::deleteEditPoint()
     if (n <= 3) return;
 
     pts.erase(pts.begin() + idx);
-    editState.handleIndex = std::min(editState.handleIndex,
-                                     static_cast<int>(pts.size()) - 1);
+    // Clear the entire drag state so the dragging block that runs later
+    // in the same frame cannot write through a now-stale handleIndex.
+    editState.clearDrag();
 
     RegionSerializer::save(regionTree, "regions.json", *this);
 }

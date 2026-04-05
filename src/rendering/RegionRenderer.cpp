@@ -64,13 +64,14 @@ void RegionRenderer::renderEditHandles(const Core& core) const
         };
         for (int i = 0; i < 4; i++)
         {
-            bool active = (edit.handleType == EditHandleType::RectCorner &&
-                           edit.handleIndex == i);
+            bool active  = (edit.handleType == EditHandleType::RectCorner &&
+                            edit.handleIndex == i);
+            bool hovered = (!active && edit.hoveredHandleIndex == i);
             drawHandle(corners[i],
-                active ? 1.0f : 1.0f,
-                active ? 0.85f : 1.0f,
-                active ? 0.2f : 1.0f,
-                active ? 7.0f : 6.0f);
+                active  ? 1.0f  : hovered ? 1.0f  : 1.0f,
+                active  ? 0.85f : hovered ? 0.85f : 1.0f,
+                active  ? 0.2f  : hovered ? 0.0f  : 1.0f,
+                active  ? 8.0f  : hovered ? 7.5f  : 6.0f);
         }
     }
     else if (region.geometry.type == GeometryType::Polygon)
@@ -79,13 +80,14 @@ void RegionRenderer::renderEditHandles(const Core& core) const
         for (int i = 0; i < static_cast<int>(polyPts.size()); i++)
         {
             Vec2 s = camera.worldToScreen(polyPts[i]);
-            bool active = (edit.handleType == EditHandleType::PolyPoint &&
-                           edit.handleIndex == i);
+            bool active  = (edit.handleType == EditHandleType::PolyPoint &&
+                            edit.handleIndex == i);
+            bool hovered = (!active && edit.hoveredHandleIndex == i);
             drawHandle(s,
-                active ? 1.0f : 1.0f,
-                active ? 0.85f : 1.0f,
-                active ? 0.2f : 1.0f,
-                active ? 7.0f : 6.0f);
+                active  ? 1.0f  : hovered ? 1.0f  : 1.0f,
+                active  ? 0.85f : hovered ? 0.85f : 1.0f,
+                active  ? 0.2f  : hovered ? 0.0f  : 1.0f,
+                active  ? 8.0f  : hovered ? 7.5f  : 6.0f);
         }
     }
 }
