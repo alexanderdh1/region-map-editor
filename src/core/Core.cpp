@@ -297,7 +297,11 @@ void Core::updateEditMode(GLFWwindow* window)
     glfwGetCursorPos(window, &mouseX, &mouseY);
     Vec2 mouseScreen{ mouseX, mouseY };
 
-    // Pan is disabled in edit mode.
+    // Pan accumulates in Input when a drag starts on empty space (no handle hit).
+    // redirectEditToPan() switches Input into Navigate mode so onMouseMove
+    // feeds panDelta normally — we just apply whatever arrived.
+    if (input.hasPanDelta())
+        cam.panBy(input.consumePanDelta());
 
     // ---- Update hover highlight every frame ----
     // This drives the visual highlight in RegionRenderer independently of drag state.
@@ -387,6 +391,32 @@ void Core::updateEditMode(GLFWwindow* window)
                 pts.insert(pts.begin() + bestEdge + 1, clickWorld);
                 RegionSerializer::save(regionTree, "regions.json", *this);
             }
+            else
+            {
+                // Click outside region geometry and all edges — deselect handle
+                bool outsideGeometry = !region.geometry.contains(clickWorld);
+                bool outsideEdges    = true;
+                for (int i = 0; i < n && outsideEdges; i++)
+                {
+                    int j = (i + 1) % n;
+                    Vec2 sA = cam.worldToScreen(pts[i]);
+                    Vec2 sB = cam.worldToScreen(pts[j]);
+                    Vec2 ab { sB.x - sA.x, sB.y - sA.y };
+                    Vec2 ap { clickScreen.x - sA.x, clickScreen.y - sA.y };
+                    double lenSq = ab.x * ab.x + ab.y * ab.y;
+                    double t = (lenSq > 0.0)
+                        ? std::clamp((ap.x * ab.x + ap.y * ab.y) / lenSq, 0.0, 1.0)
+                        : 0.0;
+                    Vec2 closest { sA.x + t * ab.x, sA.y + t * ab.y };
+                    double dist = std::hypot(
+                        clickScreen.x - closest.x,
+                        clickScreen.y - closest.y);
+                    if (dist <= EDGE_HIT_PX)
+                        outsideEdges = false;
+                }
+                if (outsideGeometry && outsideEdges)
+                    editState.clearDrag();
+            }
         }
         // Note: target selection is no longer done here.
         // The edit target is always the selected region (set when entering edit mode).
@@ -443,6 +473,9 @@ void Core::updateEditMode(GLFWwindow* window)
                 }
             }
         }
+
+        // No handle was hit — redirect into normal pan
+        input.redirectEditToPan(startScreen);
     }
 
     // ---- Dragging ----

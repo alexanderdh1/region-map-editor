@@ -13,6 +13,9 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
         // ---- EDIT MODE ----
         if (activeTool == DrawTool::Edit)
         {
+            // Pan is handled by falling through to Navigate if not pressing on a handle.
+            // We don't know yet if the press is on a handle (that check lives in Core),
+            // so we always arm the edit state; Core will clear it and start pan if needed.
             mode                = InputMode::Edit;
             editMouseButtonHeld = true;
             editDragging        = false;
@@ -94,10 +97,13 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
                 editClickPending = true;
                 editClickPos     = mousePos;
             }
-            editDidDrag      = false;
-            editDragDelta       = { 0.0, 0.0 };
-            editDragTotalDelta  = { 0.0, 0.0 };
-            mode             = InputMode::Navigate;
+            editDidDrag        = false;
+            editDragDelta      = { 0.0, 0.0 };
+            editDragTotalDelta = { 0.0, 0.0 };
+            // Also stop any pan that was started via redirectEditToPan
+            dragging = false;
+            didDrag  = false;
+            mode     = InputMode::Navigate;
             return;
         }
 
@@ -158,10 +164,15 @@ void Input::onMouseMove(const Vec2& mousePos)
                 editDragTotalDelta.x += delta.x;
                 editDragTotalDelta.y += delta.y;
             }
+
+            editLastMousePos = mousePos;
+            return; // still in edit drag — don't feed pan
         }
 
+        // editMouseButtonHeld is false: either button not pressed, or
+        // redirectEditToPan() was called and set dragging=true for pan.
+        // Fall through to the pan accumulation path below.
         editLastMousePos = mousePos;
-        return;
     }
 
     if (mode == InputMode::DrawPolygon || mode == InputMode::DrawRect)

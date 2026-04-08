@@ -98,6 +98,20 @@ public:
 
     void cancelEdit();
 
+    // Called by Core when an edit-mode press misses all handles — redirects into pan.
+    void redirectEditToPan(const Vec2& mousePos)
+    {
+        editMouseButtonHeld  = false;
+        editDragging         = false;
+        editDragStartPending = false;
+        editDragDelta        = { 0.0, 0.0 };
+        editDragTotalDelta   = { 0.0, 0.0 };
+        mode         = InputMode::Navigate;
+        dragging     = true;
+        didDrag      = false;
+        lastMousePos = mousePos;
+    }
+
     // --- Click ---
     bool hasClick() const;
     Vec2 consumeClick();
