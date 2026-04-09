@@ -49,24 +49,11 @@ void loadSingleImageWorld(
 
         core.setWorldBlockBounds(minBlockX, minBlockZ, maxBlockX, maxBlockZ);
         core.setBlockCoordMode(true);
-
-        std::cout << "[WorldLoader] Loaded: " << basePath << "\n"
-                  << "  Mode  : Block coordinates\n"
-                  << "  Image : " << texture->getWidth()
-                  << " x "        << texture->getHeight() << " px\n"
-                  << "  Blocks: ("
-                  << minBlockX << ", " << minBlockZ << ") to ("
-                  << maxBlockX << ", " << maxBlockZ << ")\n";
     }
     else
     {
         // Image mode: no metadata, use normalised coordinates
         core.setBlockCoordMode(false);
-
-        std::cout << "[WorldLoader] Loaded: " << basePath << "\n"
-                  << "  Mode  : Image (normalised coordinates)\n"
-                  << "  Image : " << texture->getWidth()
-                  << " x "        << texture->getHeight() << " px\n";
     }
 
     // ---- Create single tile ----

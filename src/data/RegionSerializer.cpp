@@ -185,9 +185,6 @@ bool RegionSerializer::save(const RegionTree& tree,
     }
 
     file << root.dump(2);
-    std::cout << "[RegionSerializer] Saved " << regions.size()
-              << " region(s) to " << path
-              << " (" << root["coord_mode"].get<std::string>() << " mode)\n";
     return true;
 }
 
@@ -240,6 +237,5 @@ bool RegionSerializer::load(RegionTree& tree,
         count++;
     }
 
-    std::cout << "[RegionSerializer] Loaded " << count << " region(s) from " << path << "\n";
     return true;
 }
