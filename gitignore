@@ -14,8 +14,9 @@ CMakeFiles/
 cmake_install.cmake
 Makefile
 
-# Assets (likely large files — track separately or via Git LFS)
-assets/
+# Assets — local map data only, fonts are tracked
+assets/overworld.png
+assets/overworld.json
 
 # IDE
 .vs/

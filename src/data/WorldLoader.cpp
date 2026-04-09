@@ -37,7 +37,7 @@ void loadSingleImageWorld(
 
     if (hasJson)
     {
-        // Minecraft mode: block-coordinate metadata available
+        // Block-coordinate mode: metadata available
         std::ifstream file(jsonPath);
         json j;
         file >> j;
@@ -48,10 +48,10 @@ void loadSingleImageWorld(
         int maxBlockZ = j.at("maxBlockZ").get<int>();
 
         core.setWorldBlockBounds(minBlockX, minBlockZ, maxBlockX, maxBlockZ);
-        core.setMinecraftMode(true);
+        core.setBlockCoordMode(true);
 
         std::cout << "[WorldLoader] Loaded: " << basePath << "\n"
-                  << "  Mode  : Minecraft (block coordinates)\n"
+                  << "  Mode  : Block coordinates\n"
                   << "  Image : " << texture->getWidth()
                   << " x "        << texture->getHeight() << " px\n"
                   << "  Blocks: ("
@@ -61,7 +61,7 @@ void loadSingleImageWorld(
     else
     {
         // Image mode: no metadata, use normalised coordinates
-        core.setMinecraftMode(false);
+        core.setBlockCoordMode(false);
 
         std::cout << "[WorldLoader] Loaded: " << basePath << "\n"
                   << "  Mode  : Image (normalised coordinates)\n"

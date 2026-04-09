@@ -49,7 +49,7 @@ static json serializeGeometry(const RegionGeometry& g, const Core& core)
 
     auto convertPt = [&](const Vec2& world) -> json
     {
-        if (core.isMinecraftMode())
+        if (core.isBlockCoordMode())
         {
             BlockCoord b = core.worldToBlock(world);
             return { b.x, b.z };
@@ -83,7 +83,7 @@ static RegionGeometry deserializeGeometry(const json& j, const Core& core)
 
     auto convertPt = [&](const json& pt) -> Vec2
     {
-        if (core.isMinecraftMode())
+        if (core.isBlockCoordMode())
         {
             BlockCoord b { pt[0].get<int>(), pt[1].get<int>() };
             return core.blockToWorld(b);
@@ -170,7 +170,7 @@ bool RegionSerializer::save(const RegionTree& tree,
 {
     json root;
     root["version"]    = 3;
-    root["coord_mode"] = core.isMinecraftMode() ? "minecraft" : "normalised";
+    root["coord_mode"] = core.isBlockCoordMode() ? "block" : "normalised";
 
     json regions = json::array();
     for (const auto& r : tree.roots())
@@ -214,7 +214,7 @@ bool RegionSerializer::load(RegionTree& tree,
     if (root.contains("coord_mode"))
     {
         std::string fileMode = root["coord_mode"].get<std::string>();
-        std::string currMode = core.isMinecraftMode() ? "minecraft" : "normalised";
+        std::string currMode = core.isBlockCoordMode() ? "block" : "normalised";
         if (fileMode != currMode)
         {
             std::cerr << "[RegionSerializer] Warning: file was saved in '"

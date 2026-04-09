@@ -64,10 +64,10 @@ public:
     );
 
     // Called by WorldLoader to signal which coordinate mode is active.
-    // minecraft = true  → save/load in block coordinates (requires JSON metadata)
-    // minecraft = false → save/load in normalised image coordinates (0.0–1.0)
-    void setMinecraftMode(bool enabled) { minecraftMode_ = enabled; }
-    bool isMinecraftMode()        const { return minecraftMode_; }
+    // block = true  → save/load in block coordinates (requires JSON metadata)
+    // block = false → save/load in normalised image coordinates (0.0–1.0)
+    void setBlockCoordMode(bool enabled) { blockCoordMode_ = enabled; }
+    bool isBlockCoordMode()        const { return blockCoordMode_; }
 
     double getWorldWidth()  const { return worldWidth; }
     double getWorldHeight() const { return worldHeight; }
@@ -103,7 +103,7 @@ private:
     double worldWidth  = 0.0;
     double worldHeight = 0.0;
 
-    bool minecraftMode_ = false;
+    bool blockCoordMode_ = false;
 
     int worldMinBlockX = 0;
     int worldMinBlockZ = 0;
