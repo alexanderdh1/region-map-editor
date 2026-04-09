@@ -52,7 +52,7 @@ A desktop application for drawing and organizing regions on top of a map image. 
 
 ```bash
 git clone https://github.com/alexanderdh1/region-map-editor.git
-cd spatial-map-editor
+cd region-map-editor
 
 # Install dependencies
 vcpkg install glfw3
