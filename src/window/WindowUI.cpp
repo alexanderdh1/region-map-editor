@@ -15,7 +15,7 @@ void updateWindowTitle(GLFWwindow* window, const Core& core)
 
     const Camera& camera = core.getCamera();
 
-    glfwSetWindowTitle(window, "Spatial Map Editor");
+    glfwSetWindowTitle(window, "Region Map Editor");
 
     // --- Cursor shape ---
     // Switch to a crosshair when hovering near a handle in edit mode,

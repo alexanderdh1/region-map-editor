@@ -22,7 +22,7 @@
 
 int main()
 {
-    GLFWwindow* window = createWindow(1280, 720, "Spatial Map Editor");
+    GLFWwindow* window = createWindow(1280, 720, "Region Map Editor");
     if (!window) return -1;
 
     setupOpenGLState();
