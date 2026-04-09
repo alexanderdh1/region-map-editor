@@ -171,17 +171,17 @@ void RegionRenderer::renderRegion(const Region& region, const Camera& camera) co
 void RegionRenderer::renderRectPreview(
     const Input& input, const Camera& camera) const
 {
-    Vec2 worldA = input.getDrawStartWorld();
+    Vec2 mapA = input.getDrawStartMap();
     Vec2 cur    = input.getDrawCurrent();
     cur.x = std::max(0.0, std::min(cur.x, camera.viewportSize.x));
     cur.y = std::max(0.0, std::min(cur.y, camera.viewportSize.y));
-    Vec2 worldB = camera.screenToWorld(cur);
+    Vec2 mapB = camera.screenToWorld(cur);
 
     std::vector<Vec2> corners = {
-        { std::min(worldA.x, worldB.x), std::min(worldA.y, worldB.y) },
-        { std::max(worldA.x, worldB.x), std::min(worldA.y, worldB.y) },
-        { std::max(worldA.x, worldB.x), std::max(worldA.y, worldB.y) },
-        { std::min(worldA.x, worldB.x), std::max(worldA.y, worldB.y) },
+        { std::min(mapA.x, mapB.x), std::min(mapA.y, mapB.y) },
+        { std::max(mapA.x, mapB.x), std::min(mapA.y, mapB.y) },
+        { std::max(mapA.x, mapB.x), std::max(mapA.y, mapB.y) },
+        { std::min(mapA.x, mapB.x), std::max(mapA.y, mapB.y) },
     };
 
     drawFilledPolygon(camera, corners, 1.0f, 1.0f, 1.0f, 0.15f);
@@ -198,8 +198,8 @@ void RegionRenderer::renderRectPreview(
 void RegionRenderer::renderPolygonPreview(
     const Input& input, const Camera& camera) const
 {
-    const std::vector<Vec2>& worldPts = input.getPolygonWorldPoints();
-    if (worldPts.empty()) return;
+    const std::vector<Vec2>& mapPts = input.getPolygonMapPoints();
+    if (mapPts.empty()) return;
 
     glDisable(GL_STENCIL_TEST);
     glDisable(GL_CULL_FACE);
@@ -208,12 +208,12 @@ void RegionRenderer::renderPolygonPreview(
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    if (worldPts.size() >= 2)
+    if (mapPts.size() >= 2)
     {
         glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
         glLineWidth(1.2f);
         glBegin(GL_LINE_STRIP);
-        for (const Vec2& p : worldPts)
+        for (const Vec2& p : mapPts)
         {
             Vec2 s = camera.worldToScreen(p);
             glVertex2d(s.x, s.y);
@@ -222,7 +222,7 @@ void RegionRenderer::renderPolygonPreview(
         glLineWidth(1.0f);
     }
 
-    Vec2 lastScreen   = camera.worldToScreen(worldPts.back());
+    Vec2 lastScreen   = camera.worldToScreen(mapPts.back());
     Vec2 cursorScreen = input.getPolygonCursor();
 
     glColor4f(1.0f, 1.0f, 1.0f, 0.35f);
@@ -234,7 +234,7 @@ void RegionRenderer::renderPolygonPreview(
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glPointSize(6.0f);
     glBegin(GL_POINTS);
-    for (const Vec2& p : worldPts)
+    for (const Vec2& p : mapPts)
     {
         Vec2 s = camera.worldToScreen(p);
         glVertex2d(s.x, s.y);
@@ -242,9 +242,9 @@ void RegionRenderer::renderPolygonPreview(
     glEnd();
     glPointSize(1.0f);
 
-    if (worldPts.size() >= 3)
+    if (mapPts.size() >= 3)
     {
-        Vec2 first = camera.worldToScreen(worldPts[0]);
+        Vec2 first = camera.worldToScreen(mapPts[0]);
         glColor4f(1.0f, 0.8f, 0.2f, 1.0f);
         glPointSize(9.0f);
         glBegin(GL_POINTS);
@@ -260,10 +260,10 @@ void RegionRenderer::renderPolygonPreview(
 
 void RegionRenderer::drawFilledPolygon(
     const Camera& camera,
-    const std::vector<Vec2>& worldPoints,
+    const std::vector<Vec2>& mapPoints,
     float r, float g, float b, float a) const
 {
-    if (worldPoints.size() < 3) return;
+    if (mapPoints.size() < 3) return;
 
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_CULL_FACE);
@@ -276,12 +276,12 @@ void RegionRenderer::drawFilledPolygon(
     glStencilMask(0xFF);
     glClear(GL_STENCIL_BUFFER_BIT);
 
-    Vec2 origin = camera.worldToScreen(worldPoints[0]);
+    Vec2 origin = camera.worldToScreen(mapPoints[0]);
     glBegin(GL_TRIANGLE_FAN);
     glVertex2d(origin.x, origin.y);
-    for (size_t i = 1; i < worldPoints.size(); i++)
+    for (size_t i = 1; i < mapPoints.size(); i++)
     {
-        Vec2 s = camera.worldToScreen(worldPoints[i]);
+        Vec2 s = camera.worldToScreen(mapPoints[i]);
         glVertex2d(s.x, s.y);
     }
     glVertex2d(origin.x, origin.y);
@@ -298,9 +298,9 @@ void RegionRenderer::drawFilledPolygon(
 
     glBegin(GL_TRIANGLE_FAN);
     glVertex2d(origin.x, origin.y);
-    for (size_t i = 1; i < worldPoints.size(); i++)
+    for (size_t i = 1; i < mapPoints.size(); i++)
     {
-        Vec2 s = camera.worldToScreen(worldPoints[i]);
+        Vec2 s = camera.worldToScreen(mapPoints[i]);
         glVertex2d(s.x, s.y);
     }
     glVertex2d(origin.x, origin.y);
@@ -311,7 +311,7 @@ void RegionRenderer::drawFilledPolygon(
 
 void RegionRenderer::drawOutline(
     const Camera& camera,
-    const std::vector<Vec2>& worldPoints,
+    const std::vector<Vec2>& mapPoints,
     float r, float g, float b, float a,
     bool closed) const
 {
@@ -323,7 +323,7 @@ void RegionRenderer::drawOutline(
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor4f(r, g, b, a);
     glBegin(closed ? GL_LINE_LOOP : GL_LINE_STRIP);
-    for (const Vec2& p : worldPoints)
+    for (const Vec2& p : mapPoints)
     {
         Vec2 s = camera.worldToScreen(p);
         glVertex2d(s.x, s.y);

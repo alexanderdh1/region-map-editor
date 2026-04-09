@@ -16,10 +16,10 @@ private:
     void renderRegionTree(Core& core);
     void renderPopup(Core& core);
 
-    bool treeExpanded_      = false;
-    bool nameFieldActive_   = false;
-    bool noteFieldActive_   = false;
-    bool colourPickerOpen_  = false;
+    bool treeExpanded_ = false;
+    bool nameFieldActive_ = false;
+    bool noteFieldActive_ = false;
+    bool colourPickerOpen_ = false;
 
     // Debounce auto-save for name/note text fields
     double dirtyTime_ = -1.0;

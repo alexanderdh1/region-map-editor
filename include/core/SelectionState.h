@@ -4,10 +4,12 @@
 #include "data/Region.h"
 #include "math/Vec2.h"
 
+// Tracks the currently selected region and the navigation history
+// for moving into sub-region popups and back out again.
 struct SelectionState
 {
     Region* selectedRegion = nullptr;
-    bool    popupOpen      = false;
+    bool popupOpen = false;
 
     // Navigation stack: when viewing a sub-region popup,
     // this holds the chain of parents so we can go back.
@@ -17,7 +19,7 @@ struct SelectionState
     void select(Region* region)
     {
         selectedRegion = region;
-        popupOpen      = (region != nullptr);
+        popupOpen = (region != nullptr);
         viewStack.clear();
     }
 
@@ -26,7 +28,7 @@ struct SelectionState
         if (selectedRegion)
             viewStack.push_back(selectedRegion);
         selectedRegion = child;
-        popupOpen      = true;
+        popupOpen = true;
     }
 
     void popView()
@@ -48,7 +50,7 @@ struct SelectionState
     void clear()
     {
         selectedRegion = nullptr;
-        popupOpen      = false;
+        popupOpen = false;
         viewStack.clear();
     }
 

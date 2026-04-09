@@ -19,13 +19,13 @@ private:
 
     void drawFilledPolygon(
         const Camera& camera,
-        const std::vector<Vec2>& worldPoints,
+        const std::vector<Vec2>& mapPoints,
         float r, float g, float b, float a
     ) const;
 
     void drawOutline(
         const Camera& camera,
-        const std::vector<Vec2>& worldPoints,
+        const std::vector<Vec2>& mapPoints,
         float r, float g, float b, float a,
         bool closed = true
     ) const;

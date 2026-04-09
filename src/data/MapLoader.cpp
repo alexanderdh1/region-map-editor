@@ -37,7 +37,7 @@ void loadMap(
 
     if (hasJson)
     {
-        // Block-coordinate mode: metadata available
+        // Map coordinate mode: metadata available
         std::ifstream file(jsonPath);
         json j;
         file >> j;

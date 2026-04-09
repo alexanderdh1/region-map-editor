@@ -27,9 +27,9 @@ void updateWindowTitle(GLFWwindow* window, const Core& core)
     {
         const Region& region = *edit.target;
 
-        auto checkPt = [&](const Vec2& worldPt)
+        auto checkPt = [&](const Vec2& mapPt)
         {
-            Vec2 s = camera.worldToScreen(worldPt);
+            Vec2 s = camera.worldToScreen(mapPt);
             double dist = std::hypot(mouseX - s.x, mouseY - s.y);
             if (dist <= HANDLE_HOVER_PX) nearHandle = true;
         };

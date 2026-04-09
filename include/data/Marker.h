@@ -5,6 +5,6 @@
 
 struct Marker
 {
-    Vec2        position;
+    Vec2 position;
     std::string note;
 };

@@ -18,7 +18,7 @@ void Camera::panBy(const Vec2& delta)
     position.y += delta.y / zoom;
 
     // Hard clamp immediately so a single fast swipe never overshoots
-    // the world border even for one frame.
+    // the map border even for one frame.
     if (mapWidth_ > 0.0 && mapHeight_ > 0.0)
         clampToBounds(mapWidth_, mapHeight_);
 }

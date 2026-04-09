@@ -26,7 +26,7 @@ public:
     void onScroll(double yOffset);
 
     void setDrawTool(DrawTool tool) { activeTool = tool; }
-    DrawTool getDrawTool() const    { return activeTool; }
+    DrawTool getDrawTool() const { return activeTool; }
 
     // --- Navigation ---
     bool hasPanDelta() const;
@@ -39,13 +39,13 @@ public:
     InputMode getMode() const { return mode; }
 
     bool isDrawingRect() const;
-    Vec2 getDrawStart()      const { return drawStart; }
-    Vec2 getDrawCurrent()    const { return drawCurrent; }
-    Vec2 getDrawStartWorld() const { return drawStartWorld; }
-    void setDrawStartWorld(const Vec2& w) { drawStartWorld = w; }
+    Vec2 getDrawStart() const { return drawStart; }
+    Vec2 getDrawCurrent() const { return drawCurrent; }
+    Vec2 getDrawStartMap() const { return drawStartMap; }
+    void setDrawStartMap(const Vec2& w) { drawStartMap = w; }
 
     bool isRectJustStarted() const { return rectJustStarted; }
-    void consumeRectJustStarted()  { rectJustStarted = false; }
+    void consumeRectJustStarted() { rectJustStarted = false; }
 
     bool hasCompletedRect() const;
     void consumeCompletedRect();
@@ -56,10 +56,10 @@ public:
 
     Vec2 getPolygonCursor() const { return drawCurrent; }
 
-    const std::vector<Vec2>& getPolygonWorldPoints() const { return polyWorldPoints; }
-    void addPolygonWorldPoint(const Vec2& worldPt) { polyWorldPoints.push_back(worldPt); }
+    const std::vector<Vec2>& getPolygonMapPoints() const { return polyMapPoints; }
+    void addPolygonMapPoint(const Vec2& mapPt) { polyMapPoints.push_back(mapPt); }
 
-    bool hasPendingPolyPoint() const  { return pendingPolyPoint; }
+    bool hasPendingPolyPoint() const { return pendingPolyPoint; }
     Vec2 consumePendingPolyPoint()
     {
         pendingPolyPoint = false;
@@ -73,11 +73,11 @@ public:
     void closePolygon();
 
     // --- Edit mode ---
-    bool hasEditDragStart() const     { return editDragStartPending; }
-    Vec2 consumeEditDragStart()       { editDragStartPending = false; return editDragStartPos; }
+    bool hasEditDragStart() const { return editDragStartPending; }
+    Vec2 consumeEditDragStart() { editDragStartPending = false; return editDragStartPos; }
 
-    bool isEditDragging() const       { return editDragging; }
-    Vec2 getEditDragCurrent() const   { return drawCurrent; }
+    bool isEditDragging() const { return editDragging; }
+    Vec2 getEditDragCurrent() const { return drawCurrent; }
     // Per-frame delta (consumed each call) — used for unconstrained ops
     Vec2 getEditDragDelta()
     {
@@ -90,11 +90,11 @@ public:
     // Never resets mid-drag, so there is no accumulated offset when blocked.
     Vec2 getEditDragTotalDelta() const { return editDragTotalDelta; }
 
-    bool hasEditDragEnd() const       { return editDragEndPending; }
-    void consumeEditDragEnd()         { editDragEndPending = false; }
+    bool hasEditDragEnd() const { return editDragEndPending; }
+    void consumeEditDragEnd() { editDragEndPending = false; }
 
-    bool hasEditClick() const         { return editClickPending; }
-    Vec2 consumeEditClick()           { editClickPending = false; return editClickPos; }
+    bool hasEditClick() const { return editClickPending; }
+    Vec2 consumeEditClick() { editClickPending = false; return editClickPos; }
 
     void cancelEdit();
 
@@ -102,13 +102,13 @@ public:
     void redirectEditToPan(const Vec2& mousePos)
     {
         editMouseButtonHeld  = false;
-        editDragging         = false;
+        editDragging = false;
         editDragStartPending = false;
-        editDragDelta        = { 0.0, 0.0 };
-        editDragTotalDelta   = { 0.0, 0.0 };
-        mode         = InputMode::Navigate;
-        dragging     = true;
-        didDrag      = false;
+        editDragDelta = { 0.0, 0.0 };
+        editDragTotalDelta = { 0.0, 0.0 };
+        mode = InputMode::Navigate;
+        dragging = true;
+        didDrag = false;
         lastMousePos = mousePos;
     }
 
@@ -117,58 +117,58 @@ public:
     Vec2 consumeClick();
 
     // --- Right-click ---
-    bool hasRightClick() const  { return rightClickPending; }
-    Vec2 consumeRightClick()    { rightClickPending = false; return rightClickPos; }
+    bool hasRightClick() const { return rightClickPending; }
+    Vec2 consumeRightClick() { rightClickPending = false; return rightClickPos; }
 
 private:
-    DrawTool  activeTool = DrawTool::Rectangle;
-    InputMode mode       = InputMode::Navigate;
+    DrawTool activeTool = DrawTool::Rectangle;
+    InputMode mode = InputMode::Navigate;
 
     // Navigate
-    bool   dragging     = false;
-    bool   didDrag      = false;
-    Vec2   lastMousePos { 0.0, 0.0 };
-    Vec2   panDelta     { 0.0, 0.0 };
-    double zoomDelta    = 0.0;
+    bool dragging = false;
+    bool didDrag = false;
+    Vec2 lastMousePos { 0.0, 0.0 };
+    Vec2 panDelta { 0.0, 0.0 };
+    double zoomDelta = 0.0;
 
     // Rectangle drawing
-    bool drawing         = false;
-    bool rectCompleted   = false;
+    bool drawing = false;
+    bool rectCompleted = false;
     bool rectJustStarted = false;
-    Vec2 drawStart      { 0.0, 0.0 };
-    Vec2 drawStartWorld { 0.0, 0.0 };
-    Vec2 drawCurrent    { 0.0, 0.0 };
+    Vec2 drawStart { 0.0, 0.0 };
+    Vec2 drawStartMap { 0.0, 0.0 };
+    Vec2 drawCurrent { 0.0, 0.0 };
 
     // Polygon drawing
-    bool              polyDrawing      = false;
-    bool              polyCompleted    = false;
-    bool              pendingPolyPoint = false;
-    Vec2              pendingPolyPos   { 0.0, 0.0 };
-    std::vector<Vec2> polyWorldPoints;
+    bool polyDrawing = false;
+    bool polyCompleted = false;
+    bool pendingPolyPoint = false;
+    Vec2 pendingPolyPos { 0.0, 0.0 };
+    std::vector<Vec2> polyMapPoints;
     std::vector<Vec2> completedPoly;
 
     // Double-click detection
     double lastClickTime = 0.0;
-    Vec2   lastClickPos  { 0.0, 0.0 };
+    Vec2 lastClickPos { 0.0, 0.0 };
 
     // Click
     bool clickPending = false;
-    Vec2 clickPos     { 0.0, 0.0 };
+    Vec2 clickPos { 0.0, 0.0 };
 
     // Right-click
     bool rightClickPending = false;
-    Vec2 rightClickPos     { 0.0, 0.0 };
+    Vec2 rightClickPos { 0.0, 0.0 };
 
     // Edit mode
     bool editMouseButtonHeld = false; // true only while LMB is physically held
-    bool editDragging         = false;
+    bool editDragging = false;
     bool editDragStartPending = false;
-    bool editDragEndPending   = false;
-    bool editDidDrag          = false;
-    bool editClickPending     = false;
-    Vec2 editDragStartPos  { 0.0, 0.0 };
-    Vec2 editDragDelta      { 0.0, 0.0 };
+    bool editDragEndPending = false;
+    bool editDidDrag = false;
+    bool editClickPending = false;
+    Vec2 editDragStartPos { 0.0, 0.0 };
+    Vec2 editDragDelta { 0.0, 0.0 };
     Vec2 editDragTotalDelta { 0.0, 0.0 }; // cumulative since drag start
-    Vec2 editLastMousePos   { 0.0, 0.0 };
-    Vec2 editClickPos      { 0.0, 0.0 };
+    Vec2 editLastMousePos { 0.0, 0.0 };
+    Vec2 editClickPos { 0.0, 0.0 };
 };

@@ -15,15 +15,15 @@ public:
     void panBy(const Vec2& delta);
     void zoomBy(double factor);
 
-    // Clamp position and zoom to world bounds.
-    // Also caches the world size so panBy can hard-clamp immediately.
+    // Clamp position and zoom to map bounds.
+    // Also caches the map size so panBy can hard-clamp immediately.
     void clampToBounds(double mapWidth, double mapHeight);
 
     Vec2 worldToScreen(const Vec2& worldPos) const;
     Vec2 screenToWorld(const Vec2& screenPos) const;
 
 private:
-    // Cached world size — set by clampToBounds, used by panBy
-    double mapWidth_  = 0.0;
+    // Cached map size — set by clampToBounds, used by panBy
+    double mapWidth_ = 0.0;
     double mapHeight_ = 0.0;
 };

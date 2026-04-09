@@ -9,13 +9,13 @@ class RegionSerializer
 {
 public:
     // Save all regions to file using the coordinate mode from core
-    // (block coordinates when metadata is present, normalised 0-1 for image maps).
+    // (map coordinates when metadata is present, normalised 0-1 for image maps).
     static bool save(const RegionTree& tree,
                      const std::string& path,
                      const Core& core);
 
-    // Load regions from file and convert coordinates to world-space
-    // using the current world dimensions from core.
+    // Load regions from file and convert coordinates to map-space
+    // using the current map dimensions from core.
     static bool load(RegionTree& tree,
                      const std::string& path,
                      const Core& core);

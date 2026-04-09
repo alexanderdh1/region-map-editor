@@ -8,9 +8,9 @@
 #include <memory>
 #include <cmath>
 
-static constexpr double MIN_REGION_SIZE  = 4.0;
+static constexpr double MIN_REGION_SIZE = 4.0;
 static constexpr double HANDLE_RADIUS_PX = 12.0;
-static constexpr double EDGE_HIT_PX     = 8.0;
+static constexpr double EDGE_HIT_PX = 8.0;
 
 Core::Core() = default;
 
@@ -69,12 +69,12 @@ void Core::update(GLFWwindow* window)
     {
         double zoomSteps = input.consumeZoomDelta();
         const double zoomFactor = 1.1;
-        Vec2 worldBefore = cam.screenToWorld(mouseScreen);
+        Vec2 mapBefore = cam.screenToWorld(mouseScreen);
         if (zoomSteps > 0) cam.zoomBy(zoomFactor);
         else               cam.zoomBy(1.0 / zoomFactor);
-        Vec2 worldAfter = cam.screenToWorld(mouseScreen);
-        cam.position.x += (worldBefore.x - worldAfter.x);
-        cam.position.y += (worldBefore.y - worldAfter.y);
+        Vec2 mapAfter = cam.screenToWorld(mouseScreen);
+        cam.position.x += (mapBefore.x - mapAfter.x);
+        cam.position.y += (mapBefore.y - mapAfter.y);
     }
 
     cam.clampToBounds(mapWidth, mapHeight);
@@ -106,22 +106,22 @@ void Core::update(GLFWwindow* window)
         RegionSerializer::save(regionTree, "regions.json", *this);
     };
 
-    auto isInsideParent = [&](const Vec2& worldPt) -> bool
+    auto isInsideParent = [&](const Vec2& mapPt) -> bool
     {
         if (!hasPendingParent) return true;
         Region* parent = regionTree.findById(pendingParentId);
         if (!parent) return true;
-        return parent->geometry.contains(worldPt);
+        return parent->geometry.contains(mapPt);
     };
 
     // Auto sub-region: if a region is selected and drawing starts inside it,
     // automatically treat the new shape as a child — no right-click needed.
-    auto autoSetPendingParent = [&](const Vec2& worldPt)
+    auto autoSetPendingParent = [&](const Vec2& mapPt)
     {
         if (hasPendingParent) return; // already set explicitly
         Region* selected = selection.selectedRegion;
         if (!selected) return;
-        if (selected->geometry.contains(worldPt))
+        if (selected->geometry.contains(mapPt))
         {
             pendingParentId  = selected->id;
             hasPendingParent = true;
@@ -131,24 +131,24 @@ void Core::update(GLFWwindow* window)
     // RECT
     if (input.isRectJustStarted())
     {
-        Vec2 worldStart = cam.screenToWorld(input.getDrawStart());
-        autoSetPendingParent(worldStart);
-        if (!isInsideParent(worldStart))
+        Vec2 mapStart = cam.screenToWorld(input.getDrawStart());
+        autoSetPendingParent(mapStart);
+        if (!isInsideParent(mapStart))
             input.cancelRect();
         else
         {
-            input.setDrawStartWorld(worldStart);
+            input.setDrawStartMap(mapStart);
             input.consumeRectJustStarted();
         }
     }
 
     if (input.hasCompletedRect())
     {
-        Vec2 worldA = input.getDrawStartWorld();
+        Vec2 mapA = input.getDrawStartMap();
         Vec2 cur = input.getDrawCurrent();
         cur.x = std::max(0.0, std::min(cur.x, cam.viewportSize.x));
         cur.y = std::max(0.0, std::min(cur.y, cam.viewportSize.y));
-        Vec2 worldB = cam.screenToWorld(cur);
+        Vec2 mapB = cam.screenToWorld(cur);
 
         if (hasPendingParent)
         {
@@ -163,15 +163,15 @@ void Core::update(GLFWwindow* window)
                     minX = std::min(minX, p.x); maxX = std::max(maxX, p.x);
                     minY = std::min(minY, p.y); maxY = std::max(maxY, p.y);
                 }
-                worldB.x = std::clamp(worldB.x, minX, maxX);
-                worldB.y = std::clamp(worldB.y, minY, maxY);
+                mapB.x = std::clamp(mapB.x, minX, maxX);
+                mapB.y = std::clamp(mapB.y, minY, maxY);
             }
         }
 
         RegionGeometry geom;
         geom.type    = GeometryType::Rectangle;
-        geom.rectMin = { std::min(worldA.x, worldB.x), std::min(worldA.y, worldB.y) };
-        geom.rectMax = { std::max(worldA.x, worldB.x), std::max(worldA.y, worldB.y) };
+        geom.rectMin = { std::min(mapA.x, mapB.x), std::min(mapA.y, mapB.y) };
+        geom.rectMax = { std::max(mapA.x, mapB.x), std::max(mapA.y, mapB.y) };
 
         bool tooSmall =
             (geom.rectMax.x - geom.rectMin.x) < MIN_REGION_SIZE ||
@@ -191,15 +191,15 @@ void Core::update(GLFWwindow* window)
     if (input.hasPendingPolyPoint())
     {
         Vec2 screenPt = input.consumePendingPolyPoint();
-        Vec2 worldPt  = cam.screenToWorld(screenPt);
+        Vec2 mapPt  = cam.screenToWorld(screenPt);
 
         // Auto sub-region on first polygon point
-        if (input.getPolygonWorldPoints().empty())
-            autoSetPendingParent(worldPt);
+        if (input.getPolygonMapPoints().empty())
+            autoSetPendingParent(mapPt);
 
-        if (isInsideParent(worldPt))
+        if (isInsideParent(mapPt))
         {
-            const std::vector<Vec2>& existing = input.getPolygonWorldPoints();
+            const std::vector<Vec2>& existing = input.getPolygonMapPoints();
             bool closedByFirstPoint = false;
 
             if (existing.size() >= 3)
@@ -216,16 +216,16 @@ void Core::update(GLFWwindow* window)
                 }
             }
             if (!closedByFirstPoint)
-                input.addPolygonWorldPoint(worldPt);
+                input.addPolygonMapPoint(mapPt);
         }
     }
 
     if (input.hasCompletedPolygon())
     {
-        std::vector<Vec2> worldPoints = input.consumeCompletedPolygon();
+        std::vector<Vec2> mapPoints = input.consumeCompletedPolygon();
         RegionGeometry geom;
         geom.type   = GeometryType::Polygon;
-        geom.points = worldPoints;
+        geom.points = mapPoints;
 
         if (geom.isValid())
         {
@@ -253,12 +253,12 @@ void Core::update(GLFWwindow* window)
     if (input.hasClick())
     {
         Vec2 screenPos = input.consumeClick();
-        Vec2 worldPos  = cam.screenToWorld(screenPos);
+        Vec2 mapPos  = cam.screenToWorld(screenPos);
 
         Region* hit = nullptr;
         regionTree.forEach([&](Region& r)
         {
-            if (!r.hidden && r.geometry.contains(worldPos)) hit = &r;
+            if (!r.hidden && r.geometry.contains(mapPos)) hit = &r;
         });
 
         if (hit)
@@ -324,7 +324,7 @@ void Core::updateEditMode(GLFWwindow* window)
         }
         else if (hoverRegion.geometry.type == GeometryType::Rectangle)
         {
-            Vec2 worldCorners[4] = {
+            Vec2 mapCorners[4] = {
                 { hoverRegion.geometry.rectMin.x, hoverRegion.geometry.rectMax.y },
                 { hoverRegion.geometry.rectMax.x, hoverRegion.geometry.rectMax.y },
                 { hoverRegion.geometry.rectMax.x, hoverRegion.geometry.rectMin.y },
@@ -332,7 +332,7 @@ void Core::updateEditMode(GLFWwindow* window)
             };
             for (int i = 0; i < 4; i++)
             {
-                Vec2 s = cam.worldToScreen(worldCorners[i]);
+                Vec2 s = cam.worldToScreen(mapCorners[i]);
                 if (std::hypot(mouseScreen.x - s.x, mouseScreen.y - s.y) <= HANDLE_RADIUS_PX)
                 {
                     editState.hoveredHandleIndex = i;
@@ -346,7 +346,7 @@ void Core::updateEditMode(GLFWwindow* window)
     if (input.hasEditClick())
     {
         Vec2 clickScreen = input.consumeEditClick();
-        Vec2 clickWorld  = cam.screenToWorld(clickScreen);
+        Vec2 clickMapPos  = cam.screenToWorld(clickScreen);
 
         if (editState.isActive() &&
             editState.target->geometry.type == GeometryType::Polygon)
@@ -388,13 +388,13 @@ void Core::updateEditMode(GLFWwindow* window)
 
             if (bestEdge >= 0)
             {
-                pts.insert(pts.begin() + bestEdge + 1, clickWorld);
+                pts.insert(pts.begin() + bestEdge + 1, clickMapPos);
                 RegionSerializer::save(regionTree, "regions.json", *this);
             }
             else
             {
                 // Click outside region geometry and all edges — deselect handle
-                bool outsideGeometry = !region.geometry.contains(clickWorld);
+                bool outsideGeometry = !region.geometry.contains(clickMapPos);
                 bool outsideEdges    = true;
                 for (int i = 0; i < n && outsideEdges; i++)
                 {
@@ -435,8 +435,8 @@ void Core::updateEditMode(GLFWwindow* window)
 
         if (region.geometry.type == GeometryType::Rectangle)
         {
-            // Corner world positions: TL, TR, BR, BL
-            Vec2 worldCorners[4] = {
+            // Corner map positions: TL, TR, BR, BL
+            Vec2 mapCorners[4] = {
                 { region.geometry.rectMin.x, region.geometry.rectMax.y },
                 { region.geometry.rectMax.x, region.geometry.rectMax.y },
                 { region.geometry.rectMax.x, region.geometry.rectMin.y },
@@ -444,14 +444,14 @@ void Core::updateEditMode(GLFWwindow* window)
             };
             for (int i = 0; i < 4; i++)
             {
-                Vec2 s = cam.worldToScreen(worldCorners[i]);
+                Vec2 s = cam.worldToScreen(mapCorners[i]);
                 double dist = std::hypot(startScreen.x - s.x, startScreen.y - s.y);
                 if (dist <= HANDLE_RADIUS_PX)
                 {
                     editState.handleType     = EditHandleType::RectCorner;
                     editState.handleIndex    = i;
-                    // Store the world position of this corner at drag start
-                    editState.dragOriginWorld = worldCorners[i];
+                    // Store the map position of this corner at drag start
+                    editState.dragOriginMap = mapCorners[i];
                     return;
                 }
             }
@@ -467,8 +467,8 @@ void Core::updateEditMode(GLFWwindow* window)
                 {
                     editState.handleType      = EditHandleType::PolyPoint;
                     editState.handleIndex     = i;
-                    // Store the world position of this point at drag start
-                    editState.dragOriginWorld = pts[i];
+                    // Store the map position of this point at drag start
+                    editState.dragOriginMap = pts[i];
                     return;
                 }
             }
@@ -479,7 +479,7 @@ void Core::updateEditMode(GLFWwindow* window)
     }
 
     // ---- Dragging ----
-    // Use ABSOLUTE positioning: new position = dragOriginWorld + totalMouseDelta/zoom.
+    // Use ABSOLUTE positioning: new position = dragOriginMap + totalMouseDelta/zoom.
     // This means constraints never cause offset accumulation — if the mouse moves
     // 1000px past a constraint boundary and reverses, the geometry only starts
     // moving again exactly when the mouse returns to the constraint point.
@@ -490,15 +490,15 @@ void Core::updateEditMode(GLFWwindow* window)
 
         if (!editState.isDragging()) return;
 
-        // Convert total mouse movement to world space
+        // Convert total mouse movement to map space
         Vec2 totalScreen = input.getEditDragTotalDelta();
-        double worldDx =  totalScreen.x / cam.zoom;
-        double worldDy = -totalScreen.y / cam.zoom;
+        double mapDx =  totalScreen.x / cam.zoom;
+        double mapDy = -totalScreen.y / cam.zoom;
 
-        // Desired absolute world position of the dragged point
-        Vec2 desiredWorld {
-            editState.dragOriginWorld.x + worldDx,
-            editState.dragOriginWorld.y + worldDy
+        // Desired absolute map position of the dragged point
+        Vec2 desiredMapPos {
+            editState.dragOriginMap.x + mapDx,
+            editState.dragOriginMap.y + mapDy
         };
 
         Region& region = *editState.target;
@@ -510,10 +510,10 @@ void Core::updateEditMode(GLFWwindow* window)
 
             switch (editState.handleIndex)
             {
-                case 0: newMin.x = desiredWorld.x; newMax.y = desiredWorld.y; break; // TL
-                case 1: newMax.x = desiredWorld.x; newMax.y = desiredWorld.y; break; // TR
-                case 2: newMax.x = desiredWorld.x; newMin.y = desiredWorld.y; break; // BR
-                case 3: newMin.x = desiredWorld.x; newMin.y = desiredWorld.y; break; // BL
+                case 0: newMin.x = desiredMapPos.x; newMax.y = desiredMapPos.y; break; // TL
+                case 1: newMax.x = desiredMapPos.x; newMax.y = desiredMapPos.y; break; // TR
+                case 2: newMax.x = desiredMapPos.x; newMin.y = desiredMapPos.y; break; // BR
+                case 3: newMin.x = desiredMapPos.x; newMin.y = desiredMapPos.y; break; // BL
             }
 
             // Enforce minimum size — keep opposite corner fixed
@@ -572,7 +572,7 @@ void Core::updateEditMode(GLFWwindow* window)
             auto& pts = region.geometry.points;
             if (idx < 0 || idx >= static_cast<int>(pts.size())) return;
 
-            Vec2 newPt = desiredWorld;
+            Vec2 newPt = desiredMapPos;
 
             // Parent containment: the moved point must be inside parent
             if (region.parent && !region.parent->geometry.contains(newPt))
@@ -627,7 +627,7 @@ void Core::deleteEditPoint()
     if (n <= 3) return;
 
     pts.erase(pts.begin() + idx);
-    // Clear the entire drag state so the dragging block that runs later
+    // Clear the entire drag state so the dragging segment that runs later
     // in the same frame cannot write through a now-stale handleIndex.
     editState.clearDrag();
 
@@ -635,7 +635,7 @@ void Core::deleteEditPoint()
 }
 
 // ---------------------------------------------------------------
-// Camera / world helpers
+// Camera / map helpers
 // ---------------------------------------------------------------
 
 Camera& Core::getCamera() { return camera; }
@@ -656,26 +656,26 @@ void Core::setMapCoordBounds(
     int minX, int minY,
     int maxX, int maxY)
 {
-    worldMinX = minX;
-    worldMinY = minY;
-    worldMaxX = maxX;
-    worldMaxY = maxY;
+    mapMinX = minX;
+    mapMinY = minY;
+    mapMaxX = maxX;
+    mapMaxY = maxY;
 }
 
-Vec2 Core::coordToWorld(const MapCoord& coord) const
+Vec2 Core::coordToMap(const MapCoord& coord) const
 {
-    double worldX = coord.x - worldMinX;
-    double worldY = worldMaxY - coord.y;
-    worldX -= mapWidth  / 2.0;
-    worldY -= mapHeight / 2.0;
-    return { worldX, worldY };
+    double mapX = coord.x - mapMinX;
+    double mapY = mapMaxY - coord.y;
+    mapX -= mapWidth  / 2.0;
+    mapY -= mapHeight / 2.0;
+    return { mapX, mapY };
 }
 
-MapCoord Core::worldToCoord(const Vec2& worldPos) const
+MapCoord Core::mapToCoord(const Vec2& mapPos) const
 {
-    double localX = worldPos.x + mapWidth  / 2.0;
-    double localY = worldPos.y + mapHeight / 2.0;
-    int coordX = static_cast<int>(localX) + worldMinX;
-    int coordY = worldMaxY - static_cast<int>(localY);
+    double localX = mapPos.x + mapWidth  / 2.0;
+    double localY = mapPos.y + mapHeight / 2.0;
+    int coordX = static_cast<int>(localX) + mapMinX;
+    int coordY = mapMaxY - static_cast<int>(localY);
     return { coordX, coordY };
 }

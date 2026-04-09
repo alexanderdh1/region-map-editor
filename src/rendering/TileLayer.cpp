@@ -13,14 +13,14 @@ void TileLayer::render(const Camera& camera)
     glEnable(GL_TEXTURE_2D);
     glColor3f(1.0f, 1.0f, 1.0f);
 
-    // ---- Calculate visible world bounds ----
-    Vec2 worldA = camera.screenToWorld({0.0, 0.0});
-    Vec2 worldB = camera.screenToWorld(camera.viewportSize);
+    // ---- Calculate visible map bounds ----
+    Vec2 mapA = camera.screenToWorld({0.0, 0.0});
+    Vec2 mapB = camera.screenToWorld(camera.viewportSize);
 
-    double minX = std::min(worldA.x, worldB.x);
-    double maxX = std::max(worldA.x, worldB.x);
-    double minY = std::min(worldA.y, worldB.y);
-    double maxY = std::max(worldA.y, worldB.y);
+    double minX = std::min(mapA.x, mapB.x);
+    double maxX = std::max(mapA.x, mapB.x);
+    double minY = std::min(mapA.y, mapB.y);
+    double maxY = std::max(mapA.y, mapB.y);
 
     for (const Tile& tile : tiles)
     {

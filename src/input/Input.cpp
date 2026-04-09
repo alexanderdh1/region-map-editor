@@ -41,10 +41,10 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
                 (now - lastClickTime < DOUBLE_CLICK_SECONDS) &&
                 (dist < DOUBLE_CLICK_RADIUS);
 
-            if (isDoubleClick && polyDrawing && polyWorldPoints.size() >= 3)
+            if (isDoubleClick && polyDrawing && polyMapPoints.size() >= 3)
             {
-                completedPoly    = polyWorldPoints;
-                polyWorldPoints.clear();
+                completedPoly    = polyMapPoints;
+                polyMapPoints.clear();
                 pendingPolyPoint = false;
                 polyDrawing      = false;
                 polyCompleted    = true;
@@ -239,14 +239,14 @@ void Input::cancelPolygon()
 {
     polyDrawing      = false;
     pendingPolyPoint = false;
-    polyWorldPoints.clear();
+    polyMapPoints.clear();
     mode = InputMode::Navigate;
 }
 
 void Input::closePolygon()
 {
-    completedPoly    = polyWorldPoints;
-    polyWorldPoints.clear();
+    completedPoly    = polyMapPoints;
+    polyMapPoints.clear();
     pendingPolyPoint = false;
     polyDrawing      = false;
     polyCompleted    = true;

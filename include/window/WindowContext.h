@@ -4,6 +4,6 @@
 #include "ui/UILayer.h"
 
 struct WindowContext {
-    Core*    core;
+    Core* core;
     UILayer* uiLayer;
 };

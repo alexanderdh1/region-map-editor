@@ -48,7 +48,7 @@ int main()
     }
     catch (const std::exception& e)
     {
-        std::cerr << "[Error] Failed to load world: " << e.what() << "\n";
+        std::cerr << "[Error] Failed to load map: " << e.what() << "\n";
         destroyWindow(window);
         return -1;
     }

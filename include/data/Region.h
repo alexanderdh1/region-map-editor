@@ -11,7 +11,7 @@ using RegionId = uint32_t;
 
 struct Region
 {
-    RegionId    id   = 0;
+    RegionId id = 0;
     std::string name = "Unnamed Region";
     std::string note;
 
@@ -21,9 +21,9 @@ struct Region
     float colorB = 1.0f;
     float colorA = 0.35f;
 
-    // hidden    = not rendered on map (circle goes grey in tree)
+    // hidden = not rendered on map (circle goes grey in tree)
     // collapsed = children hidden in tree view
-    bool hidden    = false;
+    bool hidden = false;
     bool collapsed = false;
 
     RegionGeometry geometry;

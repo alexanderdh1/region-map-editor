@@ -16,5 +16,5 @@ public:
 
 private:
     RegionRenderer regionRenderer;
-    TileLayer      tileLayer;
+    TileLayer tileLayer;
 };

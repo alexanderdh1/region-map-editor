@@ -15,18 +15,18 @@ using json = nlohmann::json;
 // Coordinate conversion helpers
 // ============================================================
 
-// World → normalised (0.0–1.0 relative to image size)
-static Vec2 worldToNorm(const Vec2& w, double imgW, double imgH)
+// Map → normalised (0.0–1.0 relative to image size)
+static Vec2 mapToNorm(const Vec2& w, double imgW, double imgH)
 {
-    // World-space is centred at (0,0); top-left is (-imgW/2, imgH/2)
+    // Map-space is centred at (0,0); top-left is (-imgW/2, imgH/2)
     return {
         (w.x + imgW / 2.0) / imgW,
-        (imgH / 2.0 - w.y) / imgH   // Y is flipped: world +Y = image up
+        (imgH / 2.0 - w.y) / imgH   // Y is flipped: map +Y = image up
     };
 }
 
-// Normalised → world
-static Vec2 normToWorld(const Vec2& n, double imgW, double imgH)
+// Normalised → map
+static Vec2 normToMap(const Vec2& n, double imgW, double imgH)
 {
     return {
         n.x * imgW - imgW / 2.0,
@@ -47,16 +47,16 @@ static json serializeGeometry(const RegionGeometry& g, const Core& core)
     json j;
     j["type"] = (g.type == GeometryType::Rectangle) ? "Rectangle" : "Polygon";
 
-    auto convertPt = [&](const Vec2& world) -> json
+    auto convertPt = [&](const Vec2& mapPos) -> json
     {
         if (core.isCoordMode())
         {
-            MapCoord b = core.worldToCoord(world);
+            MapCoord b = core.mapToCoord(mapPos);
             return { b.x, b.y };
         }
         else
         {
-            Vec2 n = worldToNorm(world, core.getMapWidth(), core.getMapHeight());
+            Vec2 n = mapToNorm(mapPos, core.getMapWidth(), core.getMapHeight());
             return serializeVec2(n);
         }
     };
@@ -86,12 +86,12 @@ static RegionGeometry deserializeGeometry(const json& j, const Core& core)
         if (core.isCoordMode())
         {
             MapCoord b { pt[0].get<int>(), pt[1].get<int>() };
-            return core.coordToWorld(b);
+            return core.coordToMap(b);
         }
         else
         {
             Vec2 n = deserializeVec2(pt);
-            return normToWorld(n, core.getMapWidth(), core.getMapHeight());
+            return normToMap(n, core.getMapWidth(), core.getMapHeight());
         }
     };
 
@@ -213,7 +213,7 @@ bool RegionSerializer::load(RegionTree& tree,
         return false;
     }
 
-    // Warn if coordinate mode mismatch between file and current world
+    // Warn if coordinate mode mismatch between file and current map
     if (root.contains("coord_mode"))
     {
         std::string fileMode = root["coord_mode"].get<std::string>();
@@ -221,7 +221,7 @@ bool RegionSerializer::load(RegionTree& tree,
         if (fileMode != currMode)
         {
             std::cerr << "[RegionSerializer] Warning: file was saved in '"
-                      << fileMode << "' mode but current world is '"
+                      << fileMode << "' mode but current map is '"
                       << currMode << "' mode. Coordinates may be incorrect.\n";
         }
     }
