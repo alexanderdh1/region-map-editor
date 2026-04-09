@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <cmath>
 
-static constexpr double HANDLE_HOVER_PX = 10.0;
+static constexpr double HANDLE_HOVER_PX = 12.0;
 
 void updateWindowTitle(GLFWwindow* window, const Core& core)
 {

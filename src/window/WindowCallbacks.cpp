@@ -42,22 +42,6 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
 
             if (button == GLFW_MOUSE_BUTTON_LEFT)
             {
-                static bool uiConsumedPress = false;
-
-                if (action == GLFW_PRESS)
-                {
-                    uiConsumedPress = ctx->uiLayer->onMouseClick(Vec2{x, y}, *ctx->core);
-                    if (uiConsumedPress) return;
-                }
-                else if (action == GLFW_RELEASE)
-                {
-                    if (uiConsumedPress)
-                    {
-                        uiConsumedPress = false;
-                        return;
-                    }
-                }
-
                 bool shiftHeld = (mods & GLFW_MOD_SHIFT) != 0;
                 ctx->core->getInput().onMouseButton(action == GLFW_PRESS, Vec2{x, y}, shiftHeld);
             }
@@ -120,11 +104,6 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
         [](GLFWwindow* window, unsigned int codepoint)
         {
             ImGui_ImplGlfw_CharCallback(window, codepoint);
-
-            if (ImGui::GetIO().WantCaptureKeyboard) return;
-
-            auto* ctx = static_cast<WindowContext*>(glfwGetWindowUserPointer(window));
-            ctx->uiLayer->onCharInput(codepoint, *ctx->core);
         }
     );
 }

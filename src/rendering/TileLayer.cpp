@@ -2,7 +2,6 @@
 #include "rendering/Camera.h"
 
 #include <GLFW/glfw3.h>
-#include <iostream>
 
 void TileLayer::addTile(Tile&& tile)
 {

@@ -72,10 +72,10 @@ To use block coordinate mode, place a metadata file at `assets/map.json`:
 
 ```json
 {
-  "minBlockX": -2048,
-  "minBlockZ": -2048,
-  "maxBlockX":  2048,
-  "maxBlockZ":  2048
+  "minX": -2048,
+  "minY": -2048,
+  "maxX":  2048,
+  "maxY":  2048
 }
 ```
 

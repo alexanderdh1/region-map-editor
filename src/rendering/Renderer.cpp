@@ -16,10 +16,6 @@ void Renderer::render(const Core& core)
 
     // 4. Live drawing preview
     regionRenderer.renderPreview(core.getInput(), camera);
-
-    // 5. Debug grid
-    if (showGrid)
-        gridRenderer.render(camera);
 }
 
 TileLayer& Renderer::getTileLayer()

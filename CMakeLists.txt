@@ -24,7 +24,6 @@ add_executable(main
     src/core/Core.cpp
     src/input/Input.cpp
     src/rendering/Camera.cpp
-    src/rendering/GridRenderer.cpp
     src/rendering/RegionRenderer.cpp
     src/window/WindowCallbacks.cpp
     src/window/WindowSetup.cpp

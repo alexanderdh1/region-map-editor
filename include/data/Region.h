@@ -6,7 +6,6 @@
 #include <cstdint>
 
 #include "data/RegionGeometry.h"
-#include "data/Marker.h"
 
 using RegionId = uint32_t;
 
@@ -22,14 +21,12 @@ struct Region
     float colorB = 1.0f;
     float colorA = 0.35f;
 
-    // hidden  = not rendered on map (circle goes grey in tree)
+    // hidden    = not rendered on map (circle goes grey in tree)
     // collapsed = children hidden in tree view
     bool hidden    = false;
     bool collapsed = false;
 
     RegionGeometry geometry;
-
-    std::vector<Marker> markers;
 
     // Sub-regions — this region owns its children
     std::vector<std::unique_ptr<Region>> children;
@@ -43,10 +40,5 @@ struct Region
     {
         child->parent = this;
         children.push_back(std::move(child));
-    }
-
-    void addMarker(Marker marker)
-    {
-        markers.push_back(std::move(marker));
     }
 };

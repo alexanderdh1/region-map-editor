@@ -6,7 +6,6 @@
 
 struct SelectionState
 {
-    // --- Main selection (left-click) ---
     Region* selectedRegion = nullptr;
     bool    popupOpen      = false;
 
@@ -22,7 +21,6 @@ struct SelectionState
         viewStack.clear();
     }
 
-    // Navigate into a sub-region from the popup
     void pushView(Region* child)
     {
         if (selectedRegion)
@@ -31,7 +29,6 @@ struct SelectionState
         popupOpen      = true;
     }
 
-    // Navigate back to parent
     void popView()
     {
         if (!viewStack.empty())
@@ -53,20 +50,7 @@ struct SelectionState
         selectedRegion = nullptr;
         popupOpen      = false;
         viewStack.clear();
-        contextRegion    = nullptr;
-        contextMenuOpen  = false;
     }
 
     bool hasSelection() const { return selectedRegion != nullptr; }
-
-    // --- Context menu (right-click) ---
-    Region* contextRegion     = nullptr;
-    bool    contextMenuOpen   = false;
-    Vec2    contextMenuScreen { 0.0, 0.0 };
-
-    void closeContextMenu()
-    {
-        contextRegion   = nullptr;
-        contextMenuOpen = false;
-    }
 };

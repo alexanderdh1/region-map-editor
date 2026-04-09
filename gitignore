@@ -15,8 +15,8 @@ cmake_install.cmake
 Makefile
 
 # Assets — local map data only, fonts are tracked
-assets/overworld.png
-assets/overworld.json
+assets/map.png
+assets/map.json
 
 # IDE
 .vs/
@@ -32,3 +32,4 @@ Thumbs.db
 # Project specific
 regions.json
 *.json.bak
+imgui.ini

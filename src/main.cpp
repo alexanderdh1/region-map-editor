@@ -53,7 +53,7 @@ int main()
         return -1;
     }
 
-    // Auto-load regions — world mode is now set, coordinates convert correctly
+    // Auto-load regions — coordinate mode is now set, coordinates convert correctly
     if (std::filesystem::exists("regions.json"))
         RegionSerializer::load(core.getRegionTree(), "regions.json", core);
 

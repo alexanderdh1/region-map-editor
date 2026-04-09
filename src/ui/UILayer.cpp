@@ -71,9 +71,6 @@ void UILayer::render(Core& core)
     renderPopup(core);
 }
 
-void UILayer::onCharInput(unsigned int /*codepoint*/, Core& /*core*/) {}
-bool UILayer::onMouseClick(const Vec2& /*screenPos*/, Core& /*core*/) { return false; }
-
 bool UILayer::onKeyPress(int key, Core& core)
 {
     auto& input     = core.getInput();
