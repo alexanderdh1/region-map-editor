@@ -1,4 +1,4 @@
-# Spatial Map Editor
+# Region Map Editor
 
 A desktop application for drawing and organizing regions on top of a map image. Built in C++ with OpenGL.
 
