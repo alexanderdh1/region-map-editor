@@ -44,7 +44,7 @@ int main()
 
     try
     {
-        loadSingleImageWorld("assets/test", core, renderer);
+        loadSingleImageWorld("assets/map", core, renderer);
     }
     catch (const std::exception& e)
     {

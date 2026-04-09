@@ -1,58 +1,41 @@
 # Architecture
-This document describes the software architecture of the Spatial Map Editor. The goal of the architecture is to keep the system understandable, modular, and easy to extend, while remaining close to what is actually implemented in code.
+
+This document describes the software architecture of the Spatial Map Editor. The goal is to keep the system understandable, modular, and easy to extend, while remaining close to what is actually implemented in code.
 
 The architecture is intentionally kept simple and explicit. Every part of the system has a clear responsibility, and communication between parts is tightly controlled.
 
+---
+
 ## 1. Architectural Goals
 
-The architecture is designed to achieve the following:
-
 - Clear separation of responsibilities
-
 - Predictable data flow
-
 - Low coupling between subsystems
-
 - Easy extension without breaking existing code
-
 - Good performance for large spatial datasets
 
 The system favors clarity over abstraction. If a concept is hard to explain, it does not belong in the architecture.
 
+---
+
 ## 2. System Overview
-### 2.1 Overall purpose of the application
 
-The Spatial Map Editor is a desktop application designed for visualizing and interacting with large-scale spatial data. The system allows users to navigate, inspect, and organize extensive map-like worlds using precise coordinate-based interaction.
+### 2.1 Purpose
 
-The primary use case of the application is as a development and planning tool, where large areas can be explored, divided into regions, and thoroughly planned. The system is suitable for working with abstract maps, fictional worlds, and other large spatial datasets where structure and overview are more important than real-time simulation.
+The Spatial Map Editor is a desktop application for visualizing and organizing large-scale spatial data. Users load a map image, navigate it freely, draw regions of interest on top of it, and annotate those regions with names, notes, and colours.
 
-The application is designed to be flexible and easy to adapt, focusing on giving the user clear control over their custom map rather than enforcing domain-specific rules and restrictions.
+Regions can be nested hierarchically and are serialized to a local JSON file. The system supports two coordinate modes: normalised image coordinates (0.0–1.0) for generic map images, and block coordinates for images with accompanying spatial metadata.
 
-### 2.2 High-level data flow through the system
+### 2.2 High-level data flow
 
-This section is intentionally left undefined at this stage.  
-The concrete data flow will be documented once core systems such as camera handling, input processing, and rendering have been implemented.
+1. **Window** receives raw OS events (mouse, keyboard, resize) and forwards them to ImGui and the Input module.
+2. **Input** translates raw events into typed actions (pan delta, zoom delta, draw start, edit drag, etc.) and stores them as pending state.
+3. **Core** consumes pending input state each frame, updates application state, and coordinates all modules.
+4. **Data** is read and written by Core — region geometry, hierarchy, and metadata live here.
+5. **Rendering** reads Core and Data state and draws the current frame — it does not write state.
+6. **UI** reads Core and Data state to draw ImGui panels, and calls back into Core when the user performs an action.
 
-### 2.3 Intended usage and system type
-
-The application is intended to be used as an offline planning and visualization tool rather than a real-time simulation or game engine. It is designed for users who need to explore, structure, and manage large maps or worlds.
-
-Typical usage involves loading a spatial image source, navigating the map through zooming and panning, and defining regions that represent user-defined areas of interest. These regions can then be annotated, organized hierarchically, and used to track progress and store notes.
-
-The system is designed as a single-user desktop tool, prioritizing clarity, precision, and control over automation. It is not intended for collaborative editing, real-time synchronization, or live data streaming.
-
-
-### 2.4 Decomposition into smaller modules
-
-To keep the system understandable and maintainable, the application is decomposed into a small set of distinct modules, each responsible for a specific part of the system. This separation ensures that functionality is grouped by responsibility.
-
-The system is divided into the following modules:
-
-- Core – coordinates application flow and system logic
-- Data – owns and manages all persistent application state
-- Input – translates user input into actions
-- Rendering – visualizes the current application state
-- UI – graphical front-end for user interaction and inspection
+### 2.3 Module diagram
 
 ```
              +--------+
@@ -60,112 +43,140 @@ The system is divided into the following modules:
              +--------+
                  |
                  v
-           +-------------+
-           |   Input     |
-           +-------------+
+        +------------------+
+        |      Window      |
+        +------------------+
                  |
                  v
-+-------+    +-------------+    +-----------+
-|  UI   | <- |    Core     | -> | Rendering |
-+-------+    +-------------+    +-----------+
+        +------------------+
+        |      Input       |
+        +------------------+
                  |
                  v
-           +-------------+
-           |    Data     |
-           +-------------+
++-------+    +----------+    +-----------+
+|  UI   | <> |   Core   | -> | Rendering |
++-------+    +----------+    +-----------+
+                 |
+                 v
+        +------------------+
+        |       Data       |
+        +------------------+
 ```
-This diagram shows relationships between modules rather than runtime communication.
 
-These modules form the structural foundation of the application and are described in more detail in the following section.
+---
 
 ## 3. Module Breakdown
-For each module we will describe the following:
-- What is the modules function and what is it responsible for?
-- How does it fit into the overall system?
-### 3.1 Core
-The Core module is the central coordinator of the system. It is responsible for controlling the overall application flow and for making decisions based on user actions and the current system state.
 
-The primary responsibilities of the Core module include:
-- Managing the application lifecycle, such as startup and shutdown
-- Coordinating the main update loop
-- Holding the current application state and tracking what the user is currently doing
-- Dispatching actions to subsystems and coordinating interaction between modules
+### 3.1 Core (`src/core/`)
 
-The Core is the only module allowed to coordinate interactions between other modules, although it does not implement or execute their internal logic. The module mainly provides structure to the system. By centralizing decision-making, it ensures that the overall program behaves as intended and that system behavior is easier to reason about and debug.
+The central coordinator of the system. Owns the main application state and drives the update loop each frame.
 
+Responsibilities:
+- Owns `Camera`, `Input`, `RegionTree`, `SelectionState`, and `EditState`
+- Processes pending input to update camera position, zoom, and draw state
+- Handles region creation (rectangle and polygon) including parent assignment and minimum size validation
+- Drives edit mode: handle detection, absolute-positioned drag, constraint checking against parent and children
+- Dispatches save calls to `RegionSerializer` after structural changes
 
-### 3.2 Data
-The Data module is responsible for owning and managing the current application state. It defines how spatial data, regions, and associated metadata are stored, organized, and accessed.
+Core is the only module allowed to coordinate interactions between other modules.
 
-The primary responsibilities of the Data module include:
-- Storing and managing spatial data representing the map or world
-- Representing regions and their geometric definitions
-- Managing hierarchical relationships between regions
-- Storing metadata such as notes and other region-related information
-- Providing controlled access to the current system state
+### 3.2 Data (`src/data/`)
 
-The Data module acts as the primary source of information in the system. All modifications to persistent state are performed through the Core module, ensuring that state changes remain predictable for all other modules and that the integrity of the data model is preserved.
+Owns and manages all persistent application state.
 
-### 3.3 Input
-The Input module is responsible for handling raw user input and translating it into meaningful actions that the rest of the system can respond to. It acts as an abstraction layer between physical user input and application logic.
+Responsibilities:
+- `Region` — geometry, colour, name, note, hidden/collapsed flags, parent pointer, and owned children
+- `RegionGeometry` — rectangle and polygon geometry with winding-number point containment and self-intersection detection
+- `RegionTree` — owns all top-level regions, supports add, remove, move (reparent), and depth-first traversal
+- `RegionSerializer` — saves and loads the region tree to/from JSON; supports normalised and block coordinate modes; auto-detects mode mismatch on load
+- `WorldLoader` — loads the map image, detects coordinate mode from the presence of a `.json` metadata file, and sets world bounds on Core
 
-The primary responsibilities of the Input module include:
-- Handling mouse and keyboard input
-- Interpreting user actions such as clicks, dragging, and scrolling
-- Translating raw input into actions such as navigation, selection, or editing
-- Mapping screen-space input to world-space coordinates when required
+State is modified exclusively through Core. Other modules read data but do not write it directly.
 
-The Input module does not directly modify application state. Instead, it communicates user intent to the Core module, which decides how the system should respond. This separation ensures that input handling remains flexible and that changes to interaction methods do not affect core system logic.
+### 3.3 Input (`src/input/`)
 
-### 3.4 Rendering
-The Rendering module is responsible for visualizing the current application state. It translates spatial data and camera information into graphical output that represents the map, regions, and other visual elements on screen.
+Translates raw GLFW events into typed, consumable actions for Core.
 
-The primary responsibilities of the Rendering module include:
-- Rendering the spatial image source (e.g. map or tiled data)
-- Applying camera transformations such as position and zoom
-- Converting world-space coordinates into screen-space output
-- Drawing regions, overlays, and other visual indicators
-- Ensuring efficient rendering of large spatial datasets
+Responsibilities:
+- Tracks mouse button state, drag deltas, and scroll events
+- Manages draw tool state (`Navigate`, `Rectangle`, `Polygon`, `Edit`)
+- Accumulates pan delta for navigation
+- Tracks edit drag with both per-frame delta and total-since-start delta (used for absolute constraint-safe positioning)
+- Detects polygon close (click near first point) and double-click polygon completion
+- Exposes pending actions as boolean flags with consume methods — Core clears them each frame
 
-The Rendering module operates purely on the current system state provided by the Core and Data modules. It does not make decisions, interpret user input, or modify application state. By keeping rendering focused solely on visualization, the system remains predictable and easier to optimize and extend.
+Input does not modify application state directly. It only records user intent.
 
-### 3.5 UI
-The UI module provides the graphical user interface through which the user inspects and interacts with the system. It presents information to the user and offers controls for editing and managing data in a structured and accessible way.
+### 3.4 Rendering (`src/rendering/`)
 
-The primary responsibilities of the UI module include:
-- Displaying panels, overlays, and interface elements
-- Presenting metadata such as notes, progress, and status information
-- Providing controls for editing region-related data
-- Reflecting the current application state in a clear and user-friendly manner
+Visualizes current application state using OpenGL fixed-function pipeline. Purely read-only with respect to state.
 
-The UI module does not directly modify application state or control system logic. Instead, it communicates user actions to the Core module, which determines how those actions affect the system. This separation ensures that the UI remains flexible and that changes to the interface do not impact core application behavior.
+Responsibilities:
+- `Camera` — stores position, zoom, and viewport size; converts between world and screen space; clamps position to world bounds
+- `TileLayer` / `Tile` / `Texture` — loads and draws the map image as a textured quad
+- `RegionRenderer` — draws filled polygons using a stencil-based even-odd fill (GL_INVERT), outlines, and edit handles; skips hidden regions recursively
+- `GridRenderer` — optional grid overlay
+- `Renderer` — top-level render coordinator; calls tile, region, and edit handle rendering in order
 
-## 4. General Data & State Information
-The system maintains a shared application state that represents the current configuration of the map, user interaction, and relevant metadata. This state defines how the system behaves and what is presented to the user at any given time.
+Rendering never makes decisions or modifies state. It draws exactly what Core and Data describe.
 
-Application state includes, but is not limited to:
-- Camera parameters such as position and zoom level
-- Spatial data representing the map or world
-- Region definitions and their hierarchical relationships
-- Metadata associated with regions, such as notes and progress
-- Information about current user interaction (e.g. selected region or active tool)
+### 3.5 UI (`src/ui/`)
 
-State ownership is clearly defined within the system. Persistent state is owned by the Data module, while high-level application state and interaction state are coordinated by the Core module. Other modules may read state as needed, but state changes are performed in a controlled manner to ensure consistency and predictability.
+Provides the ImGui-based graphical interface. Reads state from Core and Data, and calls back into Core when the user performs an action.
 
-## 5. Data Flow
-At a conceptual level, the system follows a predictable flow from user interaction to visual output. User input is interpreted as high-level actions, which are processed by the Core module to update application state. The current state is then visualized through the Rendering module, with the UI reflecting relevant information and available actions.
+Responsibilities:
+- **Left sidebar** — collapsible region tree with visibility toggles, collapse arrows, selection, and drag-and-drop reparenting (deferred execution to avoid iterator invalidation)
+- **Region popup** — name and note editing with debounced auto-save, colour picker, edit mode toggle, sub-region creation, and delete
+- **Right sidebar** — rectangle and polygon tool buttons
+- Handles all keyboard shortcuts and blocks them when a text field has focus
 
-Rather than relying on implicit behavior or tightly coupled modules, the system enforces a clear separation between input handling, decision-making, state management, and visualization. This approach ensures that system behavior remains understandable and that changes in one part of the system do not unintentionally affect others.
+UI never modifies `RegionTree` or geometry directly. All structural changes go through Core or `RegionSerializer`.
 
-This section describes architectural intent rather than runtime execution order and may be refined as the system evolves.
+### 3.6 Window (`src/window/`)
 
-## 6. Scope & Expansions
-The system is designed as a single-user, offline application focused on planning, visualization, and organization of large spatial datasets. It prioritizes clarity, control, and flexibility over automation or real-time collaboration.
+Handles GLFW lifecycle, OpenGL initialization, and event forwarding. Acts as the bridge between the OS and the rest of the system.
 
-The following features are explicitly considered out of scope for the current system:
+Responsibilities:
+- `WindowFactory` — initializes GLFW, creates the window with a stencil buffer, and sets the OpenGL context
+- `OpenGLSetup` — configures initial OpenGL state (blending, texture, stencil clear)
+- `WindowSetup` — sets the initial viewport and projection matrix from the framebuffer size
+- `WindowCallbacks` — registers GLFW callbacks for resize, mouse buttons, mouse move, scroll, keyboard, and character input; routes events to ImGui first, then to Input and UI as appropriate
+- `WindowUI` — updates the window title each frame with camera position, cursor world coordinates, and zoom level; manages the crosshair cursor when hovering near edit handles
+
+---
+
+## 4. State Ownership
+
+| State | Owner |
+|---|---|
+| Camera position and zoom | `Core` (via `Camera`) |
+| Current draw tool and input events | `Core` (via `Input`) |
+| Selected region and view stack | `Core` (via `SelectionState`) |
+| Active edit target and handle | `Core` (via `EditState`) |
+| Region tree and all region data | `Core` (via `RegionTree`) |
+| Coordinate mode and world bounds | `Core` |
+
+All persistent state is serialized by `RegionSerializer` to `regions.json`.
+
+---
+
+## 5. Coordinate Systems
+
+The system uses three coordinate spaces:
+
+- **Screen space** — pixels from top-left of the window
+- **World space** — centered at (0, 0), Y+ is up, units are image pixels
+- **Serialized coordinates** — either normalised (0.0–1.0 relative to image size) or block integers (when a `.json` metadata file is present)
+
+`Camera` converts between screen and world space. `RegionSerializer` converts between world and serialized space on save/load.
+
+---
+
+## 6. Scope and Exclusions
+
+The following are explicitly out of scope:
+
 - Multiplayer or collaborative editing
 - Real-time synchronization or networking
-- Live data streaming or external data dependencies
 - Simulation or game-engine behavior
-
-Potential future expansions may include quality-of-life improvements such as additional interaction tools, improved visualization options, or extended metadata support. These expansions are expected to build on the existing architecture without requiring fundamental structural changes.
+- Undo/redo (planned for a future version)

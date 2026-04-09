@@ -1,24 +1,33 @@
 # Spatial Map Editor
 
-A desktop application for visualizing and navigating large-scale spatial maps. Built in C++ with OpenGL.
-
-Pan and zoom smoothly across large map images with pixel-accurate block coordinate tracking.
-
----
-
-## Features
-
-- **Pan & zoom** — click-drag to pan, scroll to zoom toward cursor
-- **World bounds clamping** — camera stays within the map at all zoom levels
-- **Block coordinate mapping** — converts screen positions to world block coordinates
-- **Tile-based rendering** — frustum-culled tile layer for efficient rendering
-- **Modular architecture** — clean separation between core, input, rendering, and data
+A desktop application for drawing and organizing regions on top of a map image. Built in C++ with OpenGL.
 
 ---
 
 ## Screenshots
 
-> _Add a screenshot here once the application is running_
+<p align="center">
+  <img src="docs/screenshots/overview.png" width="900" alt="Overview"/>
+  <br/>
+  <em>Multiple regions and sub-regions with the region tree expanded</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/edit-mode.png" width="900" alt="Edit mode"/>
+  <br/>
+  <em>Edit mode with polygon handles visible and a sub-region inside the active region</em>
+</p>
+
+
+## Features
+
+- **Pan & zoom** — left-drag to pan, scroll to zoom toward cursor
+- **Region drawing** — draw rectangular or polygon regions on the map
+- **Hierarchical regions** — nest regions inside each other with drag-and-drop reparenting
+- **Edit mode** — move polygon points and rectangle corners with precise handle dragging
+- **Region metadata** — name and note fields per region, with colour picker
+- **Visibility toggle** — hide/show regions and their children
+- **Auto-save** — changes are saved automatically to `regions.json`
 
 ---
 
@@ -27,37 +36,39 @@ Pan and zoom smoothly across large map images with pixel-accurate block coordina
 ### Prerequisites
 
 - CMake 3.21+
-- A C++20 compiler (MSVC, GCC, Clang)
+- GCC (MinGW MSYS2 MINGW64 recommended on Windows)
 - [vcpkg](https://github.com/microsoft/vcpkg) for dependency management
 
 ### Dependencies
 
 | Library | Purpose |
 |---|---|
-| [GLFW](https://www.glfw.org/) | Window creation and input |
-| [nlohmann/json](https://github.com/nlohmann/json) | JSON metadata parsing |
-| [stb_image](https://github.com/nothings/stb) | PNG loading (bundled) |
+| [GLFW3](https://www.glfw.org/) | Window creation and input |
+| [ImGui](https://github.com/ocornut/imgui) | Immediate-mode UI (bundled in `external/`) |
+| [nlohmann/json](https://github.com/nlohmann/json) | JSON serialization (bundled in `external/`) |
+| [stb_image](https://github.com/nothings/stb) | PNG loading (bundled in `external/`) |
 
 ### Build
 
 ```bash
-# Clone the repository
 git clone https://github.com/YOUR_USERNAME/spatial-map-editor.git
 cd spatial-map-editor
 
-# Install dependencies via vcpkg
-vcpkg install glfw3 nlohmann-json
+# Install dependencies
+vcpkg install glfw3
 
 # Configure and build
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=path/to/vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake -B build
 cmake --build build
 ```
 
 ### Assets
 
-The application expects map assets at `assets/<name>.png` and `assets/<name>.json`.
+Place your map image at `assets/map.png` and a font at `assets/fonts/JetBrainsMono-Regular.ttf`.
 
-The JSON metadata file describes the block coordinate bounds of the image:
+Regions are saved to `regions.json` in the working directory.
+
+To use block coordinate mode, place a metadata file at `assets/map.json`:
 
 ```json
 {
@@ -68,24 +79,7 @@ The JSON metadata file describes the block coordinate bounds of the image:
 }
 ```
 
----
-
-## Project Structure
-
-```
-src/
-├── core/        # Application lifecycle and update loop
-├── data/        # World loading and asset management
-├── input/       # Mouse and keyboard input handling
-├── rendering/   # Camera, tile rendering, OpenGL drawing
-└── window/      # GLFW window setup, callbacks, UI title
-
-include/         # Header files mirroring src/ structure
-external/        # Bundled third-party headers (stb, nlohmann)
-docs/            # Architecture and design documentation
-```
-
-See [`docs/architecture.md`](docs/architecture.md) for a full breakdown of the system design.
+If no `.json` file is present, the application uses normalised image coordinates (0.0–1.0).
 
 ---
 
@@ -93,17 +87,36 @@ See [`docs/architecture.md`](docs/architecture.md) for a full breakdown of the s
 
 | Input | Action |
 |---|---|
-| Left mouse + drag | Pan the map |
-| Scroll wheel | Zoom in/out toward cursor |
+| Left-drag | Pan the map |
+| Scroll | Zoom toward cursor |
+| `R` | Rectangle draw tool |
+| `P` | Polygon draw tool |
+| `Shift` + left-click | Place polygon point / start rectangle |
+| `E` | Enter / exit edit mode |
+| `C` | Open / close colour picker |
+| `B` | Navigate back in region hierarchy |
+| `S` | Save manually |
+| `Delete` | Delete selected region or polygon point |
+| `Escape` | Cancel drawing / exit edit mode / close popup |
 
 ---
 
-## Roadmap
+## Architecture
 
-- [ ] Region drawing (polygons)
-- [ ] Markers with notes
-- [ ] Side panel UI (ImGui)
-- [ ] Save/load regions to JSON
+The system is divided into six modules with strict separation of concerns:
+
+| Module | Responsibility |
+|---|---|
+| **Core** | Central coordinator — owns application state and update loop |
+| **Data** | Region tree, geometry, serialization, world loading |
+| **Input** | Translates raw mouse/keyboard events into actions for Core |
+| **Rendering** | Stateless — draws current state using OpenGL fixed-function pipeline |
+| **UI** | ImGui panels — communicates user actions to Core, never modifies state directly |
+| **Window** | GLFW window setup, OpenGL initialization, and event callbacks |
+
+Cross-module communication flows exclusively through Core. Rendering and UI are read-only consumers of state.
+
+See [`docs/architecture.md`](docs/architecture.md) and [`docs/software-choice.md`](docs/software-choice.md) for full design documentation.
 
 ---
 

@@ -1,79 +1,104 @@
 # Software Choice and Platform Decisions
-This document describes the core software and platform decisions for the Spatial Map Editor project. The purpose is to formally document early technical choices in order to provide a stable foundation for architecture, implementation, and future extensions.
 
-These decisions are considered fixed unless explicitly revised in later design iterations.
+This document describes the core software and platform decisions for the Spatial Map Editor. The purpose is to formally document technical choices in order to provide a stable foundation for architecture, implementation, and future extensions.
+
+---
 
 ## 1. Project Scope
 
-The system is designed as an interactive desktop application for visualizing and editing very large-scale spatial data. The primary technical challenges addressed by the project are:
+The system is designed as an interactive desktop application for visualizing and editing spatial data on top of a map image. The primary technical challenges addressed are:
 
-- efficient rendering of large, grid-based worlds
+- Efficient rendering of large map images
+- Precise spatial interaction (pan, zoom, coordinate mapping)
+- Support for free-form polygon and rectangle regions with hierarchical organization
 
-- precise spatial interaction (pan, zoom, coordinate mapping)
+The system is domain-agnostic and is not tied to a specific data source or application domain.
 
-- support for free-form polygon regions
+---
 
-The system is designed to be domain-agnostic, meaning it is not tied to a specific data source or application domain.
+## 2. Platform
 
-## 2. Platform Decision
-### Chosen Platform: Local Desktop Application
-The project is implemented as a local desktop application, rather than a web-based solution, to ensure full control over performance, memory usage, and offline data access.
+**Local desktop application.**
+
+Chosen over a web-based solution to ensure full control over performance, memory usage, and offline data access. No network dependency of any kind.
+
+---
 
 ## 3. Programming Language
-C++ is used as the primary implementation language across all core modules.
+
+**C++17/20.**
+
+Used across all modules. Chosen for performance, direct OpenGL access, and control over memory layout. `std::unique_ptr` ownership is used throughout to make data ownership explicit.
+
+---
 
 ## 4. Graphics and Rendering
-### Chosen Technology: OpenGL
 
-- Cross-platform, low-level graphics API.
+**OpenGL (legacy fixed-function pipeline).**
 
-- Suitable for 2D rendering with precise control over transformations.
+- Suitable for 2D rendering with precise control over transformations
+- Stencil buffer used for even-odd polygon fill (GL_INVERT)
+- Fixed-function chosen over shaders to minimize complexity for a 2D editor
 
-- Supports efficient implementations of pan, zoom, tiling, and overlays.
+The rendering layer is a standalone subsystem isolated from input handling and data management.
 
-- Allows future optimization strategies such as batching, level-of-detail, and instancing.
+---
 
-The rendering layer is treated as a standalone subsystem, isolated from input handling and data management.
+## 5. Windowing and Input
 
-## 5. Windowing, Input, and UI
-### Window and Input Handling
+**GLFW3.**
 
-- A lightweight windowing library (e.g. GLFW or SDL) is used for:
+- Lightweight, cross-platform windowing and input library
+- Handles window creation, framebuffer resize, mouse, keyboard, and scroll events
+- Event callbacks route to ImGui first, then to the Input module
 
-  - window creation
+---
 
-  - input events (mouse and keyboard)
+## 6. User Interface
 
-This ensures portability while keeping external dependencies minimal.
+**Dear ImGui (immediate-mode UI, OpenGL2 backend).**
 
-### User Interface
+- Panels, text fields, buttons, colour picker, and drag-and-drop tree implemented with ImGui
+- Immediate-mode approach fits the per-frame update model naturally
+- UI logic is strictly separated from rendering and data — the UI layer only calls back into Core
 
-- UI elements such as side panels, text fields, and progress bars are implemented using an immediate-mode UI approach.
+---
 
-- The UI layer acts as a control and visualization layer on top of the rendered map.
+## 7. Serialization
 
-UI logic is strictly separated from rendering and data representation.
+**nlohmann/json.**
 
-## 6. Architectural Principles
+- Region tree is serialized to a local `regions.json` file
+- Supports two coordinate modes: normalised (0.0–1.0) and block integers
+- Mode is auto-detected at load time from the presence of a spatial metadata file
+- Auto-save triggers on every structural change; name/note edits are debounced by 1 second
 
-The following architectural principles are enforced from the start:
+---
 
-- Clear separation of concerns between:
+## 8. Image Loading
 
-    - core application logic
+**stb_image (bundled).**
 
-    - rendering
+- Single-header PNG loader
+- Used to load the map image into an OpenGL texture
 
-    - input handling
+---
 
-    - data management
+## 9. Build System
 
-    - user interface
+**CMake + Ninja on MinGW (MSYS2 MINGW64) on Windows.**
 
-- Data models must be independent of rendering and UI.
+- `vcpkg` used for GLFW dependency
+- ImGui, nlohmann/json, and stb_image are bundled in `external/`
 
-- Rendering must be stateless with respect to user input.
+---
 
-- All cross-module coordination is handled centrally.
+## 10. Architectural Principles
 
-These principles ensure maintainability, testability, and long-term extensibility.
+The following principles are enforced throughout:
+
+- Clear separation between core logic, rendering, input, data, UI, and window management
+- Data models are independent of rendering and UI
+- Rendering is stateless with respect to user input — it only reads state, never writes it
+- All cross-module coordination is handled exclusively by Core
+- Input records user intent as consumable flags — it does not modify application state directly
