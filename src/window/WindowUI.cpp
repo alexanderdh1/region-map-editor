@@ -4,11 +4,9 @@
 #include "rendering/Camera.h"
 
 #include <GLFW/glfw3.h>
-#include <sstream>
-#include <iomanip>
 #include <cmath>
 
-static constexpr double HANDLE_HOVER_PX = 10.0; // px threshold for cursor change
+static constexpr double HANDLE_HOVER_PX = 10.0;
 
 void updateWindowTitle(GLFWwindow* window, const Core& core)
 {
@@ -16,18 +14,8 @@ void updateWindowTitle(GLFWwindow* window, const Core& core)
     glfwGetCursorPos(window, &mouseX, &mouseY);
 
     const Camera& camera = core.getCamera();
-    Vec2 mouseWorld = camera.screenToWorld({ mouseX, mouseY });
 
-    std::ostringstream title;
-    title << "Spatial Map Editor | "
-          << "Cam: ("
-          << std::fixed << std::setprecision(2)
-          << camera.position.x << ", " << camera.position.y
-          << ") | Cursor: ("
-          << mouseWorld.x << ", " << mouseWorld.y
-          << ") | Zoom: " << camera.zoom;
-
-    glfwSetWindowTitle(window, title.str().c_str());
+    glfwSetWindowTitle(window, "Spatial Map Editor");
 
     // --- Cursor shape ---
     // Switch to a crosshair when hovering near a handle in edit mode,

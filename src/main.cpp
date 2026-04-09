@@ -13,7 +13,7 @@
 #include "window/WindowUI.h"
 #include "window/WindowFactory.h"
 #include "window/OpenGLSetup.h"
-#include "data/WorldLoader.h"
+#include "data/MapLoader.h"
 #include "data/RegionSerializer.h"
 
 #include <iostream>
@@ -44,7 +44,7 @@ int main()
 
     try
     {
-        loadSingleImageWorld("assets/map", core, renderer);
+        loadMap("assets/map", core, renderer);
     }
     catch (const std::exception& e)
     {

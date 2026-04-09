@@ -77,7 +77,7 @@ void Core::update(GLFWwindow* window)
         cam.position.y += (worldBefore.y - worldAfter.y);
     }
 
-    cam.clampToBounds(worldWidth, worldHeight);
+    cam.clampToBounds(mapWidth, mapHeight);
 
     if (input.getDrawTool() == DrawTool::Edit)
     {
@@ -643,39 +643,39 @@ const Camera& Core::getCamera() const { return camera; }
 Input& Core::getInput() { return input; }
 const Input& Core::getInput() const { return input; }
 
-void Core::setWorldSize(double width, double height)
+void Core::setMapSize(double width, double height)
 {
-    worldWidth  = width;
-    worldHeight = height;
-    double minZoomX = camera.viewportSize.x / worldWidth;
-    double minZoomY = camera.viewportSize.y / worldHeight;
+    mapWidth  = width;
+    mapHeight = height;
+    double minZoomX = camera.viewportSize.x / mapWidth;
+    double minZoomY = camera.viewportSize.y / mapHeight;
     camera.minZoom = std::max(minZoomX, minZoomY);
 }
 
-void Core::setWorldBlockBounds(
-    int minBlockX, int minBlockZ,
-    int maxBlockX, int maxBlockZ)
+void Core::setMapCoordBounds(
+    int minX, int minY,
+    int maxX, int maxY)
 {
-    worldMinBlockX = minBlockX;
-    worldMinBlockZ = minBlockZ;
-    worldMaxBlockX = maxBlockX;
-    worldMaxBlockZ = maxBlockZ;
+    worldMinX = minX;
+    worldMinY = minY;
+    worldMaxX = maxX;
+    worldMaxY = maxY;
 }
 
-Vec2 Core::blockToWorld(const BlockCoord& block) const
+Vec2 Core::coordToWorld(const MapCoord& coord) const
 {
-    double worldX = block.x - worldMinBlockX;
-    double worldZ = worldMaxBlockZ - block.z;
-    worldX -= worldWidth  / 2.0;
-    worldZ -= worldHeight / 2.0;
-    return { worldX, worldZ };
+    double worldX = coord.x - worldMinX;
+    double worldY = worldMaxY - coord.y;
+    worldX -= mapWidth  / 2.0;
+    worldY -= mapHeight / 2.0;
+    return { worldX, worldY };
 }
 
-BlockCoord Core::worldToBlock(const Vec2& worldPos) const
+MapCoord Core::worldToCoord(const Vec2& worldPos) const
 {
-    double localX = worldPos.x + worldWidth  / 2.0;
-    double localZ = worldPos.y + worldHeight / 2.0;
-    int blockX = static_cast<int>(localX) + worldMinBlockX;
-    int blockZ = worldMaxBlockZ - static_cast<int>(localZ);
-    return { blockX, blockZ };
+    double localX = worldPos.x + mapWidth  / 2.0;
+    double localY = worldPos.y + mapHeight / 2.0;
+    int coordX = static_cast<int>(localX) + worldMinX;
+    int coordY = worldMaxY - static_cast<int>(localY);
+    return { coordX, coordY };
 }

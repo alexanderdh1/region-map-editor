@@ -33,7 +33,7 @@ add_executable(main
     src/rendering/Renderer.cpp
     src/rendering/Texture.cpp
     src/rendering/TileLayer.cpp
-    src/data/WorldLoader.cpp
+    src/data/MapLoader.cpp
     src/data/RegionTree.cpp
     src/data/RegionSerializer.cpp
     src/window/OpenGLSetup.cpp

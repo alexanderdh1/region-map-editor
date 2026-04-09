@@ -2,7 +2,7 @@
 
 #include "rendering/Camera.h"
 #include "input/Input.h"
-#include "math/BlockCoord.h"
+#include "math/MapCoord.h"
 #include "data/RegionTree.h"
 #include "core/SelectionState.h"
 
@@ -56,24 +56,24 @@ public:
 
     void update(GLFWwindow* window);
 
-    void setWorldSize(double width, double height);
+    void setMapSize(double width, double height);
 
-    void setWorldBlockBounds(
-        int minBlockX, int minBlockZ,
-        int maxBlockX, int maxBlockZ
+    void setMapCoordBounds(
+        int minX, int minY,
+        int maxX, int maxY
     );
 
-    // Called by WorldLoader to signal which coordinate mode is active.
+    // Called by MapLoader to signal which coordinate mode is active.
     // block = true  → save/load in block coordinates (requires JSON metadata)
     // block = false → save/load in normalised image coordinates (0.0–1.0)
-    void setBlockCoordMode(bool enabled) { blockCoordMode_ = enabled; }
-    bool isBlockCoordMode()        const { return blockCoordMode_; }
+    void setCoordMode(bool enabled) { coordMode_ = enabled; }
+    bool isCoordMode()        const { return coordMode_; }
 
-    double getWorldWidth()  const { return worldWidth; }
-    double getWorldHeight() const { return worldHeight; }
+    double getMapWidth()  const { return mapWidth; }
+    double getMapHeight() const { return mapHeight; }
 
-    Vec2 blockToWorld(const BlockCoord& block) const;
-    BlockCoord worldToBlock(const Vec2& worldPos) const;
+    Vec2 coordToWorld(const MapCoord& block) const;
+    MapCoord worldToCoord(const Vec2& worldPos) const;
 
     RegionTree& getRegionTree()             { return regionTree; }
     const RegionTree& getRegionTree() const { return regionTree; }
@@ -100,15 +100,15 @@ private:
     bool     hasPendingParent = false;
     RegionId pendingParentId  = 0;
 
-    double worldWidth  = 0.0;
-    double worldHeight = 0.0;
+    double mapWidth  = 0.0;
+    double mapHeight = 0.0;
 
-    bool blockCoordMode_ = false;
+    bool coordMode_ = false;
 
-    int worldMinBlockX = 0;
-    int worldMinBlockZ = 0;
-    int worldMaxBlockX = 0;
-    int worldMaxBlockZ = 0;
+    int worldMinX = 0;
+    int worldMinY = 0;
+    int worldMaxX = 0;
+    int worldMaxY = 0;
 
     void updateEditMode(GLFWwindow* window);
 

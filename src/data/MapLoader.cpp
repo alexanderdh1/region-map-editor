@@ -1,4 +1,4 @@
-#include "data/WorldLoader.h"
+#include "data/MapLoader.h"
 
 #include "rendering/Texture.h"
 #include "rendering/Tile.h"
@@ -15,7 +15,7 @@
 
 using json = nlohmann::json;
 
-void loadSingleImageWorld(
+void loadMap(
     const std::string& basePath,
     Core& core,
     Renderer& renderer
@@ -29,7 +29,7 @@ void loadSingleImageWorld(
     double imgW = static_cast<double>(texture->getWidth());
     double imgH = static_cast<double>(texture->getHeight());
 
-    core.setWorldSize(imgW, imgH);
+    core.setMapSize(imgW, imgH);
 
     // ---- Detect mode from JSON presence ----
     std::string jsonPath = basePath + ".json";
@@ -42,18 +42,18 @@ void loadSingleImageWorld(
         json j;
         file >> j;
 
-        int minBlockX = j.at("minBlockX").get<int>();
-        int minBlockZ = j.at("minBlockZ").get<int>();
-        int maxBlockX = j.at("maxBlockX").get<int>();
-        int maxBlockZ = j.at("maxBlockZ").get<int>();
+        int minX = j.at("minX").get<int>();
+        int minY = j.at("minY").get<int>();
+        int maxX = j.at("maxX").get<int>();
+        int maxY = j.at("maxY").get<int>();
 
-        core.setWorldBlockBounds(minBlockX, minBlockZ, maxBlockX, maxBlockZ);
-        core.setBlockCoordMode(true);
+        core.setMapCoordBounds(minX, minY, maxX, maxY);
+        core.setCoordMode(true);
     }
     else
     {
         // Image mode: no metadata, use normalised coordinates
-        core.setBlockCoordMode(false);
+        core.setCoordMode(false);
     }
 
     // ---- Create single tile ----

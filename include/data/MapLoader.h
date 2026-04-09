@@ -5,7 +5,7 @@
 class Core;
 class Renderer;
 
-void loadSingleImageWorld(
+void loadMap(
     const std::string& path,
     Core& core,
     Renderer& renderer

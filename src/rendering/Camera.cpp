@@ -7,8 +7,8 @@ Camera::Camera()
       viewportSize{800.0, 600.0},
       minZoom{0.1},
       maxZoom{10.0},
-      worldWidth_{0.0},
-      worldHeight_{0.0}
+      mapWidth_{0.0},
+      mapHeight_{0.0}
 {
 }
 
@@ -19,8 +19,8 @@ void Camera::panBy(const Vec2& delta)
 
     // Hard clamp immediately so a single fast swipe never overshoots
     // the world border even for one frame.
-    if (worldWidth_ > 0.0 && worldHeight_ > 0.0)
-        clampToBounds(worldWidth_, worldHeight_);
+    if (mapWidth_ > 0.0 && mapHeight_ > 0.0)
+        clampToBounds(mapWidth_, mapHeight_);
 }
 
 void Camera::zoomBy(double factor) {
@@ -28,21 +28,21 @@ void Camera::zoomBy(double factor) {
     zoom = std::clamp(zoom, minZoom, maxZoom);
 }
 
-void Camera::clampToBounds(double worldWidth, double worldHeight)
+void Camera::clampToBounds(double mapWidth, double mapHeight)
 {
     // Cache for use in panBy
-    worldWidth_  = worldWidth;
-    worldHeight_ = worldHeight;
+    mapWidth_  = mapWidth;
+    mapHeight_ = mapHeight;
 
-    double minZoomX = viewportSize.x / worldWidth;
-    double minZoomY = viewportSize.y / worldHeight;
+    double minZoomX = viewportSize.x / mapWidth;
+    double minZoomY = viewportSize.y / mapHeight;
     double dynamicMinZoom = std::max(minZoomX, minZoomY);
 
     if (zoom < dynamicMinZoom)
         zoom = dynamicMinZoom;
 
-    double halfW = worldWidth  / 2.0;
-    double halfH = worldHeight / 2.0;
+    double halfW = mapWidth  / 2.0;
+    double halfH = mapHeight / 2.0;
 
     double visibleHalfW = viewportSize.x / (2.0 * zoom);
     double visibleHalfH = viewportSize.y / (2.0 * zoom);

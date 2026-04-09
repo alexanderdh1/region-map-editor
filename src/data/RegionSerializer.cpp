@@ -49,14 +49,14 @@ static json serializeGeometry(const RegionGeometry& g, const Core& core)
 
     auto convertPt = [&](const Vec2& world) -> json
     {
-        if (core.isBlockCoordMode())
+        if (core.isCoordMode())
         {
-            BlockCoord b = core.worldToBlock(world);
-            return { b.x, b.z };
+            MapCoord b = core.worldToCoord(world);
+            return { b.x, b.y };
         }
         else
         {
-            Vec2 n = worldToNorm(world, core.getWorldWidth(), core.getWorldHeight());
+            Vec2 n = worldToNorm(world, core.getMapWidth(), core.getMapHeight());
             return serializeVec2(n);
         }
     };
@@ -83,15 +83,15 @@ static RegionGeometry deserializeGeometry(const json& j, const Core& core)
 
     auto convertPt = [&](const json& pt) -> Vec2
     {
-        if (core.isBlockCoordMode())
+        if (core.isCoordMode())
         {
-            BlockCoord b { pt[0].get<int>(), pt[1].get<int>() };
-            return core.blockToWorld(b);
+            MapCoord b { pt[0].get<int>(), pt[1].get<int>() };
+            return core.coordToWorld(b);
         }
         else
         {
             Vec2 n = deserializeVec2(pt);
-            return normToWorld(n, core.getWorldWidth(), core.getWorldHeight());
+            return normToWorld(n, core.getMapWidth(), core.getMapHeight());
         }
     };
 
@@ -170,7 +170,7 @@ bool RegionSerializer::save(const RegionTree& tree,
 {
     json root;
     root["version"]    = 3;
-    root["coord_mode"] = core.isBlockCoordMode() ? "block" : "normalised";
+    root["coord_mode"] = core.isCoordMode() ? "coord" : "normalised";
 
     json regions = json::array();
     for (const auto& r : tree.roots())
@@ -217,7 +217,7 @@ bool RegionSerializer::load(RegionTree& tree,
     if (root.contains("coord_mode"))
     {
         std::string fileMode = root["coord_mode"].get<std::string>();
-        std::string currMode = core.isBlockCoordMode() ? "block" : "normalised";
+        std::string currMode = core.isCoordMode() ? "coord" : "normalised";
         if (fileMode != currMode)
         {
             std::cerr << "[RegionSerializer] Warning: file was saved in '"

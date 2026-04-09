@@ -17,13 +17,13 @@ public:
 
     // Clamp position and zoom to world bounds.
     // Also caches the world size so panBy can hard-clamp immediately.
-    void clampToBounds(double worldWidth, double worldHeight);
+    void clampToBounds(double mapWidth, double mapHeight);
 
     Vec2 worldToScreen(const Vec2& worldPos) const;
     Vec2 screenToWorld(const Vec2& screenPos) const;
 
 private:
     // Cached world size — set by clampToBounds, used by panBy
-    double worldWidth_  = 0.0;
-    double worldHeight_ = 0.0;
+    double mapWidth_  = 0.0;
+    double mapHeight_ = 0.0;
 };
