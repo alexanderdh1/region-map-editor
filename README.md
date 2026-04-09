@@ -51,7 +51,7 @@ A desktop application for drawing and organizing regions on top of a map image. 
 ### Build
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/spatial-map-editor.git
+git clone https://github.com/alexanderdh1/spatial-map-editor.git
 cd spatial-map-editor
 
 # Install dependencies
