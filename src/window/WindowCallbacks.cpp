@@ -107,10 +107,8 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
 
             auto* ctx = static_cast<WindowContext*>(glfwGetWindowUserPointer(window));
 
-            // Always forward game shortcuts even when ImGui has focus,
-            // unless a text field is actively being edited
-            bool textActive = ctx->uiLayer->isTextInputActive();
-            if (ImGui::GetIO().WantCaptureKeyboard && textActive) return;
+            // Only block game shortcuts when a text field is actively being edited
+            if (ctx->uiLayer->isTextInputActive()) return;
 
             ctx->uiLayer->onKeyPress(key, *ctx->core);
         }

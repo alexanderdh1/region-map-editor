@@ -95,6 +95,12 @@ bool UILayer::onKeyPress(int key, Core& core)
         else if (r && !r->hidden)                  enterEditMode(core);
         return true;
     }
+    if (key == GLFW_KEY_C)
+    {
+        if (r && !r->hidden && selection.popupOpen)
+            colourPickerOpen_ = !colourPickerOpen_;
+        return true;
+    }
     if (input.getDrawTool() != DrawTool::Edit)
     {
         if (key == GLFW_KEY_R) { input.setDrawTool(DrawTool::Rectangle); input.cancelPolygon(); return true; }
@@ -136,7 +142,11 @@ bool UILayer::onKeyPress(int key, Core& core)
 void UILayer::renderPopup(Core& core)
 {
     SelectionState& selection = core.getSelection();
-    if (!selection.popupOpen || !selection.selectedRegion) return;
+    if (!selection.popupOpen || !selection.selectedRegion)
+    {
+        colourPickerOpen_ = false;
+        return;
+    }
 
     Region& region    = *selection.selectedRegion;
     const Camera& cam = core.getCamera();
@@ -157,7 +167,8 @@ void UILayer::renderPopup(Core& core)
         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
         ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoBringToFrontOnFocus |
-        ImGuiWindowFlags_AlwaysVerticalScrollbar;
+        ImGuiWindowFlags_AlwaysVerticalScrollbar |
+        ImGuiWindowFlags_NoFocusOnAppearing;
 
     float titleA = isHidden ? 0.35f : 0.85f;
     ImGui::PushStyleColor(ImGuiCol_TitleBg,
@@ -194,8 +205,9 @@ void UILayer::renderPopup(Core& core)
     if (!nameFieldActive_) { strncpy(nameBuf, region.name.c_str(), 255); nameBuf[255] = 0; }
     ImGui::SetNextItemWidth(-1);
     if (ImGui::InputText("##name", nameBuf, sizeof(nameBuf)))
-    { region.name = nameBuf; nameFieldActive_ = true; dirtyTime_ = glfwGetTime(); }
-    if (!ImGui::IsItemActive()) nameFieldActive_ = false;
+    { region.name = nameBuf; dirtyTime_ = glfwGetTime(); }
+    if (ImGui::IsItemActive()) nameFieldActive_ = true;
+    else nameFieldActive_ = false;
 
     ImGui::Spacing();
     ImGui::Text("Note");
@@ -213,7 +225,7 @@ void UILayer::renderPopup(Core& core)
     ImGui::SetNextItemWidth(-1);
     if (ImGui::InputTextMultiline("##note", noteBuf, sizeof(noteBuf),
         ImVec2(-1, noteH), ImGuiInputTextFlags_WordWrap))
-    { region.note = noteBuf; noteFieldActive_ = true; dirtyTime_ = glfwGetTime(); }
+    { region.note = noteBuf; dirtyTime_ = glfwGetTime(); }
 #else
     struct WrapState { int maxCharsPerLine; };
     static WrapState ws{ 33 };
@@ -231,9 +243,10 @@ void UILayer::renderPopup(Core& core)
     ImGui::SetNextItemWidth(-1);
     if (ImGui::InputTextMultiline("##note", noteBuf, sizeof(noteBuf),
         ImVec2(-1, noteH), ImGuiInputTextFlags_CallbackEdit, wrapCb, &ws))
-    { region.note = noteBuf; noteFieldActive_ = true; dirtyTime_ = glfwGetTime(); }
+    { region.note = noteBuf; dirtyTime_ = glfwGetTime(); }
 #endif
-    if (!ImGui::IsItemActive()) noteFieldActive_ = false;
+    if (ImGui::IsItemActive()) noteFieldActive_ = true;
+    else noteFieldActive_ = false;
 
     int numChildren = static_cast<int>(region.children.size());
     if (numChildren > 0)
@@ -271,15 +284,36 @@ void UILayer::renderPopup(Core& core)
             ImVec4(region.colorR, region.colorG, region.colorB, 0.85f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
             ImVec4(region.colorR, region.colorG, region.colorB, 1.0f));
-        if (ImGui::Button("Colour", ImVec2(-1, 0))) ImGui::OpenPopup("ColourPicker");
+        if (ImGui::Button("Colour", ImVec2(-1, 0))) colourPickerOpen_ = !colourPickerOpen_;
         ImGui::PopStyleColor(2);
-        if (ImGui::BeginPopup("ColourPicker"))
+
+        if (colourPickerOpen_)
         {
+            float pickerW = 270.0f;
+            float pickerX = viewW - sidebarW - 280.0f - pickerW;
+            float pickerY = 8.0f;
+            float pickerH = 0.0f; // auto-fit to content
+            ImGui::SetNextWindowPos(ImVec2(pickerX, pickerY), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(pickerW, pickerH), ImGuiCond_Always);
+            ImGui::SetNextWindowBgAlpha(0.96f);
+            ImGuiWindowFlags pickerFlags =
+                ImGuiWindowFlags_NoResize    | ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoTitleBar  | ImGuiWindowFlags_NoSavedSettings |
+                ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoScrollbar;
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 4.0f));
+            ImGui::Begin("##colourpicker", nullptr, pickerFlags);
+            float availW = ImGui::GetContentRegionAvail().x;
+            ImGui::SetNextItemWidth(availW);
             if (ImGui::ColorPicker4("##picker", col,
                 ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview |
-                ImGuiColorEditFlags_NoInputs      | ImGuiColorEditFlags_AlphaBar))
+                ImGuiColorEditFlags_NoInputs      | ImGuiColorEditFlags_AlphaBar,
+                nullptr))
             { region.colorR=col[0]; region.colorG=col[1]; region.colorB=col[2]; region.colorA=col[3]; }
-            ImGui::EndPopup();
+            if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) &&
+                ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                colourPickerOpen_ = false;
+            ImGui::End();
+            ImGui::PopStyleVar();
         }
         if (isEditTarget)
         {
@@ -325,8 +359,6 @@ void UILayer::renderPopup(Core& core)
     ImGui::End();
     ImGui::PopStyleColor(3);
 }
-
-// ============================================================
 // Tree drag-and-drop
 //
 // KEY DESIGN: drop actions are DEFERRED.

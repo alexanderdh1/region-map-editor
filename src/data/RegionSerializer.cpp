@@ -202,6 +202,12 @@ bool RegionSerializer::load(RegionTree& tree,
         return false;
     }
 
+    // Empty file is valid — nothing to load
+    file.seekg(0, std::ios::end);
+    if (file.tellg() == 0)
+        return true;
+    file.seekg(0, std::ios::beg);
+
     json root;
     try { file >> root; }
     catch (const std::exception& e)
