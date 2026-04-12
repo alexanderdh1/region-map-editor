@@ -27,6 +27,7 @@ A desktop application for drawing and organizing regions on top of a map image. 
 - **Edit mode** — move polygon points and rectangle corners with precise handle dragging
 - **Region metadata** — name and note fields per region, with colour picker
 - **Visibility toggle** — hide/show regions and their children
+- **Undo/redo** — up to 100 steps with Ctrl+Z / Ctrl+Y
 - **Auto-save** — changes are saved automatically to `regions.json`
 
 ---
@@ -96,6 +97,8 @@ If no `.json` file is present, the application uses normalised image coordinates
 | `C` | Open / close colour picker |
 | `B` | Navigate back in region hierarchy |
 | `S` | Save manually |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` / `Ctrl+Shift+Z` | Redo |
 | `Delete` | Delete selected region or polygon point |
 | `Escape` | Cancel drawing / exit edit mode / close popup |
 
