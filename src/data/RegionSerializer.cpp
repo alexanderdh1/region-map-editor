@@ -188,6 +188,43 @@ bool RegionSerializer::save(const RegionTree& tree,
     return true;
 }
 
+std::string RegionSerializer::toJson(const RegionTree& tree, const Core& core)
+{
+    json root;
+    root["version"]    = 3;
+    root["coord_mode"] = core.isCoordMode() ? "coord" : "normalised";
+
+    json regions = json::array();
+    for (const auto& r : tree.roots())
+        regions.push_back(serializeRegion(*r, core));
+    root["regions"] = regions;
+
+    return root.dump();
+}
+
+bool RegionSerializer::fromJson(const std::string& jsonStr, RegionTree& tree, const Core& core)
+{
+    if (jsonStr.empty()) return false;
+
+    json root;
+    try { root = json::parse(jsonStr); }
+    catch (const std::exception& e)
+    {
+        std::cerr << "[RegionSerializer] fromJson parse error: " << e.what() << "\n";
+        return false;
+    }
+
+    while (!tree.roots().empty())
+        tree.removeRegion(tree.roots().front()->id);
+
+    for (const auto& regionJson : root.at("regions"))
+    {
+        auto region = deserializeRegion(regionJson, tree, core);
+        tree.addRegion(std::move(region));
+    }
+    return true;
+}
+
 bool RegionSerializer::load(RegionTree& tree,
                              const std::string& path,
                              const Core& core)

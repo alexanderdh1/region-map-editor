@@ -22,6 +22,7 @@ set(IMGUI_SOURCES
 add_executable(main
     src/main.cpp
     src/core/Core.cpp
+    src/core/HistoryManager.cpp
     src/input/Input.cpp
     src/rendering/Camera.cpp
     src/rendering/RegionRenderer.cpp

@@ -19,4 +19,8 @@ public:
     static bool load(RegionTree& tree,
                      const std::string& path,
                      const Core& core);
+
+    // In-memory serialization used by HistoryManager for undo/redo snapshots.
+    static std::string toJson(const RegionTree& tree, const Core& core);
+    static bool fromJson(const std::string& jsonStr, RegionTree& tree, const Core& core);
 };

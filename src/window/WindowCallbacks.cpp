@@ -94,7 +94,7 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
             // Only block game shortcuts when a text field is actively being edited
             if (ctx->uiLayer->isTextInputActive()) return;
 
-            ctx->uiLayer->onKeyPress(key, *ctx->core);
+            ctx->uiLayer->onKeyPress(key, mods, *ctx->core);
         }
     );
 

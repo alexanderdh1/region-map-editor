@@ -63,6 +63,7 @@ void UILayer::render(Core& core)
         {
             RegionSerializer::save(core.getRegionTree(), "regions.json", core);
             dirtyTime_ = -1.0;
+            snapshotPushedForDirty_ = false;
         }
     }
 
@@ -71,7 +72,7 @@ void UILayer::render(Core& core)
     renderPopup(core);
 }
 
-bool UILayer::onKeyPress(int key, Core& core)
+bool UILayer::onKeyPress(int key, int mods, Core& core)
 {
     auto& input     = core.getInput();
     auto& selection = core.getSelection();
@@ -79,6 +80,12 @@ bool UILayer::onKeyPress(int key, Core& core)
     Region* r       = selection.selectedRegion;
 
     if (nameFieldActive_ || noteFieldActive_) return true;
+
+    bool ctrl  = (mods & GLFW_MOD_CONTROL) != 0;
+    bool shift = (mods & GLFW_MOD_SHIFT)   != 0;
+
+    if (ctrl && key == GLFW_KEY_Z && !shift) { core.undo(); return true; }
+    if (ctrl && (key == GLFW_KEY_Y || (key == GLFW_KEY_Z && shift))) { core.redo(); return true; }
 
     if (key == GLFW_KEY_S)
     {
@@ -118,10 +125,11 @@ bool UILayer::onKeyPress(int key, Core& core)
         if (input.getDrawTool() == DrawTool::Edit)
         {
             if (editState.handleType == EditHandleType::PolyPoint)
-                core.deleteEditPoint();
+                core.deleteEditPoint(); // pushSnapshot() is inside deleteEditPoint()
         }
         else if (r && !r->hidden)
         {
+            core.pushSnapshot();
             RegionId id = r->id;
             selection.clear();
             core.getRegionTree().removeRegion(id);
@@ -202,7 +210,11 @@ void UILayer::renderPopup(Core& core)
     if (!nameFieldActive_) { strncpy(nameBuf, region.name.c_str(), 255); nameBuf[255] = 0; }
     ImGui::SetNextItemWidth(-1);
     if (ImGui::InputText("##name", nameBuf, sizeof(nameBuf)))
-    { region.name = nameBuf; dirtyTime_ = glfwGetTime(); }
+    {
+        if (!snapshotPushedForDirty_) { core.pushSnapshot(); snapshotPushedForDirty_ = true; }
+        region.name = nameBuf;
+        dirtyTime_ = glfwGetTime();
+    }
     if (ImGui::IsItemActive()) nameFieldActive_ = true;
     else nameFieldActive_ = false;
 
@@ -222,7 +234,11 @@ void UILayer::renderPopup(Core& core)
     ImGui::SetNextItemWidth(-1);
     if (ImGui::InputTextMultiline("##note", noteBuf, sizeof(noteBuf),
         ImVec2(-1, noteH), ImGuiInputTextFlags_WordWrap))
-    { region.note = noteBuf; dirtyTime_ = glfwGetTime(); }
+    {
+        if (!snapshotPushedForDirty_) { core.pushSnapshot(); snapshotPushedForDirty_ = true; }
+        region.note = noteBuf;
+        dirtyTime_ = glfwGetTime();
+    }
 #else
     struct WrapState { int maxCharsPerLine; };
     static WrapState ws{ 33 };
@@ -240,7 +256,11 @@ void UILayer::renderPopup(Core& core)
     ImGui::SetNextItemWidth(-1);
     if (ImGui::InputTextMultiline("##note", noteBuf, sizeof(noteBuf),
         ImVec2(-1, noteH), ImGuiInputTextFlags_CallbackEdit, wrapCb, &ws))
-    { region.note = noteBuf; dirtyTime_ = glfwGetTime(); }
+    {
+        if (!snapshotPushedForDirty_) { core.pushSnapshot(); snapshotPushedForDirty_ = true; }
+        region.note = noteBuf;
+        dirtyTime_ = glfwGetTime();
+    }
 #endif
     if (ImGui::IsItemActive()) noteFieldActive_ = true;
     else noteFieldActive_ = false;
@@ -341,6 +361,7 @@ void UILayer::renderPopup(Core& core)
         if (ImGui::Button("Delete region", ImVec2(-1,0)))
         {
             if (isEditMode) exitEditMode(core, false);
+            core.pushSnapshot();
             RegionId id = region.id;
             selection.clear();
             core.getRegionTree().removeRegion(id);
@@ -632,6 +653,7 @@ void UILayer::renderRegionTree(Core& core)
 
                 if (src && geometryOk)
                 {
+                    core.pushSnapshot();
                     tree.moveRegion(pendingSource, pendingTarget);
                     RegionSerializer::save(tree, "regions.json", core);
                     sel.clear(); // clear stale parent pointers in viewStack
@@ -715,6 +737,62 @@ void UILayer::renderSidebar(Core& core)
         }
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Polygon [P]");
+
+    // Undo / Redo buttons
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    bool canUndo = core.canUndo();
+    bool canRedo = core.canRedo();
+
+    ImGui::BeginDisabled(!canUndo);
+    ImGui::PushStyleColor(ImGuiCol_Button, canUndo
+        ? ImVec4(0.14f, 0.14f, 0.18f, 1.0f)
+        : ImVec4(0.10f, 0.10f, 0.12f, 1.0f));
+    if (ImGui::Button("##undo", ImVec2(36, 36))) core.undo();
+    ImGui::PopStyleColor();
+    ImGui::EndDisabled();
+    {
+        ImVec2 mn = ImGui::GetItemRectMin(), mx = ImGui::GetItemRectMax();
+        ImVec2 c  = ImVec2((mn.x + mx.x) * 0.5f, (mn.y + mx.y) * 0.5f);
+        ImU32  col = canUndo ? IM_COL32(180, 180, 200, 255) : IM_COL32(70, 70, 80, 255);
+        // left-pointing arrow: head + stem
+        float hw = 8.0f, hh = 6.0f, sw = 4.0f, sh = 3.0f;
+        draw->AddTriangleFilled(
+            ImVec2(c.x - hw,       c.y),
+            ImVec2(c.x - hw + hh,  c.y - hh),
+            ImVec2(c.x - hw + hh,  c.y + hh), col);
+        draw->AddRectFilled(
+            ImVec2(c.x - hw + hh - 1.0f, c.y - sh),
+            ImVec2(c.x + sw,              c.y + sh), col);
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("Undo [Ctrl+Z]");
+
+    ImGui::BeginDisabled(!canRedo);
+    ImGui::PushStyleColor(ImGuiCol_Button, canRedo
+        ? ImVec4(0.14f, 0.14f, 0.18f, 1.0f)
+        : ImVec4(0.10f, 0.10f, 0.12f, 1.0f));
+    if (ImGui::Button("##redo", ImVec2(36, 36))) core.redo();
+    ImGui::PopStyleColor();
+    ImGui::EndDisabled();
+    {
+        ImVec2 mn = ImGui::GetItemRectMin(), mx = ImGui::GetItemRectMax();
+        ImVec2 c  = ImVec2((mn.x + mx.x) * 0.5f, (mn.y + mx.y) * 0.5f);
+        ImU32  col = canRedo ? IM_COL32(180, 180, 200, 255) : IM_COL32(70, 70, 80, 255);
+        // right-pointing arrow: head + stem
+        float hw = 8.0f, hh = 6.0f, sw = 4.0f, sh = 3.0f;
+        draw->AddTriangleFilled(
+            ImVec2(c.x + hw,       c.y),
+            ImVec2(c.x + hw - hh,  c.y - hh),
+            ImVec2(c.x + hw - hh,  c.y + hh), col);
+        draw->AddRectFilled(
+            ImVec2(c.x - sw,              c.y - sh),
+            ImVec2(c.x + hw - hh + 1.0f, c.y + sh), col);
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("Redo [Ctrl+Y]");
 
     ImGui::End();
     ImGui::PopStyleVar(2);

@@ -7,7 +7,7 @@ class UILayer
 {
 public:
     void render(Core& core);
-    bool onKeyPress(int glfwKey, Core& core);
+    bool onKeyPress(int glfwKey, int mods, Core& core);
 
     bool isTextInputActive() const { return nameFieldActive_ || noteFieldActive_; }
 
@@ -23,5 +23,6 @@ private:
 
     // Debounce auto-save for name/note text fields
     double dirtyTime_ = -1.0;
+    bool   snapshotPushedForDirty_ = false;
     static constexpr double SAVE_DEBOUNCE_S = 1.0;
 };

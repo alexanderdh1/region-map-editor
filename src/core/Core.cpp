@@ -94,6 +94,7 @@ void Core::update(GLFWwindow* window)
 
     auto addRegion = [&](std::unique_ptr<Region> region)
     {
+        pushSnapshot();
         if (hasPendingParent)
         {
             regionTree.addChildRegion(pendingParentId, std::move(region));
@@ -388,6 +389,7 @@ void Core::updateEditMode(GLFWwindow* window)
 
             if (bestEdge >= 0)
             {
+                pushSnapshot();
                 pts.insert(pts.begin() + bestEdge + 1, clickMapPos);
                 RegionSerializer::save(regionTree, "regions.json", *this);
             }
@@ -452,6 +454,7 @@ void Core::updateEditMode(GLFWwindow* window)
                     editState.handleIndex    = i;
                     // Store the map position of this corner at drag start
                     editState.dragOriginMap = mapCorners[i];
+                    pushSnapshot();
                     return;
                 }
             }
@@ -469,6 +472,7 @@ void Core::updateEditMode(GLFWwindow* window)
                     editState.handleIndex     = i;
                     // Store the map position of this point at drag start
                     editState.dragOriginMap = pts[i];
+                    pushSnapshot();
                     return;
                 }
             }
@@ -626,12 +630,52 @@ void Core::deleteEditPoint()
     if (idx < 0 || idx >= n) return;
     if (n <= 3) return;
 
+    pushSnapshot();
     pts.erase(pts.begin() + idx);
     // Clear the entire drag state so the dragging segment that runs later
     // in the same frame cannot write through a now-stale handleIndex.
     editState.clearDrag();
 
     RegionSerializer::save(regionTree, "regions.json", *this);
+}
+
+// ---------------------------------------------------------------
+// Undo / redo
+// ---------------------------------------------------------------
+
+void Core::pushSnapshot()
+{
+    history_.pushSnapshot(regionTree, *this);
+}
+
+bool Core::undo()
+{
+    if (!history_.canUndo()) return false;
+    history_.undo(regionTree, *this);
+    selection.clear();
+    editState.clear();
+    input.cancelEdit();
+    input.cancelPolygon();
+    input.cancelRect();
+    input.setDrawTool(DrawTool::Navigate);
+    hasPendingParent = false;
+    RegionSerializer::save(regionTree, "regions.json", *this);
+    return true;
+}
+
+bool Core::redo()
+{
+    if (!history_.canRedo()) return false;
+    history_.redo(regionTree, *this);
+    selection.clear();
+    editState.clear();
+    input.cancelEdit();
+    input.cancelPolygon();
+    input.cancelRect();
+    input.setDrawTool(DrawTool::Navigate);
+    hasPendingParent = false;
+    RegionSerializer::save(regionTree, "regions.json", *this);
+    return true;
 }
 
 // ---------------------------------------------------------------

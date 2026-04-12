@@ -5,6 +5,7 @@
 #include "math/MapCoord.h"
 #include "data/RegionTree.h"
 #include "core/SelectionState.h"
+#include "core/HistoryManager.h"
 
 struct GLFWwindow;
 
@@ -92,12 +93,20 @@ public:
     void clearPendingParent() { hasPendingParent = false; }
     bool isPendingParentSet() const { return hasPendingParent; }
 
+    // Undo/redo — call pushSnapshot() before any mutation, then undo()/redo() on Ctrl+Z/Y.
+    void pushSnapshot();
+    bool undo();
+    bool redo();
+    bool canUndo() const { return history_.canUndo(); }
+    bool canRedo() const { return history_.canRedo(); }
+
 private:
     Camera camera;
     Input input;
     RegionTree regionTree;
     SelectionState selection;
     EditState editState;
+    HistoryManager history_;
 
     bool hasPendingParent = false;
     RegionId pendingParentId  = 0;
