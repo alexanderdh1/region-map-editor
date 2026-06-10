@@ -97,8 +97,20 @@ void Core::update(GLFWwindow* window)
         pushSnapshot();
         if (hasPendingParent)
         {
-            regionTree.addChildRegion(pendingParentId, std::move(region));
+            RegionId newId   = region->id;
+            RegionId parentId = pendingParentId;
+            regionTree.addChildRegion(parentId, std::move(region));
             hasPendingParent = false;
+
+            Region* added = regionTree.findById(newId);
+            if (added)
+            {
+                selection.viewStack.clear();
+                Region* anc = added->parent;
+                while (anc) { selection.viewStack.insert(selection.viewStack.begin(), anc); anc = anc->parent; }
+                selection.selectedRegion = added;
+                selection.popupOpen      = true;
+            }
         }
         else
         {

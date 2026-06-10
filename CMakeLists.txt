@@ -19,7 +19,7 @@ set(IMGUI_SOURCES
 )
 
 # Executable
-add_executable(main
+add_executable(main WIN32
     src/main.cpp
     src/core/Core.cpp
     src/core/HistoryManager.cpp
