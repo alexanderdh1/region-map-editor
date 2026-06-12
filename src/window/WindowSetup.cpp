@@ -2,6 +2,7 @@
 #include "core/Core.h"
 
 #include <GLFW/glfw3.h>
+#include <algorithm>
 
 void setupInitialViewport(GLFWwindow* window, Core& core)
 {
@@ -16,8 +17,19 @@ void setupInitialViewport(GLFWwindow* window, Core& core)
 
     glMatrixMode(GL_MODELVIEW);
 
-    core.getCamera().viewportSize = {
+    Camera& cam = core.getCamera();
+    cam.viewportSize = {
         static_cast<double>(width),
         static_cast<double>(height)
     };
+
+    // Start fully zoomed out: the smallest zoom that still covers the
+    // viewport (same limit clampToBounds enforces), centred on the map.
+    if (core.getMapWidth() > 0.0 && core.getMapHeight() > 0.0)
+    {
+        cam.zoom = std::max(
+            cam.viewportSize.x / core.getMapWidth(),
+            cam.viewportSize.y / core.getMapHeight());
+        cam.position = { 0.0, 0.0 };
+    }
 }

@@ -28,6 +28,7 @@ GLFWwindow* createWindow(int width, int height, const char* title)
     }
 
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1); // VSync — cap framerate to monitor refresh
 
     return window;
 }

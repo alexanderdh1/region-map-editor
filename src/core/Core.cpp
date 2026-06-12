@@ -240,7 +240,7 @@ void Core::update(GLFWwindow* window)
         geom.type   = GeometryType::Polygon;
         geom.points = mapPoints;
 
-        if (geom.isValid())
+        if (geom.isValid() && !geom.isSelfIntersecting())
         {
             const auto& pts = geom.points;
             double minX = pts[0].x, maxX = pts[0].x;

@@ -15,8 +15,6 @@ void updateWindowTitle(GLFWwindow* window, const Core& core)
 
     const Camera& camera = core.getCamera();
 
-    glfwSetWindowTitle(window, "Region Map Editor");
-
     // --- Cursor shape ---
     // Switch to a crosshair when hovering near a handle in edit mode,
     // so the user knows they can grab it. Otherwise use the default arrow.

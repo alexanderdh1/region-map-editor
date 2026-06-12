@@ -118,6 +118,7 @@ bool UILayer::onKeyPress(int key, int mods, Core& core)
         else if (input.isDrawingRect())                  input.cancelRect();
         else if (selection.popupOpen)                    selection.clear();
         if (input.getDrawTool() != DrawTool::Edit)       input.setDrawTool(DrawTool::Navigate);
+        core.clearPendingParent(); // cancel a pending "Add sub-region"
         return true;
     }
     if (key == GLFW_KEY_DELETE)
