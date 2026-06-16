@@ -8,12 +8,14 @@
 class RegionRenderer
 {
 public:
-    void render(const RegionTree& tree, const Camera& camera) const;
+    void render(const RegionTree& tree, const Camera& camera,
+                const Region* hovered = nullptr) const;
     void renderPreview(const Input& input, const Camera& camera) const;
     void renderEditHandles(const Core& core) const;
 
 private:
-    void renderRegion(const Region& region, const Camera& camera) const;
+    void renderRegion(const Region& region, const Camera& camera,
+                      const Region* hovered) const;
     void renderRectPreview(const Input& input, const Camera& camera) const;
     void renderPolygonPreview(const Input& input, const Camera& camera) const;
 

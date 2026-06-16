@@ -68,6 +68,10 @@ int main()
         glfwPollEvents();
         core.update(window);
 
+        // No hover glow while the mouse is over an ImGui panel
+        if (ImGui::GetIO().WantCaptureMouse)
+            core.getSelection().hoveredRegion = nullptr;
+
         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         renderer.render(core);

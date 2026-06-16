@@ -49,6 +49,10 @@ void setupWindowCallbacks(GLFWwindow* window, WindowContext* context)
             {
                 ctx->core->getInput().onMouseButtonRight(true, Vec2{x, y});
             }
+            else if (button == GLFW_MOUSE_BUTTON_MIDDLE)
+            {
+                ctx->core->getInput().onMouseButtonMiddle(action == GLFW_PRESS, Vec2{x, y});
+            }
         }
     );
 

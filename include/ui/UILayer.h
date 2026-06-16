@@ -9,7 +9,8 @@ public:
     void render(Core& core);
     bool onKeyPress(int glfwKey, int mods, Core& core);
 
-    bool isTextInputActive() const { return nameFieldActive_ || noteFieldActive_; }
+    bool isTextInputActive() const
+    { return nameFieldActive_ || noteFieldActive_ || searchFieldActive_; }
 
 private:
     void renderSidebar(Core& core);
@@ -19,7 +20,11 @@ private:
     bool treeExpanded_ = false;
     bool nameFieldActive_ = false;
     bool noteFieldActive_ = false;
+    bool searchFieldActive_ = false;
     bool colourPickerOpen_ = false;
+
+    // Region tree name filter (case-insensitive substring)
+    char treeSearch_[64] = "";
 
     // Debounce auto-save for name/note text fields
     double dirtyTime_ = -1.0;

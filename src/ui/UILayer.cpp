@@ -10,6 +10,7 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include <cmath>
+#include <cctype>
 
 // ============================================================
 // Edit mode helpers
@@ -50,6 +51,36 @@ static bool allPointsInsideParent(const Region& region, const RegionGeometry& pa
 }
 
 // ============================================================
+// Region tree search filter
+// ============================================================
+
+static bool textContains(const std::string& text, const char* filter)
+{
+    auto lower = [](std::string s) {
+        for (char& c : s) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+        return s;
+    };
+    return lower(text).find(lower(filter)) != std::string::npos;
+}
+
+// A region matches on its name OR its note — notes often carry the
+// keywords ("diamond mines") when the name is an abbreviation.
+static bool regionMatches(const Region& region, const char* filter)
+{
+    return textContains(region.name, filter)
+        || textContains(region.note, filter);
+}
+
+// True when the region itself or any descendant matches the filter
+static bool subtreeMatches(const Region& region, const char* filter)
+{
+    if (regionMatches(region, filter)) return true;
+    for (const auto& child : region.children)
+        if (subtreeMatches(*child, filter)) return true;
+    return false;
+}
+
+// ============================================================
 // UILayer::render
 // ============================================================
 
@@ -79,7 +110,7 @@ bool UILayer::onKeyPress(int key, int mods, Core& core)
     auto& editState = core.getEditState();
     Region* r       = selection.selectedRegion;
 
-    if (nameFieldActive_ || noteFieldActive_) return true;
+    if (nameFieldActive_ || noteFieldActive_ || searchFieldActive_) return true;
 
     bool ctrl  = (mods & GLFW_MOD_CONTROL) != 0;
     bool shift = (mods & GLFW_MOD_SHIFT)   != 0;
@@ -395,8 +426,15 @@ static void drawRegionNode(
     RegionId& pendingSourceId,   // out: set when a valid drop is detected
     RegionId& pendingTargetId,   // out: 0 = root, otherwise target region id
     bool& pendingDropReady,      // out: true = execute the move this frame
-    int depth)
+    int depth,
+    const char* filter)          // non-empty = only show matching subtrees
 {
+    bool filtering = (filter && filter[0] != '\0');
+
+    // Hide whole subtrees with no match anywhere
+    if (filtering && !subtreeMatches(region, filter))
+        return;
+
     ImDrawList* draw    = ImGui::GetWindowDrawList();
     const float indentW = 14.0f;
     const float rowH    = ImGui::GetTextLineHeight() + 6.0f;
@@ -454,7 +492,9 @@ static void drawRegionNode(
 
     // Selectable name
     bool isSelected = (selection.selectedRegion == &region);
-    ImVec4 textCol = region.hidden
+    // Ancestors shown only as context for a filter match are dimmed
+    bool dimmedByFilter = filtering && !regionMatches(region, filter);
+    ImVec4 textCol = (region.hidden || dimmedByFilter)
         ? ImVec4(0.45f,0.45f,0.45f,1.0f)
         : (isSelected ? ImVec4(0.4f,0.7f,1.0f,1.0f) : ImGui::GetStyleColorVec4(ImGuiCol_Text));
 
@@ -474,6 +514,21 @@ static void drawRegionNode(
         }
         selection.selectedRegion = const_cast<Region*>(&region);
         selection.popupOpen      = true;
+    }
+
+    // Double-click a tree row to zoom the camera to the region
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+        core.zoomToRegion(region);
+
+    // Matched via the note only — show the note so the hit makes sense
+    if (filtering && ImGui::IsItemHovered() &&
+        !textContains(region.name, filter) && textContains(region.note, filter))
+    {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(320.0f);
+        ImGui::TextUnformatted(region.note.c_str());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
     }
 
     // Drag source
@@ -514,8 +569,9 @@ static void drawRegionNode(
 
     if (depth > 0) ImGui::Unindent(indentW * depth);
 
-    // Recurse — children vector is NOT modified here, only pendingDrop is set
-    if (!region.collapsed)
+    // Recurse — children vector is NOT modified here, only pendingDrop is set.
+    // While filtering, collapsed state is ignored so matches stay visible.
+    if (!region.collapsed || filtering)
     {
         // Copy children ids to avoid iterator invalidation if anything changes
         std::vector<Region*> childPtrs;
@@ -524,7 +580,8 @@ static void drawRegionNode(
 
         for (Region* child : childPtrs)
             drawRegionNode(*child, selection, tree, core,
-                           pendingSourceId, pendingTargetId, pendingDropReady, depth + 1);
+                           pendingSourceId, pendingTargetId, pendingDropReady,
+                           depth + 1, filter);
     }
 }
 
@@ -579,10 +636,24 @@ void UILayer::renderRegionTree(Core& core)
 
     ImGui::SetWindowFontScale(1.10f);
 
+    searchFieldActive_ = false;
+
     if (treeExpanded_)
     {
         ImGui::Separator();
         ImGui::Text("Regions (%d)", countRegions(tree));
+
+        // Name filter — matching regions are shown with their ancestors
+        ImGui::SetNextItemWidth(treeSearch_[0] != '\0' ? -26.0f : -1.0f);
+        ImGui::InputTextWithHint("##treesearch", "Search...",
+                                 treeSearch_, sizeof(treeSearch_));
+        searchFieldActive_ = ImGui::IsItemActive();
+        if (treeSearch_[0] != '\0')
+        {
+            ImGui::SameLine();
+            if (ImGui::SmallButton("x##clearsearch"))
+                treeSearch_[0] = '\0';
+        }
         ImGui::Separator();
 
         // Pending drop — collected during tree render, executed after
@@ -604,7 +675,8 @@ void UILayer::renderRegionTree(Core& core)
 
             for (Region* root : rootPtrs)
                 drawRegionNode(*root, sel, tree, core,
-                               pendingSource, pendingTarget, dropReady, 0);
+                               pendingSource, pendingTarget, dropReady,
+                               0, treeSearch_);
         }
 
         // Root-level drop zone — fills all remaining space in the panel.

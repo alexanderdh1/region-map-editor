@@ -13,9 +13,8 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
         // ---- EDIT MODE ----
         if (activeTool == DrawTool::Edit)
         {
-            // Pan is handled by falling through to Navigate if not pressing on a handle.
-            // We don't know yet if the press is on a handle (that check lives in Core),
-            // so we always arm the edit state; Core will clear it and start pan if needed.
+            // We don't know yet if the press is on a handle (that check lives in
+            // Core), so we always arm the edit state; Core cancels it on a miss.
             mode                = InputMode::Edit;
             editMouseButtonHeld = true;
             editDragging        = false;
@@ -100,7 +99,6 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
             editDidDrag        = false;
             editDragDelta      = { 0.0, 0.0 };
             editDragTotalDelta = { 0.0, 0.0 };
-            // Also stop any pan that was started via redirectEditToPan
             dragging = false;
             didDrag  = false;
             mode     = InputMode::Navigate;
@@ -119,7 +117,27 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
             return;
 
         if (!didDrag)
-            clickPending = true;
+        {
+            double now  = glfwGetTime();
+            double dist = std::hypot(
+                clickPos.x - navLastClickPos.x,
+                clickPos.y - navLastClickPos.y
+            );
+
+            if (now - navLastClickTime < DOUBLE_CLICK_SECONDS &&
+                dist < DOUBLE_CLICK_RADIUS)
+            {
+                doubleClickPending = true;
+                doubleClickPos     = clickPos;
+                navLastClickTime   = 0.0; // a triple-click is not two doubles
+            }
+            else
+            {
+                clickPending     = true;
+                navLastClickTime = now;
+                navLastClickPos  = clickPos;
+            }
+        }
 
         dragging = false;
         didDrag  = false;
@@ -127,9 +145,24 @@ void Input::onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld)
     }
 }
 
+void Input::onMouseButtonMiddle(bool pressed, const Vec2& mousePos)
+{
+    panDragging = pressed;
+    panLastPos  = mousePos;
+}
+
 void Input::onMouseMove(const Vec2& mousePos)
 {
     drawCurrent = mousePos;
+
+    // Middle-mouse pan has priority and works in every mode
+    if (panDragging)
+    {
+        panDelta.x += mousePos.x - panLastPos.x;
+        panDelta.y += mousePos.y - panLastPos.y;
+        panLastPos  = mousePos;
+        return;
+    }
 
     if (activeTool == DrawTool::Edit)
     {
@@ -169,9 +202,8 @@ void Input::onMouseMove(const Vec2& mousePos)
             return; // still in edit drag — don't feed pan
         }
 
-        // editMouseButtonHeld is false: either button not pressed, or
-        // redirectEditToPan() was called and set dragging=true for pan.
-        // Fall through to the pan accumulation path below.
+        // editMouseButtonHeld is false: button not pressed, or the press
+        // missed all handles and was cancelled via cancelEditPress().
         editLastMousePos = mousePos;
     }
 
@@ -180,6 +212,8 @@ void Input::onMouseMove(const Vec2& mousePos)
 
     if (!dragging) return;
 
+    // Left button no longer pans — we only track movement so a drag
+    // can be distinguished from a click on release.
     Vec2 delta {
         mousePos.x - lastMousePos.x,
         mousePos.y - lastMousePos.y
@@ -188,8 +222,6 @@ void Input::onMouseMove(const Vec2& mousePos)
     if (std::abs(delta.x) > 4.0 || std::abs(delta.y) > 4.0)
         didDrag = true;
 
-    panDelta.x  += delta.x;
-    panDelta.y  += delta.y;
     lastMousePos = mousePos;
 }
 

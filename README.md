@@ -21,9 +21,12 @@ A desktop application for drawing and organizing regions on top of a map image. 
 
 ## Features
 
-- **Pan & zoom** — left-drag to pan, scroll to zoom toward cursor
+- **Pan & zoom** — middle-drag to pan, scroll to zoom toward cursor
+- **Hover highlight** — the region under the cursor glows so you can see what a click will hit
 - **Region drawing** — draw rectangular or polygon regions on the map
 - **Hierarchical regions** — nest regions inside each other with drag-and-drop reparenting
+- **Region search** — filter the region tree by name
+- **Zoom to region** — double-click a region on the map or in the tree to zoom to it
 - **Edit mode** — move polygon points and rectangle corners with precise handle dragging
 - **Region metadata** — name and note fields per region, with colour picker
 - **Visibility toggle** — hide/show regions and their children
@@ -88,7 +91,9 @@ If no `.json` file is present, the application uses normalised image coordinates
 
 | Input | Action |
 |---|---|
-| Left-drag | Pan the map |
+| Middle-drag | Pan the map |
+| Left-click | Select region under cursor |
+| Double-click | Zoom to region under cursor |
 | Scroll | Zoom toward cursor |
 | `R` | Rectangle draw tool |
 | `P` | Polygon draw tool |

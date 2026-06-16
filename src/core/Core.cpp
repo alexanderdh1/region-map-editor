@@ -79,6 +79,9 @@ void Core::update(GLFWwindow* window)
 
     cam.clampToBounds(mapWidth, mapHeight);
 
+    // Hover is recomputed from scratch every frame (edit mode has its own highlight)
+    selection.hoveredRegion = nullptr;
+
     if (input.getDrawTool() == DrawTool::Edit)
     {
         updateEditMode(window);
@@ -90,6 +93,16 @@ void Core::update(GLFWwindow* window)
     {
         Vec2 delta = input.consumePanDelta();
         cam.panBy(delta);
+    }
+
+    // HOVER — topmost visible region under the cursor (same rule as click)
+    {
+        Vec2 mouseMap = cam.screenToWorld(mouseScreen);
+        regionTree.forEach([&](Region& r)
+        {
+            if (!r.hidden && r.geometry.contains(mouseMap))
+                selection.hoveredRegion = &r;
+        });
     }
 
     auto addRegion = [&](std::unique_ptr<Region> region)
@@ -119,12 +132,15 @@ void Core::update(GLFWwindow* window)
         RegionSerializer::save(regionTree, "regions.json", *this);
     };
 
-    auto isInsideParent = [&](const Vec2& mapPt) -> bool
+    // Clamp a point into the pending parent: clicking just outside the
+    // parent snaps onto its border instead of being rejected, so child
+    // regions can hug the parent's edge without pixel-perfect clicks.
+    auto clampToParent = [&](const Vec2& mapPt) -> Vec2
     {
-        if (!hasPendingParent) return true;
+        if (!hasPendingParent) return mapPt;
         Region* parent = regionTree.findById(pendingParentId);
-        if (!parent) return true;
-        return parent->geometry.contains(mapPt);
+        if (!parent) return mapPt;
+        return parent->geometry.closestPointInside(mapPt);
     };
 
     // Auto sub-region: if a region is selected and drawing starts inside it,
@@ -146,13 +162,8 @@ void Core::update(GLFWwindow* window)
     {
         Vec2 mapStart = cam.screenToWorld(input.getDrawStart());
         autoSetPendingParent(mapStart);
-        if (!isInsideParent(mapStart))
-            input.cancelRect();
-        else
-        {
-            input.setDrawStartMap(mapStart);
-            input.consumeRectJustStarted();
-        }
+        input.setDrawStartMap(clampToParent(mapStart));
+        input.consumeRectJustStarted();
     }
 
     if (input.hasCompletedRect())
@@ -163,23 +174,7 @@ void Core::update(GLFWwindow* window)
         cur.y = std::max(0.0, std::min(cur.y, cam.viewportSize.y));
         Vec2 mapB = cam.screenToWorld(cur);
 
-        if (hasPendingParent)
-        {
-            Region* parent = regionTree.findById(pendingParentId);
-            if (parent)
-            {
-                const auto& pts = parent->geometry.getPoints();
-                double minX = pts[0].x, maxX = pts[0].x;
-                double minY = pts[0].y, maxY = pts[0].y;
-                for (const auto& p : pts)
-                {
-                    minX = std::min(minX, p.x); maxX = std::max(maxX, p.x);
-                    minY = std::min(minY, p.y); maxY = std::max(maxY, p.y);
-                }
-                mapB.x = std::clamp(mapB.x, minX, maxX);
-                mapB.y = std::clamp(mapB.y, minY, maxY);
-            }
-        }
+        mapB = clampToParent(mapB);
 
         RegionGeometry geom;
         geom.type    = GeometryType::Rectangle;
@@ -210,32 +205,63 @@ void Core::update(GLFWwindow* window)
         if (input.getPolygonMapPoints().empty())
             autoSetPendingParent(mapPt);
 
-        if (isInsideParent(mapPt))
-        {
-            const std::vector<Vec2>& existing = input.getPolygonMapPoints();
-            bool closedByFirstPoint = false;
+        // Snap onto the parent border when clicking outside it
+        mapPt = clampToParent(mapPt);
 
-            if (existing.size() >= 3)
+        const std::vector<Vec2>& existing = input.getPolygonMapPoints();
+        bool closedByFirstPoint = false;
+
+        if (existing.size() >= 3)
+        {
+            Vec2 firstScreen = cam.worldToScreen(existing[0]);
+            double dist = std::hypot(
+                screenPt.x - firstScreen.x,
+                screenPt.y - firstScreen.y
+            );
+            if (dist <= 12.0)
             {
-                Vec2 firstScreen = cam.worldToScreen(existing[0]);
-                double dist = std::hypot(
-                    screenPt.x - firstScreen.x,
-                    screenPt.y - firstScreen.y
-                );
-                if (dist <= 12.0)
+                input.closePolygon();
+                closedByFirstPoint = true;
+            }
+        }
+        if (!closedByFirstPoint)
+        {
+            // If the new edge would cut across outside the parent (two
+            // snapped points around a parent corner), insert the parent's
+            // corner points so the child follows the parent border.
+            if (hasPendingParent && !existing.empty())
+            {
+                Region* parent = regionTree.findById(pendingParentId);
+                Vec2 last = existing.back();
+                if (parent && !parent->geometry.segmentInside(last, mapPt))
                 {
-                    input.closePolygon();
-                    closedByFirstPoint = true;
+                    for (const Vec2& v :
+                         parent->geometry.boundaryPathBetween(last, mapPt))
+                        input.addPolygonMapPoint(v);
                 }
             }
-            if (!closedByFirstPoint)
-                input.addPolygonMapPoint(mapPt);
+            input.addPolygonMapPoint(mapPt);
         }
     }
 
     if (input.hasCompletedPolygon())
     {
         std::vector<Vec2> mapPoints = input.consumeCompletedPolygon();
+
+        // The closing edge (last → first) can also cut outside the parent —
+        // append the parent border path before validating.
+        if (hasPendingParent && mapPoints.size() >= 3)
+        {
+            Region* parent = regionTree.findById(pendingParentId);
+            if (parent &&
+                !parent->geometry.segmentInside(mapPoints.back(), mapPoints.front()))
+            {
+                std::vector<Vec2> path = parent->geometry.boundaryPathBetween(
+                    mapPoints.back(), mapPoints.front());
+                mapPoints.insert(mapPoints.end(), path.begin(), path.end());
+            }
+        }
+
         RegionGeometry geom;
         geom.type   = GeometryType::Polygon;
         geom.points = mapPoints;
@@ -292,6 +318,33 @@ void Core::update(GLFWwindow* window)
         }
     }
 
+    // DOUBLE-CLICK — zoom to the region under the cursor
+    if (input.hasDoubleClick())
+    {
+        Vec2 screenPos = input.consumeDoubleClick();
+        Vec2 mapPos  = cam.screenToWorld(screenPos);
+
+        Region* hit = nullptr;
+        regionTree.forEach([&](Region& r)
+        {
+            if (!r.hidden && r.geometry.contains(mapPos)) hit = &r;
+        });
+
+        if (hit)
+        {
+            selection.viewStack.clear();
+            Region* ancestor = hit->parent;
+            while (ancestor)
+            {
+                selection.viewStack.insert(selection.viewStack.begin(), ancestor);
+                ancestor = ancestor->parent;
+            }
+            selection.selectedRegion = hit;
+            selection.popupOpen      = true;
+            zoomToRegion(*hit);
+        }
+    }
+
     // Right-click is not used in the current UI — input is consumed to keep
     // the Input state clean, but no action is taken.
     if (input.hasRightClick())
@@ -310,9 +363,7 @@ void Core::updateEditMode(GLFWwindow* window)
     glfwGetCursorPos(window, &mouseX, &mouseY);
     Vec2 mouseScreen{ mouseX, mouseY };
 
-    // Pan accumulates in Input when a drag starts on empty space (no handle hit).
-    // redirectEditToPan() switches Input into Navigate mode so onMouseMove
-    // feeds panDelta normally — we just apply whatever arrived.
+    // Middle-mouse pan works in edit mode too — apply whatever arrived.
     if (input.hasPanDelta())
         cam.panBy(input.consumePanDelta());
 
@@ -490,8 +541,8 @@ void Core::updateEditMode(GLFWwindow* window)
             }
         }
 
-        // No handle was hit — redirect into normal pan
-        input.redirectEditToPan(startScreen);
+        // No handle was hit — discard the press (panning is middle-mouse)
+        input.cancelEditPress();
     }
 
     // ---- Dragging ----
@@ -521,6 +572,11 @@ void Core::updateEditMode(GLFWwindow* window)
 
         if (editState.handleType == EditHandleType::RectCorner)
         {
+            // Snap the dragged corner onto the parent border instead of
+            // freezing the drag the moment the mouse leaves the parent.
+            if (region.parent)
+                desiredMapPos = region.parent->geometry.closestPointInside(desiredMapPos);
+
             Vec2 newMin = region.geometry.rectMin;
             Vec2 newMax = region.geometry.rectMax;
 
@@ -590,9 +646,10 @@ void Core::updateEditMode(GLFWwindow* window)
 
             Vec2 newPt = desiredMapPos;
 
-            // Parent containment: the moved point must be inside parent
-            if (region.parent && !region.parent->geometry.contains(newPt))
-                return; // hold position — mouse will re-engage when it returns
+            // Parent containment: snap onto the parent border so the point
+            // slides along the edge instead of freezing outside it
+            if (region.parent)
+                newPt = region.parent->geometry.closestPointInside(newPt);
 
             // Children containment: polygon bounding box must still cover children
             double cMinX, cMinY, cMaxX, cMaxY;
@@ -617,10 +674,51 @@ void Core::updateEditMode(GLFWwindow* window)
         }
     }
 
-    // ---- Drag end: auto-save ----
+    // ---- Drag end: repair parent containment, then auto-save ----
     if (input.hasEditDragEnd())
     {
         input.consumeEditDragEnd();
+
+        // After dragging a polygon point along the parent border, the two
+        // edges adjacent to it can cut across outside the parent (concave
+        // corners). Insert the parent border path on release — same fix as
+        // when drawing, but deferred so points don't spawn mid-drag.
+        if (editState.isActive() &&
+            editState.handleType == EditHandleType::PolyPoint &&
+            editState.target->parent &&
+            editState.target->geometry.type == GeometryType::Polygon)
+        {
+            Region& region = *editState.target;
+            const RegionGeometry& pg = region.parent->geometry;
+            auto& pts = region.geometry.points;
+            int idx = editState.handleIndex;
+            int n   = static_cast<int>(pts.size());
+
+            if (idx >= 0 && idx < n && n >= 3)
+            {
+                // Edge dragged → next: insert after idx (doesn't shift idx)
+                int next = (idx + 1) % n;
+                if (!pg.segmentInside(pts[idx], pts[next]))
+                {
+                    std::vector<Vec2> path =
+                        pg.boundaryPathBetween(pts[idx], pts[next]);
+                    pts.insert(pts.begin() + idx + 1, path.begin(), path.end());
+                }
+
+                // Edge prev → dragged: insert before idx, keep handle on the
+                // dragged point by shifting its index
+                n = static_cast<int>(pts.size());
+                int prev = (idx - 1 + n) % n;
+                if (!pg.segmentInside(pts[prev], pts[idx]))
+                {
+                    std::vector<Vec2> path =
+                        pg.boundaryPathBetween(pts[prev], pts[idx]);
+                    pts.insert(pts.begin() + idx, path.begin(), path.end());
+                    editState.handleIndex = idx + static_cast<int>(path.size());
+                }
+            }
+        }
+
         RegionSerializer::save(regionTree, "regions.json", *this);
     }
 }
@@ -649,6 +747,31 @@ void Core::deleteEditPoint()
     editState.clearDrag();
 
     RegionSerializer::save(regionTree, "regions.json", *this);
+}
+
+// ---------------------------------------------------------------
+// Zoom to region
+// ---------------------------------------------------------------
+
+void Core::zoomToRegion(const Region& region)
+{
+    if (!region.geometry.isValid()) return;
+
+    double minX, minY, maxX, maxY;
+    regionBoundingBox(region, minX, minY, maxX, maxY);
+
+    double w = maxX - minX;
+    double h = maxY - minY;
+    if (w <= 0.0 || h <= 0.0) return;
+
+    // Fit with a margin so the region doesn't touch the window edges
+    double zoomX = camera.viewportSize.x / w;
+    double zoomY = camera.viewportSize.y / h;
+    double zoom  = std::min(zoomX, zoomY) * 0.80;
+
+    camera.zoom     = std::min(zoom, camera.maxZoom);
+    camera.position = { (minX + maxX) / 2.0, (minY + maxY) / 2.0 };
+    camera.clampToBounds(mapWidth, mapHeight);
 }
 
 // ---------------------------------------------------------------

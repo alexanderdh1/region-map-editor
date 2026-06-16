@@ -11,6 +11,10 @@ struct SelectionState
     Region* selectedRegion = nullptr;
     bool popupOpen = false;
 
+    // Region under the mouse cursor — recomputed every frame by Core,
+    // read by RegionRenderer to draw a soft hover glow. Never persists.
+    Region* hoveredRegion = nullptr;
+
     // Navigation stack: when viewing a sub-region popup,
     // this holds the chain of parents so we can go back.
     // viewStack[0] = top-level ancestor, back() = current popup region's parent.
@@ -51,6 +55,7 @@ struct SelectionState
     {
         selectedRegion = nullptr;
         popupOpen = false;
+        hoveredRegion = nullptr;
         viewStack.clear();
     }
 

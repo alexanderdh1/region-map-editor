@@ -4,12 +4,11 @@
 #include <algorithm>
 #include <cmath>
 
-void RegionRenderer::render(const RegionTree& tree, const Camera& camera) const
+void RegionRenderer::render(const RegionTree& tree, const Camera& camera,
+                            const Region* hovered) const
 {
-    tree.forEach([&](const Region& region)
-    {
-        renderRegion(region, camera);
-    });
+    for (const auto& root : tree.roots())
+        renderRegion(*root, camera, hovered);
 }
 
 void RegionRenderer::renderPreview(const Input& input, const Camera& camera) const
@@ -133,7 +132,8 @@ void RegionRenderer::drawHandle(const Vec2& screenPos,
 // Region rendering
 // ---------------------------------------------------------------
 
-void RegionRenderer::renderRegion(const Region& region, const Camera& camera) const
+void RegionRenderer::renderRegion(const Region& region, const Camera& camera,
+                                  const Region* hovered) const
 {
     if (!region.geometry.isValid()) return;
     if (region.hidden) return; // hidden regions are not rendered
@@ -144,12 +144,23 @@ void RegionRenderer::renderRegion(const Region& region, const Camera& camera) co
     const Region* p = region.parent;
     while (p) { depth += 1.0f; p = p->parent; }
 
+    bool isHovered = (&region == hovered);
+
     float fillAlpha    = region.colorA * (1.0f - depth * 0.08f);
     float outlineWidth = 1.5f + depth * 1.0f;
 
     drawFilledPolygon(camera, pts,
         region.colorR, region.colorG, region.colorB,
         std::max(0.1f, fillAlpha));
+
+    // Soft hover glow: white wash over the fill + a wide translucent outline
+    if (isHovered)
+    {
+        drawFilledPolygon(camera, pts, 1.0f, 1.0f, 1.0f, 0.10f);
+
+        glLineWidth(outlineWidth + 3.0f);
+        drawOutline(camera, pts, 1.0f, 1.0f, 1.0f, 0.30f);
+    }
 
     // Explicit state reset after stencil operations
     glDisable(GL_STENCIL_TEST);
@@ -158,14 +169,14 @@ void RegionRenderer::renderRegion(const Region& region, const Camera& camera) co
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glLineWidth(outlineWidth);
+    glLineWidth(isHovered ? outlineWidth + 0.5f : outlineWidth);
     drawOutline(camera, pts,
         region.colorR, region.colorG, region.colorB,
         std::min(1.0f, region.colorA + 0.4f));
     glLineWidth(1.0f);
 
     for (const auto& child : region.children)
-        renderRegion(*child, camera);
+        renderRegion(*child, camera, hovered);
 }
 
 void RegionRenderer::renderRectPreview(

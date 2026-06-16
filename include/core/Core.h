@@ -87,6 +87,9 @@ public:
 
     void deleteEditPoint();
 
+    // Centre the camera on a region and zoom so it fills most of the view
+    void zoomToRegion(const Region& region);
+
     // Pending parent is set when the user clicks "Add sub-region" — the next
     // drawn region will automatically be added as a child of this region.
     void setPendingParent(RegionId id) { pendingParentId = id; hasPendingParent = true; }

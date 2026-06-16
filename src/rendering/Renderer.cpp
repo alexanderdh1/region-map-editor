@@ -8,8 +8,9 @@ void Renderer::render(const Core& core)
     // 1. Map tiles
     tileLayer.render(camera);
 
-    // 2. Regions
-    regionRenderer.render(core.getRegionTree(), camera);
+    // 2. Regions (with hover glow on the region under the cursor)
+    regionRenderer.render(core.getRegionTree(), camera,
+                          core.getSelection().hoveredRegion);
 
     // 3. Edit handles (drawn on top of regions, below UI)
     regionRenderer.renderEditHandles(core);

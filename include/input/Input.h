@@ -22,6 +22,7 @@ class Input {
 public:
     void onMouseButton(bool pressed, const Vec2& mousePos, bool shiftHeld);
     void onMouseButtonRight(bool pressed, const Vec2& mousePos);
+    void onMouseButtonMiddle(bool pressed, const Vec2& mousePos);
     void onMouseMove(const Vec2& mousePos);
     void onScroll(double yOffset);
 
@@ -98,8 +99,9 @@ public:
 
     void cancelEdit();
 
-    // Called by Core when an edit-mode press misses all handles — redirects into pan.
-    void redirectEditToPan(const Vec2& mousePos)
+    // Called by Core when an edit-mode press misses all handles.
+    // The press is discarded — panning is done with the middle mouse button.
+    void cancelEditPress()
     {
         editMouseButtonHeld  = false;
         editDragging = false;
@@ -107,14 +109,15 @@ public:
         editDragDelta = { 0.0, 0.0 };
         editDragTotalDelta = { 0.0, 0.0 };
         mode = InputMode::Navigate;
-        dragging = true;
-        didDrag = false;
-        lastMousePos = mousePos;
     }
 
     // --- Click ---
     bool hasClick() const;
     Vec2 consumeClick();
+
+    // --- Double-click (navigate mode) ---
+    bool hasDoubleClick() const { return doubleClickPending; }
+    Vec2 consumeDoubleClick() { doubleClickPending = false; return doubleClickPos; }
 
     // --- Right-click ---
     bool hasRightClick() const { return rightClickPending; }
@@ -130,6 +133,10 @@ private:
     Vec2 lastMousePos { 0.0, 0.0 };
     Vec2 panDelta { 0.0, 0.0 };
     double zoomDelta = 0.0;
+
+    // Middle-mouse pan — works in every mode, including while drawing
+    bool panDragging = false;
+    Vec2 panLastPos { 0.0, 0.0 };
 
     // Rectangle drawing
     bool drawing = false;
@@ -154,6 +161,12 @@ private:
     // Click
     bool clickPending = false;
     Vec2 clickPos { 0.0, 0.0 };
+
+    // Double-click (navigate mode)
+    bool doubleClickPending = false;
+    Vec2 doubleClickPos { 0.0, 0.0 };
+    double navLastClickTime = 0.0;
+    Vec2 navLastClickPos { 0.0, 0.0 };
 
     // Right-click
     bool rightClickPending = false;
